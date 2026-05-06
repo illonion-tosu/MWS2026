@@ -1,0 +1,19 @@
+.main {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 1920px;
+    height: 1080px;
+    background-size: cover;
+    background-image: url("static/background.png");
+}
+
+.book-background {
+    position: absolute;
+    left: calc(51px / 2);
+    top: calc(71px / 2);
+    width: calc(3618px / 2);
+    height: calc(2002px / 2);
+    background-color: #634832;
+    border-radius: calc(108px / 2);
+}
