@@ -85,7 +85,6 @@
     width: 815.5px;
     height: 397.5px;
     border-radius: 22px;
-    overflow: hidden;
 }
 .now-playing-background {
     position: absolute;
@@ -93,6 +92,7 @@
     height: 100%;
     background: center / cover;
     background-image: url("https://assets.ppy.sh/beatmaps/292301/covers/cover.jpg");
+    border-radius: inherit;
 }
 .now-playing-overlay {
     position: absolute;
@@ -102,6 +102,7 @@
     height: 100%;
     background-image: linear-gradient(to bottom, #957259, var(--book-background-colour), #38220F);
     opacity: 0.75;
+    border-radius: inherit;
 }
 /* Now Playing Stats */
 .now-playing-stats {
@@ -128,4 +129,24 @@
 .now-playing-stat-number {
     color: var(--vanilla-colour);
     width: 69px;
+}
+/* Ingredients */
+.ingredients {
+    position: absolute;
+    top: 50%;
+    display: flex;
+    flex-direction: column;
+}
+.ingredients img {
+    --dimension: 50px;
+    width: var(--dimension);
+    height: var(--dimension);
+}
+.left-ingredients {
+    left: 0;
+    transform: translate(-40%, -50%);
+}
+.right-ingredients {
+    right: 0;
+    transform: translate(40%, -50%);
 }
