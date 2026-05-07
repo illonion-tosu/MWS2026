@@ -1,5 +1,10 @@
 :root {
+    --left-profile-picture-x: 112px;
+    --right-profile-picture-x: 1030px;
+    --player-name-x: 102.5px;
+
     --book-background-colour: #634832;
+    --player-name-colour: #312525;
 }
 
 .main {
@@ -30,4 +35,18 @@
 .right-profile-picture {
     right: 1030px;
     background-image: url("https://a.ppy.sh/9574522");
+}
+
+/* Player Names */
+.player-name {
+    position: absolute;
+    top: 76px;
+    font-family: "Lexend";
+    line-height: 52px;
+}
+.left-player-name {
+    left: calc(var(--left-profile-picture-x) + var(--player-name-x));
+}
+.right-player-name {
+    right: calc(var(--right-profile-picture-x) + var(--player-name-x));
 }
