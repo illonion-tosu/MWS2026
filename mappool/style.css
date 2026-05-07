@@ -2,6 +2,7 @@
     --left-profile-picture-x: 112px;
     --right-profile-picture-x: 1030px;
     --player-name-x: 102.5px;
+    --player-score-x: 318px;
 
     --book-background-colour: #634832;
     --player-name-colour: #312525;
@@ -49,4 +50,27 @@
 }
 .right-player-name {
     right: calc(var(--right-profile-picture-x) + var(--player-name-x));
+}
+
+/* Player Score */
+.player-score {
+    --dimension: 63px;
+    position: absolute;
+    top: 45px;
+    width: var(--dimension);
+    height: var(--dimension);
+    border-radius: 11px;
+    background-color: #6F8EA5;
+    color: #EBDFD0;
+    text-align: center;
+    line-height: var(--dimension);
+
+    font-family: "Lexend";
+    font-size: 2rem;
+}
+.left-player-score {
+    left: calc(var(--left-profile-picture-x) + var(--player-score-x));
+}
+.right-player-score {
+    right: calc(var(--right-profile-picture-x) + var(--player-score-x));
 }
