@@ -12,3 +12,22 @@
     background-position: center;
     background-image: url("static/background.png");
 }
+
+/* Profile Picture */
+.profile-picture {
+    --dimension: 90px;
+    position: absolute;
+    top: 62.5px;
+    width: var(--dimension);
+    height: var(--dimension);
+    background: center / cover;
+    border-radius: calc(var(--dimension) / 4);
+}
+.left-profile-picture {
+    left: 112px;
+    background-image: url("https://a.ppy.sh/9536345");
+}
+.right-profile-picture {
+    right: 1030px;
+    background-image: url("https://a.ppy.sh/9574522");
+}
