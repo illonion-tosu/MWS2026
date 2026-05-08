@@ -152,15 +152,22 @@
     transform: translate(40%, -50%);
 }
 
-.mappool-container-left {
+/* Mappool container */
+.mappool-container {
     position: absolute;
-    left: 97px;
-    top: 546px;
     display: flex;
     width: 815px;
     justify-content: space-between;
     flex-wrap: wrap;
     row-gap: 11px;
+}
+.mappool-container-left {
+    left: 97px;
+    top: 546px;
+}
+.mappool-container-right {
+    left: 1007px;
+    top: 115px;
 }
 
 /* Map Tile */
@@ -169,7 +176,6 @@
     position: relative;
     width: 195px;
     height: 205px;
-    /* background-color: green; */
     border-radius: var(--border-radius) var(--border-radius) 0 0;
     overflow: hidden;
     font-size: 0.75rem;
@@ -199,6 +205,10 @@
     line-height: var(--height);
 }
 .map-mod-nm { background-color: #4E6A7A; }
+.map-mod-ps { background-color: #957259; }
+.map-mod-hr { background-color: #8D3F38; }
+.map-mod-dt { background-color: #634E7A; }
+.map-mod-tb { background-color: #454545; }
 
 /* Ingredient */
 .ingredient {
