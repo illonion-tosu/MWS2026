@@ -5,8 +5,8 @@
     --player-score-x: 318px;
 
     --vanilla-colour: #EBDFD0;
+    --chocolate-colour: #312525;
     --book-background-colour: #634832;
-    --player-name-colour: #312525;
 }
 
 .main {
@@ -46,6 +46,7 @@
     position: absolute;
     top: 76px;
     line-height: 52px;
+    color: var(--chocolate-colour);
 }
 .left-player-name {
     left: calc(var(--left-profile-picture-x) + var(--player-name-x));
@@ -94,7 +95,7 @@
     background-image: url("https://assets.ppy.sh/beatmaps/292301/covers/cover.jpg");
     border-radius: inherit;
 }
-.now-playing-overlay {
+.image-overlay {
     position: absolute;
     top: 0;
     left: 0;
@@ -149,4 +150,74 @@
 .right-recipes {
     right: 0;
     transform: translate(40%, -50%);
+}
+
+.mappool-container-left {
+    position: absolute;
+    left: 97px;
+    top: 546px;
+    display: flex;
+    width: 815px;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    row-gap: 11px;
+}
+
+/* Map Tile */
+.map-tile {
+    --border-radius: 22px;
+    position: relative;
+    width: 195px;
+    height: 205px;
+    /* background-color: green; */
+    border-radius: var(--border-radius) var(--border-radius) 0 0;
+    overflow: hidden;
+    font-size: 0.75rem;
+}
+
+/* Map Background */
+.map-background {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 157px;
+    background: center / cover;
+    background-image: url("https://assets.ppy.sh/beatmaps/292301/covers/cover.jpg");
+}
+
+/* Map Mods */
+.map-mod-id {
+    --height: 29px;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 71px;
+    height: var(--height);
+    color: white;
+    text-align: center;
+    line-height: var(--height);
+}
+.map-mod-nm { background-color: #4E6A7A; }
+
+/* Ingredient */
+.ingredient {
+    position: absolute;
+    left: 145px;
+    top: 122px;
+    width: 50px;
+}
+
+/* Map Metadata */
+.map-metadata {
+    position: absolute;
+    left: 0;
+    top: 166px;
+    width: 100%;
+    color: var(--chocolate-colour);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
 }
