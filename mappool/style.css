@@ -155,19 +155,24 @@
 /* Mappool container */
 .mappool-container {
     position: absolute;
-    display: flex;
+    display: grid;
     width: 815px;
     justify-content: space-between;
-    flex-wrap: wrap;
-    row-gap: 11px;
+    gap: 11px;
+    grid-template-columns: repeat(4, 195px);
+    grid-auto-rows: 205px;
+    align-content: start;
+    justify-content: start;
 }
 .mappool-container-left {
     left: 97px;
     top: 546px;
+    grid-template-rows: repeat(2, 205px);
 }
 .mappool-container-right {
     left: 1007px;
     top: 115px;
+    grid-template-rows: repeat(4, 205px);
 }
 
 /* Map Tile */
@@ -230,4 +235,20 @@
     display: -webkit-box;
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
+}
+
+/* Chat Display */
+.chat-display {
+    position: relative;
+    grid-column: 2 / 5;
+    grid-row: 4 / 5;
+    width: 100%;
+    height: 205px;
+    background-color: var(--chocolate-colour);
+    border-radius: 22px;
+}
+
+/* Chat Display Container */
+.chat-display-container {
+    position: absolute;
 }
