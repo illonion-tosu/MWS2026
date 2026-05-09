@@ -6,6 +6,9 @@ on:
     pull_request:
         branches: [main]
 
+permissions:
+    contents: read
+
 jobs:
     lint:
         runs-on: ubuntu-latest
@@ -23,7 +26,7 @@ jobs:
                   npm install --global eslint htmlhint stylelint stylelint-config-standard
 
             - name: Lint JavaScript
-              run: eslint "**/*.js"
+              run: eslint "**/*.js" --ignore-pattern eslint.config.js
 
             - name: Lint HTML
               run: htmlhint "**/*.html"
