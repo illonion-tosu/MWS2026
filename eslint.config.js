@@ -20,6 +20,7 @@ module.exports = [
                 clearTimeout: "readonly",
                 setInterval: "readonly",
                 clearInterval: "readonly",
+                ReconnectingWebSocket: "readonly",
             },
         },
         rules: {
