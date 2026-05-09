@@ -3,7 +3,6 @@
     --right-profile-picture-x: 1030px;
     --player-name-x: 102.5px;
     --player-score-x: 318px;
-
     --vanilla-colour: #EBDFD0;
     --chocolate-colour: #312525;
     --book-background-colour: #634832;
@@ -18,7 +17,7 @@
     background-size: cover;
     background-position: center;
     background-image: url("static/background.png");
-    font-family: "Lexend";
+    font-family: Lexend, sans-serif;
 }
 
 /* Profile Picture */
