@@ -1,0 +1,35 @@
+name: Lint
+
+on:
+    push:
+        branches: [main]
+    pull_request:
+        branches: [main]
+
+permissions:
+    contents: read
+
+jobs:
+    lint:
+        runs-on: ubuntu-latest
+
+        steps:
+            - uses: actions/checkout@v4
+
+            - name: Set up Node
+              uses: actions/setup-node@v4
+              with:
+                  node-version: 20
+
+            - name: Install linters globally
+              run: |
+                  npm install --global eslint htmlhint stylelint stylelint-config-standard
+
+            - name: Lint JavaScript
+              run: eslint "**/*.js" --ignore-pattern eslint.config.js
+
+            - name: Lint HTML
+              run: htmlhint "**/*.html"
+
+            - name: Lint CSS
+              run: stylelint "**/*.css"
