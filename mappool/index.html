@@ -12,16 +12,19 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@100..900&display=swap" rel="stylesheet">
+
+    <!-- Other scripts -->
+    <script src="../_shared/deps/reconnecting-websocket.min.js"></script>
 </head>
 <body>
     <div class="main">
         <!-- Profile Pictures -->
-        <div class="profile-picture left-profile-picture"></div>
-        <div class="profile-picture right-profile-picture"></div>
+        <div class="profile-picture left-profile-picture" id="left-profile-picture"></div>
+        <div class="profile-picture right-profile-picture" id="right-profile-picture"></div>
 
         <!-- Player Names -->
-        <div class="player-name left-player-name">thisisalongname</div>
-        <div class="player-name right-player-name">thisisalongname</div>
+        <div class="player-name left-player-name" id="left-player-name">thisisalongname</div>
+        <div class="player-name right-player-name" id="right-player-name">thisisalongname</div>
 
         <!-- Player Scores -->
         <div class="player-score left-player-score">5</div>
@@ -236,5 +239,7 @@
             </div>
         </div>
     </div>
+
+    <script src="index.js" type="module"></script>
 </body>
 </html>
