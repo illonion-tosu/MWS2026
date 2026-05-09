@@ -8,6 +8,7 @@
     --book-background-colour: #634832;
 }
 
+/* Whole page */
 .main {
     position: absolute;
     top: 0;
@@ -23,6 +24,7 @@
 /* Profile Picture */
 .profile-picture {
     --dimension: 90px;
+
     position: absolute;
     top: 62.5px;
     width: var(--dimension);
@@ -31,10 +33,12 @@
     border-radius: calc(var(--dimension) / 4);
     z-index: 1;
 }
+
 .left-profile-picture {
     left: 112px;
     background-image: url("https://a.ppy.sh/9536345");
 }
+
 .right-profile-picture {
     right: 1030px;
     background-image: url("https://a.ppy.sh/9574522");
@@ -47,9 +51,11 @@
     line-height: 52px;
     color: var(--chocolate-colour);
 }
+
 .left-player-name {
     left: calc(var(--left-profile-picture-x) + var(--player-name-x));
 }
+
 .right-player-name {
     right: calc(var(--right-profile-picture-x) + var(--player-name-x));
 }
@@ -57,6 +63,7 @@
 /* Player Score */
 .player-score {
     --dimension: 63px;
+
     position: absolute;
     top: 45px;
     width: var(--dimension);
@@ -68,9 +75,11 @@
     line-height: var(--dimension);
     font-size: 2rem;
 }
+
 .left-player-score {
     left: calc(var(--left-profile-picture-x) + var(--player-score-x));
 }
+
 .right-player-score {
     right: calc(var(--right-profile-picture-x) + var(--player-score-x));
 }
