@@ -3,12 +3,12 @@
     --right-profile-picture-x: 1030px;
     --player-name-x: 102.5px;
     --player-score-x: 318px;
-
     --vanilla-colour: #EBDFD0;
     --chocolate-colour: #312525;
     --book-background-colour: #634832;
 }
 
+/* Whole page */
 .main {
     position: absolute;
     top: 0;
@@ -18,12 +18,13 @@
     background-size: cover;
     background-position: center;
     background-image: url("static/background.png");
-    font-family: "Lexend";
+    font-family: Lexend, sans-serif;
 }
 
 /* Profile Picture */
 .profile-picture {
     --dimension: 90px;
+
     position: absolute;
     top: 62.5px;
     width: var(--dimension);
@@ -32,10 +33,12 @@
     border-radius: calc(var(--dimension) / 4);
     z-index: 1;
 }
+
 .left-profile-picture {
     left: 112px;
     background-image: url("https://a.ppy.sh/9536345");
 }
+
 .right-profile-picture {
     right: 1030px;
     background-image: url("https://a.ppy.sh/9574522");
@@ -48,9 +51,11 @@
     line-height: 52px;
     color: var(--chocolate-colour);
 }
+
 .left-player-name {
     left: calc(var(--left-profile-picture-x) + var(--player-name-x));
 }
+
 .right-player-name {
     right: calc(var(--right-profile-picture-x) + var(--player-name-x));
 }
@@ -58,6 +63,7 @@
 /* Player Score */
 .player-score {
     --dimension: 63px;
+
     position: absolute;
     top: 45px;
     width: var(--dimension);
@@ -67,13 +73,13 @@
     color: var(--vanilla-colour);
     text-align: center;
     line-height: var(--dimension);
-
-    
     font-size: 2rem;
 }
+
 .left-player-score {
     left: calc(var(--left-profile-picture-x) + var(--player-score-x));
 }
+
 .right-player-score {
     right: calc(var(--right-profile-picture-x) + var(--player-score-x));
 }
@@ -87,6 +93,7 @@
     height: 397.5px;
     border-radius: 22px;
 }
+
 .now-playing-background {
     position: absolute;
     width: 100%;
@@ -95,6 +102,7 @@
     background-image: url("https://assets.ppy.sh/beatmaps/292301/covers/cover.jpg");
     border-radius: inherit;
 }
+
 .image-overlay {
     position: absolute;
     top: 0;
@@ -105,6 +113,7 @@
     opacity: 0.75;
     border-radius: inherit;
 }
+
 /* Now Playing Stats */
 .now-playing-stats {
     position: absolute;
@@ -117,20 +126,24 @@
     gap: 10px;
     font-size: 1.25rem;
 }
+
 .now-playing-stat-container {
     display: flex;
     gap: 10px;
 }
+
 .now-playing-stat-text {
     color: #C8786E;
     font-weight: 700;
     width: 48px;
     text-align: center;
 }
+
 .now-playing-stat-number {
     color: var(--vanilla-colour);
     width: 69px;
 }
+
 /* Recipes */
 .recipes {
     position: absolute;
@@ -138,15 +151,19 @@
     display: flex;
     flex-direction: column;
 }
+
 .recipes img {
     --dimension: 50px;
+
     width: var(--dimension);
     height: var(--dimension);
 }
+
 .left-recipes {
     left: 0;
     transform: translate(-40%, -50%);
 }
+
 .right-recipes {
     right: 0;
     transform: translate(40%, -50%);
@@ -157,18 +174,18 @@
     position: absolute;
     display: grid;
     width: 815px;
-    justify-content: space-between;
+    place-content: start space-between;
     gap: 11px;
     grid-template-columns: repeat(4, 195px);
     grid-auto-rows: 205px;
-    align-content: start;
-    justify-content: start;
 }
+
 .mappool-container-left {
     left: 97px;
     top: 546px;
     grid-template-rows: repeat(2, 205px);
 }
+
 .mappool-container-right {
     left: 1007px;
     top: 115px;
@@ -178,6 +195,7 @@
 /* Map Tile */
 .map-tile {
     --border-radius: 22px;
+
     position: relative;
     width: 195px;
     height: 205px;
@@ -200,6 +218,7 @@
 /* Map Mods */
 .map-mod-id {
     --height: 29px;
+
     position: absolute;
     top: 0;
     left: 0;
@@ -252,6 +271,7 @@
 .chat-display-container {
     --margin: 12px;
     --dimension: calc(100% - var(--margin) * 2);
+
     position: absolute;
     top: var(--margin);
     left: var(--margin);
