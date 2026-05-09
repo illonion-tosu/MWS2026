@@ -1,9 +1,12 @@
 module.exports = [
     {
+        ignores: ["eslint.config.js"],
+    },
+    {
         files: ["**/*.js"],
         languageOptions: {
             ecmaVersion: "latest",
-            sourceType: "script",
+            sourceType: "module",
             globals: {
                 window: "readonly",
                 document: "readonly",
