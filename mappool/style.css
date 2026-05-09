@@ -250,5 +250,29 @@
 
 /* Chat Display Container */
 .chat-display-container {
+    --margin: 12px;
+    --dimension: calc(100% - var(--margin) * 2);
     position: absolute;
+    top: var(--margin);
+    left: var(--margin);
+    width: var(--dimension);
+    height: var(--dimension);
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    overflow-y: scroll;
 }
+.chat-display-container::-webkit-scrollbar { display: none; }
+
+/* Chat Display Message */
+.chat-display-message {
+    display: flex;
+    width: inherit;
+    color: var(--vanilla-colour);
+}
+.chat-display-name { margin-right: 10px; }
+.chat-display-content { width: 100%; }
+.left { color: lightpink; }
+.right { color: lightblue;}
+.bot { color: lightyellow; }
+.unknown { color: lightgreen}
