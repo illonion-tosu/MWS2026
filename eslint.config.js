@@ -1,6 +1,9 @@
 module.exports = [
     {
-        ignores: ["eslint.config.js"],
+        ignores: [
+            "eslint.config.js",
+            "_shared/deps/**"
+        ],
     },
     {
         files: ["**/*.js"],
