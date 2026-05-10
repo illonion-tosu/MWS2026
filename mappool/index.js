@@ -31,6 +31,7 @@ const nowPlayingStatNumberBpmEl = document.getElementById("now-playing-stat-numb
 const nowPlayingStatNumberCsEl = document.getElementById("now-playing-stat-number-cs")
 const nowPlayingStatNumberArEl = document.getElementById("now-playing-stat-number-ar")
 const nowPlayingStatNumberOdEl = document.getElementById("now-playing-stat-number-od")
+let cs, ar, od, bpm, len, mod
 
 /**
  * Handles incoming websocket messages from Tosu.
@@ -62,22 +63,23 @@ socket.onmessage = async event => {
         nowPlayingChecksum = data.beatmap.checksum
         updateStats = true
  
-        const bg = data.directPath.beatmapBackground.replace(/\\/g, "/").replace(/[\u0000-\u001F\u007F]/g, "")
+        const bg = data.directPath.beatmapBackground
+            .replace(/\\/g, "/")
+            // eslint-disable-next-line no-control-regex
+            .replace(/[\u0000-\u001F\u007F]/g, "")
         nowPlayingBackgroundEl.style.backgroundImage = `url("http://127.0.0.1:24050/Songs/${bg}")`
 
         // Current Map
         const currentMap = findBeatmap(nowPlayingId)
         if (currentMap) {
             updateStats = false
-            [cs, ar, od, bpm, len, mod] = getModDetails(currentMap.diff_size, currentMap.diff_approach,
-                currentMap.diff_overall, currentMap.bpm, currentMap.total_length,
-                currentMap.mod === "PS"? currentMap.extra_mod : currentMap.mod)
+            [cs, ar, od, bpm, len, mod] = getModDetails(currentMap.diff_size, currentMap.diff_approach, currentMap.diff_overall, currentMap.bpm, currentMap.total_length, currentMap.mod === "PS"? currentMap.extra_mod : currentMap.mod)
             
-            nowPlayingStatNumberSrEl = Number(currentMap.difficultyrating).toFixed(2)
-            nowPlayingStatNumberBpmEl = bpm
-            nowPlayingStatNumberCsEl = cs
-            nowPlayingStatNumberArEl = ar
-            nowPlayingStatNumberOdEl = od
+            nowPlayingStatNumberSrEl.textContent = Number(currentMap.difficultyrating).toFixed(2)
+            nowPlayingStatNumberBpmEl.textContent = bpm
+            nowPlayingStatNumberCsEl.textContent = cs
+            nowPlayingStatNumberArEl.textContent = ar
+            nowPlayingStatNumberOdEl.textContent = od
         }
 
         // Update stats

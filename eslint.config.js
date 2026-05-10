@@ -24,6 +24,8 @@ module.exports = [
                 setInterval: "readonly",
                 clearInterval: "readonly",
                 ReconnectingWebSocket: "readonly",
+                Blob: "readonly",
+                URL: "readonly",
             },
         },
         rules: {
