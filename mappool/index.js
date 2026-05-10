@@ -1,5 +1,6 @@
-import { createTosuWsSocket } from "../_shared/core/websocket.js"
 import { initialiseOsuApi, getOsuApi } from "../_shared/core/apis.js"
+import { delay } from "../_shared/deps/utils.js"
+import { createTosuWsSocket } from "../_shared/core/websocket.js"
 
 initialiseOsuApi()
 
@@ -13,7 +14,7 @@ let currentLeftPlayer, currentRightPlayer
 // Now Playing
 const nowPlayingBackgroundEl = document.getElementById("now-playing-background")
 let nowPlayingId, nowPlayingChecksum
-let currentMappoolBeatmap
+let updateStats
 
 // Now Playing Stats
 const nowPlayingStatNumberSrEl = document.getElementById("now-playing-stat-number-sr")
@@ -50,10 +51,23 @@ socket.onmessage = async event => {
     if (nowPlayingId !== data.beatmap.id || nowPlayingChecksum !== data.beatmap.checksum) {
         nowPlayingId = data.beatmap.id
         nowPlayingChecksum = data.beatmap.checksum
-        currentMappoolBeatmap = undefined
+        updateStats = true
  
         const bg = data.directPath.beatmapBackground.replace(/\\/g, "/").replace(/[\u0000-\u001F\u007F]/g, "")
         nowPlayingBackgroundEl.style.backgroundImage = `url("http://127.0.0.1:24050/Songs/${bg}")`
+
+        if (updateStats) {
+            await delay(250)
+        }
+    }
+
+    if (updateStats) {
+        updateStats = false
+        nowPlayingStatNumberSrEl.textContent = data.beatmap.stats.stars.total.toFixed(2)
+        nowPlayingStatNumberBpmEl.textContent = Math.round(data.beatmap.stats.bpm.common)
+        nowPlayingStatNumberCsEl.textContent = data.beatmap.stats.cs.converted.toFixed(2)
+        nowPlayingStatNumberArEl.textContent = data.beatmap.stats.ar.converted.toFixed(2)
+        nowPlayingStatNumberOdEl.textContent = data.beatmap.stats.od.converted.toFixed(2)
     }
 }
 
