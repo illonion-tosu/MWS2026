@@ -72,7 +72,7 @@ socket.onmessage = async event => {
         // Current Map
         const currentMap = findBeatmap(nowPlayingId)
         if (currentMap) {
-            updateStats = false
+            updateStats = false;
             [cs, ar, od, bpm, len, mod] = getModDetails(currentMap.diff_size, currentMap.diff_approach, currentMap.diff_overall, currentMap.bpm, currentMap.total_length, currentMap.mod === "PS"? currentMap.extra_mod : currentMap.mod)
             
             nowPlayingStatNumberSrEl.textContent = Number(currentMap.difficultyrating).toFixed(2)
