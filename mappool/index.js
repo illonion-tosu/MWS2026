@@ -31,7 +31,7 @@ const nowPlayingStatNumberBpmEl = document.getElementById("now-playing-stat-numb
 const nowPlayingStatNumberCsEl = document.getElementById("now-playing-stat-number-cs")
 const nowPlayingStatNumberArEl = document.getElementById("now-playing-stat-number-ar")
 const nowPlayingStatNumberOdEl = document.getElementById("now-playing-stat-number-od")
-let cs, ar, od, bpm, len, mod
+let cs, ar, od, bpm
 
 /**
  * Handles incoming websocket messages from Tosu.
@@ -73,7 +73,7 @@ socket.onmessage = async event => {
         const currentMap = findBeatmap(nowPlayingId)
         if (currentMap) {
             updateStats = false;
-            [cs, ar, od, bpm, len, mod] = getModDetails(currentMap.diff_size, currentMap.diff_approach, currentMap.diff_overall, currentMap.bpm, currentMap.total_length, currentMap.mod === "PS"? currentMap.extra_mod : currentMap.mod)
+            [cs, ar, od, bpm] = getModDetails(currentMap.diff_size, currentMap.diff_approach, currentMap.diff_overall, currentMap.bpm, currentMap.total_length, currentMap.mod === "PS"? currentMap.extra_mod : currentMap.mod)
             
             nowPlayingStatNumberSrEl.textContent = Number(currentMap.difficultyrating).toFixed(2)
             nowPlayingStatNumberBpmEl.textContent = bpm
