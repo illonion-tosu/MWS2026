@@ -12,16 +12,19 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@100..900&display=swap" rel="stylesheet">
+
+    <!-- Other scripts -->
+    <script src="../_shared/deps/reconnecting-websocket.min.js"></script>
 </head>
 <body>
     <div class="main">
         <!-- Profile Pictures -->
-        <div class="profile-picture left-profile-picture"></div>
-        <div class="profile-picture right-profile-picture"></div>
+        <div class="profile-picture left-profile-picture" id="left-profile-picture"></div>
+        <div class="profile-picture right-profile-picture" id="right-profile-picture"></div>
 
         <!-- Player Names -->
-        <div class="player-name left-player-name">thisisalongname</div>
-        <div class="player-name right-player-name">thisisalongname</div>
+        <div class="player-name left-player-name" id="left-player-name">thisisalongname</div>
+        <div class="player-name right-player-name" id="right-player-name">thisisalongname</div>
 
         <!-- Player Scores -->
         <div class="player-score left-player-score">5</div>
@@ -29,28 +32,28 @@
 
         <!-- Now Playing Stying -->
         <div class="now-playing">
-            <div class="now-playing-background"></div>
+            <div class="now-playing-background" id="now-playing-background"></div>
             <div class="image-overlay"></div>
             <section class="now-playing-stats">
                 <div class="now-playing-stat-container">
                     <div class="now-playing-stat-text">SR</div>
-                    <div class="now-playing-stat-number">7.43</div>
+                    <div class="now-playing-stat-number" id="now-playing-stat-number-sr">7.43</div>
                 </div>
                 <div class="now-playing-stat-container">
                     <div class="now-playing-stat-text">BPM</div>
-                    <div class="now-playing-stat-number">213</div>
+                    <div class="now-playing-stat-number" id="now-playing-stat-number-bpm">213</div>
                 </div>
                 <div class="now-playing-stat-container">
                     <div class="now-playing-stat-text">CS</div>
-                    <div class="now-playing-stat-number">5.30</div>
+                    <div class="now-playing-stat-number" id="now-playing-stat-number-cs">5.30</div>
                 </div>
                 <div class="now-playing-stat-container">
                     <div class="now-playing-stat-text">AR</div>
-                    <div class="now-playing-stat-number">9.54</div>
+                    <div class="now-playing-stat-number" id="now-playing-stat-number-ar">9.54</div>
                 </div>
                 <div class="now-playing-stat-container">
                     <div class="now-playing-stat-text">OD</div>
-                    <div class="now-playing-stat-number">10.00</div>
+                    <div class="now-playing-stat-number" id="now-playing-stat-number-od">10.00</div>
                 </div>
             </section>
             <div class="recipes left-recipes">
@@ -236,5 +239,7 @@
             </div>
         </div>
     </div>
+
+    <script src="index.js" type="module"></script>
 </body>
 </html>
