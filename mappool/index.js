@@ -1,8 +1,17 @@
 import { initialiseOsuApi, getOsuApi } from "../_shared/core/apis.js"
-import { delay } from "../_shared/deps/utils.js"
+import { loadBeatmaps, findBeatmap } from "../_shared/core/beatmaps.js"
+import { delay, getModDetails } from "../_shared/core/utils.js"
 import { createTosuWsSocket } from "../_shared/core/websocket.js"
 
+// Load beatmaps
+let allBeatmaps = []
+async function getBeatmaps() {
+    const data = await loadBeatmaps()
+    allBeatmaps = data.beatmaps
+}
+
 initialiseOsuApi()
+getBeatmaps()
 
 // Player Names
 const leftProfilePictureEl = document.getElementById("left-profile-picture")
@@ -48,7 +57,7 @@ socket.onmessage = async event => {
     }
 
     // Now Playing Information
-    if (nowPlayingId !== data.beatmap.id || nowPlayingChecksum !== data.beatmap.checksum) {
+    if ((nowPlayingId !== data.beatmap.id || nowPlayingChecksum !== data.beatmap.checksum && allBeatmaps)) {
         nowPlayingId = data.beatmap.id
         nowPlayingChecksum = data.beatmap.checksum
         updateStats = true
@@ -56,6 +65,22 @@ socket.onmessage = async event => {
         const bg = data.directPath.beatmapBackground.replace(/\\/g, "/").replace(/[\u0000-\u001F\u007F]/g, "")
         nowPlayingBackgroundEl.style.backgroundImage = `url("http://127.0.0.1:24050/Songs/${bg}")`
 
+        // Current Map
+        const currentMap = findBeatmap(nowPlayingId)
+        if (currentMap) {
+            updateStats = false
+            [cs, ar, od, bpm, len, mod] = getModDetails(currentMap.diff_size, currentMap.diff_approach,
+                currentMap.diff_overall, currentMap.bpm, currentMap.total_length,
+                currentMap.mod === "PS"? currentMap.extra_mod : currentMap.mod)
+            
+            nowPlayingStatNumberSrEl = Number(currentMap.difficultyrating).toFixed(2)
+            nowPlayingStatNumberBpmEl = bpm
+            nowPlayingStatNumberCsEl = cs
+            nowPlayingStatNumberArEl = ar
+            nowPlayingStatNumberOdEl = od
+        }
+
+        // Update stats
         if (updateStats) {
             await delay(250)
         }
