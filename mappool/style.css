@@ -6,6 +6,8 @@
     --vanilla-colour: #EBDFD0;
     --chocolate-colour: #312525;
     --book-background-colour: #634832;
+    --pick-green: #5F7F63; /* Matcha */
+    --ban-red: #8D3F38; /* Cherry */
 }
 
 /* Whole page */
@@ -114,6 +116,18 @@
     border-radius: inherit;
 }
 
+/* Pick Ban Border */
+.pick-ban-border {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    border-radius: inherit;
+    box-shadow: inset 0 0 0 5px var(--border-colour);
+}
+.pick-border { --border-colour: var(--pick-green); }
+.ban-border { --border-colour: var(--ban-red); }
+
+
 /* Now Playing Stats */
 .now-playing-stats {
     position: absolute;
@@ -213,6 +227,7 @@
     height: 157px;
     background: center / cover;
     background-image: url("https://assets.ppy.sh/beatmaps/292301/covers/cover.jpg");
+    border-radius: inherit;
 }
 
 /* Map Mods */
@@ -227,6 +242,7 @@
     color: white;
     text-align: center;
     line-height: var(--height);
+    transition: 500ms ease-in-out;
 }
 .map-mod-nm { background-color: #4E6A7A; }
 .map-mod-ps { background-color: #957259; }
