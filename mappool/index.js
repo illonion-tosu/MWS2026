@@ -30,17 +30,17 @@ async function getBeatmaps() {
 }
 
 /**
- * Creates a DOM element representing a beatmap tile.
+ * Creates a DOM element representing a beatmap tile
  * 
- * @param {Object} beatmapInfo - The data object containing beatmap details.
- * @param {number|string} beatmapInfo.beatmapset_id - Beatmapset ID
+ * @param {Object} beatmapInfo - The data object containing beatmap details
+ * @param {string} beatmapInfo.beatmapset_id - Beatmapset ID
  * @param {string} beatmapInfo.mod - The mod acronym
- * @param {number|string} beatmapInfo.order - The sequence number within the mod group.
+ * @param {number} beatmapInfo.order - The sequence number within the mod group
  * @param {string} beatmapInfo.artist - Name of song artyist
  * @param {string} beatmapInfo.title - Title of song
  * @param {string} beatmapInfo.version - Difficulty name
  * 
- * @returns {HTMLDivElement} A 'map-tile' div element containing the background, 
+ * @returns {HTMLDivElement} A 'map-tile' div element containing the background,
  * overlay, mod ID, ingredient icon, and metadata text
  */
 function createTile(beatmapInfo) {
@@ -77,7 +77,33 @@ function createTile(beatmapInfo) {
     mapBackground.append(imageOverlay, pickBanBorder, mapModId)
     mapTile.append(mapBackground, ingredient, mapMetadata)
 
+    // Map Tile
+    mapTile.addEventListener("mousedown", mapClickEvent)
+    mapTile.addEventListener("contextmenu", event => event.preventDefault())
+
     return mapTile
+}
+
+// Map Click Event
+function mapClickEvent(event) {
+    // Team
+    let team
+    if (event.button === 0) team = "red"
+    else if (event.button === 2) team = "blue"
+    if (!team) return
+
+    // Action
+    let action = "pick"
+    if (event.ctrlKey) action = "ban"
+    if (event.altKey) action = "clear"
+
+    const pickBanBorder = this.children[0].children[1]
+    pickBanBorder.classList.remove("pick-border")
+    pickBanBorder.classList.remove("ban-border")
+
+    if (action === "clear") return
+    else if (action === "pick") pickBanBorder.classList.add("pick-border")
+    else if (action === "ban") pickBanBorder.classList.add("ban-border")
 }
 
 initialiseOsuApi()
