@@ -3,11 +3,81 @@ import { loadBeatmaps, findBeatmap } from "../_shared/core/beatmaps.js"
 import { delay, getModDetails } from "../_shared/core/utils.js"
 import { createTosuWsSocket } from "../_shared/core/websocket.js"
 
-// Load beatmaps
+const mappoolContainerLeftEl = document.getElementById("mappool-container-left")
+const mappoolContainerRightEl = document.getElementById("mappool-container-right")
+const chatDisplayEl = document.getElementById("chat-display")
 let allBeatmaps = []
+/**
+ * Loads beatmaps into allBeatmaps variable
+ */
 async function getBeatmaps() {
     const data = await loadBeatmaps()
     allBeatmaps = data.beatmaps
+    console.log(allBeatmaps.length)
+
+    let i = 0
+    for (i; i < Math.min(allBeatmaps.length, 8); i++) {
+        mappoolContainerLeftEl.append(createTile(allBeatmaps[i]))
+    }
+    for (i; i < allBeatmaps.length; i++) {
+        mappoolContainerRightEl.append(createTile(allBeatmaps[i]))
+    }
+
+    // Check if chat display needs to be adjusted
+    if (mappoolContainerRightEl.childElementCount >= 14) {
+        chatDisplayEl.style.gridColumn = "3 / 5"
+    }
+}
+
+/**
+ * Creates a DOM element representing a beatmap tile.
+ * 
+ * @param {Object} beatmapInfo - The data object containing beatmap details.
+ * @param {number|string} beatmapInfo.beatmapset_id - Beatmapset ID
+ * @param {string} beatmapInfo.mod - The mod acronym
+ * @param {number|string} beatmapInfo.order - The sequence number within the mod group.
+ * @param {string} beatmapInfo.artist - Name of song artyist
+ * @param {string} beatmapInfo.title - Title of song
+ * @param {string} beatmapInfo.version - Difficulty name
+ * 
+ * @returns {HTMLDivElement} A 'map-tile' div element containing the background, 
+ * overlay, mod ID, ingredient icon, and metadata text
+ */
+function createTile(beatmapInfo) {
+    // Map Tile
+    const mapTile = document.createElement("div")
+    mapTile.classList.add("map-tile")
+
+    // Map background
+    const mapBackground = document.createElement("div")
+    mapBackground.classList.add("map-background")
+    mapBackground.style.backgroundImage = `url("https://assets.ppy.sh/beatmaps/${beatmapInfo.beatmapset_id}/covers/cover.jpg")`
+
+    const imageOverlay = document.createElement("div")
+    imageOverlay.classList.add("image-overlay")
+
+    const pickBanBorder = document.createElement("div")
+    pickBanBorder.classList.add("pick-ban-border")
+
+    const mapModId = document.createElement("div")
+    mapModId.classList.add("map-mod-id", `map-mod-${beatmapInfo.mod.toLowerCase()}`)
+    mapModId.textContent = `${beatmapInfo.mod}${beatmapInfo.order}`
+    
+    // Ingredient
+    const ingredient = document.createElement("img")
+    ingredient.classList.add("ingredient")
+    ingredient.setAttribute("src", "static/ingredients/ingredient-1.png")
+
+    // Metadata
+    const mapMetadata = document.createElement("div")
+    mapMetadata.classList.add("map-metadata")
+    mapMetadata.textContent = `${beatmapInfo.artist} - ${beatmapInfo.title} [${beatmapInfo.version}]`
+
+    // Append everything together
+    mapBackground.append(imageOverlay, pickBanBorder, mapModId)
+    mapTile.append(mapBackground, ingredient, mapMetadata)
+
+    return mapTile
 }
 
 initialiseOsuApi()

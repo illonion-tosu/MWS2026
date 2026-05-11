@@ -127,7 +127,6 @@
 .pick-border { --border-colour: var(--pick-green); }
 .ban-border { --border-colour: var(--ban-red); }
 
-
 /* Now Playing Stats */
 .now-playing-stats {
     position: absolute;
