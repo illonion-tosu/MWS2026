@@ -11,17 +11,7 @@
 }
 
 /* Whole page */
-.main {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 1920px;
-    height: 1080px;
-    background-size: cover;
-    background-position: center;
-    background-image: url("static/background.png");
-    font-family: Lexend, sans-serif;
-}
+.main { background-image: url("static/background.png"); }
 
 /* Profile Picture */
 .profile-picture {
