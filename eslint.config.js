@@ -1,11 +1,5 @@
 module.exports = [
     {
-        "env": {
-            "browser": true,
-            "node": true
-        }
-    },
-    {
         ignores: [
             "eslint.config.js",
             "_shared/deps/**"
@@ -32,6 +26,7 @@ module.exports = [
                 ReconnectingWebSocket: "readonly",
                 Blob: "readonly",
                 URL: "readonly",
+                DOMParser: "readonly",
             },
         },
         rules: {
