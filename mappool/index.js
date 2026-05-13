@@ -3,11 +3,155 @@ import { loadBeatmaps, findBeatmap } from "../_shared/core/beatmaps.js"
 import { delay, getModDetails } from "../_shared/core/utils.js"
 import { createTosuWsSocket } from "../_shared/core/websocket.js"
 
-// Load beatmaps
+const mappoolContainerLeftEl = document.getElementById("mappool-container-left")
+const mappoolContainerRightEl = document.getElementById("mappool-container-right")
+const chatDisplayEl = document.getElementById("chat-display")
 let allBeatmaps = []
+/**
+ * Loads beatmaps into allBeatmaps variable
+ */
 async function getBeatmaps() {
     const data = await loadBeatmaps()
     allBeatmaps = data.beatmaps
+
+    let i = 0
+    for (i; i < Math.min(allBeatmaps.length, 8); i++) {
+        createTile(allBeatmaps[i]).then(mapTile => {
+            mappoolContainerLeftEl.append(mapTile)
+        })
+    }
+    for (i; i < allBeatmaps.length; i++) {
+        createTile(allBeatmaps[i]).then(mapTile => {
+            mappoolContainerRightEl.append(mapTile)
+        })
+    }
+
+    // Check if chat display needs to be adjusted
+    if (mappoolContainerRightEl.childElementCount >= 14) {
+        chatDisplayEl.style.gridColumn = "3 / 5"
+    }
+}
+
+/**
+ * Creates a DOM element representing a beatmap tile
+ * 
+ * @param {Object} beatmapInfo - The data object containing beatmap details
+ * @param {string} beatmapInfo.beatmapset_id - Beatmapset ID
+ * @param {string} beatmapInfo.mod - The mod acronym
+ * @param {number} beatmapInfo.order - The sequence number within the mod group
+ * @param {string} beatmapInfo.artist - Name of song artyist
+ * @param {string} beatmapInfo.title - Title of song
+ * @param {string} beatmapInfo.version - Difficulty name
+ * 
+ * @returns {HTMLDivElement} A 'map-tile' div element containing the background,
+ * overlay, mod ID, ingredient icon, and metadata text
+ */
+async function createTile(beatmapInfo) {
+    // Map Tile
+    const mapTile = document.createElement("div")
+    mapTile.classList.add("map-tile")
+
+    // Map background
+    const mapBackground = document.createElement("div")
+    mapBackground.classList.add("map-background")
+
+    // Find image and set background image
+    const folderName = `${beatmapInfo.beatmapset_id} ${beatmapInfo.artist} - ${beatmapInfo.title}`;
+    const encodedFolder = encodeURIComponent(folderName);
+    const finalUrl = `http://127.0.0.1:24050/Songs/${encodedFolder}/`
+    const image = await findImage(finalUrl)
+
+    if (image) {
+        mapBackground.style.backgroundImage = `url("${image}")`
+    } else {
+        mapBackground.style.backgroundImage = `url("https://assets.ppy.sh/beatmaps/${beatmapInfo.beatmapset_id}/covers/cover.jpg")`
+    }
+    
+    // Image overlay
+    const imageOverlay = document.createElement("div")
+    imageOverlay.classList.add("image-overlay")
+
+    // Pick ban border
+    const pickBanBorder = document.createElement("div")
+    pickBanBorder.classList.add("pick-ban-border")
+
+    // Map mod id
+    const mapModId = document.createElement("div")
+    mapModId.classList.add("map-mod-id", `map-mod-${beatmapInfo.mod.toLowerCase()}`)
+    mapModId.textContent = `${beatmapInfo.mod}${beatmapInfo.order}`
+    
+    // Ingredient
+    const ingredient = document.createElement("img")
+    ingredient.classList.add("ingredient")
+    ingredient.setAttribute("src", "static/ingredients/ingredient-1.png")
+
+    // Metadata
+    const mapMetadata = document.createElement("div")
+    mapMetadata.classList.add("map-metadata")
+    mapMetadata.textContent = `${beatmapInfo.artist} - ${beatmapInfo.title} [${beatmapInfo.version}]`
+
+    // Append everything together
+    mapBackground.append(imageOverlay, pickBanBorder, mapModId)
+    mapTile.append(mapBackground, ingredient, mapMetadata)
+
+    // Map Tile
+    mapTile.addEventListener("mousedown", mapClickEvent)
+    mapTile.addEventListener("contextmenu", event => event.preventDefault())
+
+    return mapTile
+}
+
+/**
+ * Scans a single directory URL and stops after finding the first image.
+ * @param {string} url - The URL of the directory to scan.
+ */
+async function findImage(url) {
+    try {
+        const response = await fetch(url)
+        const text = await response.text()
+
+        const parser = new DOMParser()
+        const htmlDoc = parser.parseFromString(text, "text/html")
+        const links = Array.from(htmlDoc.querySelectorAll("a"))
+
+        // Find the image
+        for (const link of links) {
+            const href = link.getAttribute("href")
+            if (href === "../" || href.startsWith("?")) continue
+            const fullPath = new URL(href, url).href
+
+            if (href.match(/\.(jpg|jpeg|png|gif|webp)$/i)) {
+                console.log("First Image Found:", fullPath)
+                return fullPath
+            }
+        }
+        
+        console.log("No images found in this directory.")
+    } catch (err) {
+        console.error("Could not read directory:", url, err)
+    }
+}
+
+// Map Click Event
+function mapClickEvent(event) {
+    // Team
+    let team
+    if (event.button === 0) team = "red"
+    else if (event.button === 2) team = "blue"
+    if (!team) return
+
+    // Action
+    let action = "pick"
+    if (event.ctrlKey) action = "ban"
+    if (event.altKey) action = "clear"
+
+    const pickBanBorder = this.children[0].children[1]
+    pickBanBorder.classList.remove("pick-border")
+    pickBanBorder.classList.remove("ban-border")
+
+    if (action === "clear") return
+    else if (action === "pick") pickBanBorder.classList.add("pick-border")
+    else if (action === "ban") pickBanBorder.classList.add("ban-border")
 }
 
 initialiseOsuApi()
@@ -31,7 +175,6 @@ const nowPlayingStatNumberBpmEl = document.getElementById("now-playing-stat-numb
 const nowPlayingStatNumberCsEl = document.getElementById("now-playing-stat-number-cs")
 const nowPlayingStatNumberArEl = document.getElementById("now-playing-stat-number-ar")
 const nowPlayingStatNumberOdEl = document.getElementById("now-playing-stat-number-od")
-let cs, ar, od, bpm
 
 /**
  * Handles incoming websocket messages from Tosu.
@@ -45,35 +188,38 @@ let cs, ar, od, bpm
 const socket = createTosuWsSocket()
 socket.onmessage = async event => {
     const data = JSON.parse(event.data)
-    console.log(data)
+    // console.log(data)
 
     // Player information
-    if (currentLeftPlayer !== data.tourney.team.left) {
-        currentLeftPlayer = data.tourney.team.left
+    const teamInfo = data.tourney.team
+    if (currentLeftPlayer !== teamInfo.left) {
+        currentLeftPlayer = teamInfo.left
         setPlayerDetails(currentLeftPlayer, leftPlayerNameEl, leftProfilePictureEl)
     }
-    if (currentRightPlayer !== data.tourney.team.right) {
-        currentRightPlayer = data.tourney.team.right
+    if (currentRightPlayer !== teamInfo.right) {
+        currentRightPlayer = teamInfo.right
         setPlayerDetails(currentRightPlayer, rightPlayerNameEl, rightProfilePictureEl)
     }
 
     // Now Playing Information
-    if ((nowPlayingId !== data.beatmap.id || nowPlayingChecksum !== data.beatmap.checksum && allBeatmaps)) {
-        nowPlayingId = data.beatmap.id
-        nowPlayingChecksum = data.beatmap.checksum
+    const beatmapData = data.beatmap
+    if ((nowPlayingId !== beatmapData.id || nowPlayingChecksum !== beatmapData.checksum && allBeatmaps)) {
+        nowPlayingId = beatmapData.id
+        nowPlayingChecksum = beatmapData.checksum
         updateStats = true
  
         const bg = data.directPath.beatmapBackground
             .replace(/\\/g, "/")
             // eslint-disable-next-line no-control-regex
             .replace(/[\u0000-\u001F\u007F]/g, "")
+
         nowPlayingBackgroundEl.style.backgroundImage = `url("http://127.0.0.1:24050/Songs/${bg}")`
 
         // Current Map
         const currentMap = findBeatmap(nowPlayingId)
         if (currentMap) {
             updateStats = false;
-            [cs, ar, od, bpm] = getModDetails(currentMap.diff_size, currentMap.diff_approach, currentMap.diff_overall, currentMap.bpm, currentMap.total_length, currentMap.mod === "PS"? currentMap.extra_mod : currentMap.mod)
+            const { cs, ar, od, bpm } = getModDetails(currentMap.diff_size, currentMap.diff_approach, currentMap.diff_overall, currentMap.bpm, currentMap.total_length, currentMap.mod === "PS"? currentMap.extra_mod : currentMap.mod)
             
             nowPlayingStatNumberSrEl.textContent = Number(currentMap.difficultyrating).toFixed(2)
             nowPlayingStatNumberBpmEl.textContent = bpm
@@ -89,12 +235,13 @@ socket.onmessage = async event => {
     }
 
     if (updateStats) {
+        const stats = data.beatmap.stats
         updateStats = false
-        nowPlayingStatNumberSrEl.textContent = data.beatmap.stats.stars.total.toFixed(2)
-        nowPlayingStatNumberBpmEl.textContent = Math.round(data.beatmap.stats.bpm.common)
-        nowPlayingStatNumberCsEl.textContent = data.beatmap.stats.cs.converted.toFixed(2)
-        nowPlayingStatNumberArEl.textContent = data.beatmap.stats.ar.converted.toFixed(2)
-        nowPlayingStatNumberOdEl.textContent = data.beatmap.stats.od.converted.toFixed(2)
+        nowPlayingStatNumberSrEl.textContent = stats.stars.total.toFixed(2)
+        nowPlayingStatNumberBpmEl.textContent = Math.round(stats.bpm.common)
+        nowPlayingStatNumberCsEl.textContent = stats.cs.converted.toFixed(2)
+        nowPlayingStatNumberArEl.textContent = stats.ar.converted.toFixed(2)
+        nowPlayingStatNumberOdEl.textContent = stats.od.converted.toFixed(2)
     }
 }
 
@@ -104,8 +251,8 @@ socket.onmessage = async event => {
  * If the player name is empty, clears the UI elements instead.
  *
  * @param {string} currentPlayer - The player name to look up.
- * @param {HTMLElement | null} playerNameEl - Element used to display the player's name.
- * @param {HTMLElement | null} profilePictureEl - Element used to display the player's profile picture.
+ * @param {HTMLElement} playerNameEl - Element used to display the player's name.
+ * @param {HTMLElement} profilePictureEl - Element used to display the player's profile picture.
  * @returns {Promise<void>}
  */
 async function setPlayerDetails(currentPlayer, playerNameEl, profilePictureEl) {

@@ -123,10 +123,10 @@
     height: 100%;
     border-radius: inherit;
     box-shadow: inset 0 0 0 5px var(--border-colour);
+    transition: 500ms ease-in-out;
 }
 .pick-border { --border-colour: var(--pick-green); }
 .ban-border { --border-colour: var(--ban-red); }
-
 
 /* Now Playing Stats */
 .now-playing-stats {

@@ -26,6 +26,7 @@ module.exports = [
                 ReconnectingWebSocket: "readonly",
                 Blob: "readonly",
                 URL: "readonly",
+                DOMParser: "readonly",
             },
         },
         rules: {
