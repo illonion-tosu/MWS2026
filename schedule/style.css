@@ -1,2 +1,17 @@
+:root {
+    --foam-colour: #DAC0AB;
+    --date-time-positioning: 24px;
+}
+
 /* Whole page */
 .main { background-image: url("static/background.png"); }
+
+/* Date and Time */
+.date-time {
+    position: absolute;
+    top: var(--date-time-positioning);
+    font-size: 1.25rem;
+    color: var(--foam-colour)
+}
+.date { left: var(--date-time-positioning); }
+.time { right: var(--date-time-positioning); }
