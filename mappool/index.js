@@ -1,3 +1,5 @@
+/* eslint-env browser */
+
 import { initialiseOsuApi, getOsuApi } from "../_shared/core/apis.js"
 import { loadBeatmaps, findBeatmap } from "../_shared/core/beatmaps.js"
 import { delay, getModDetails } from "../_shared/core/utils.js"
