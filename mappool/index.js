@@ -1,5 +1,6 @@
 import { initialiseOsuApi, getOsuApi } from "../_shared/core/apis.js"
 import { loadBeatmaps, findBeatmap } from "../_shared/core/beatmaps.js"
+import { updateChat } from "../_shared/core/chat.js"
 import { delay, getModDetails } from "../_shared/core/utils.js"
 import { createTosuWsSocket } from "../_shared/core/websocket.js"
 
@@ -176,6 +177,10 @@ const nowPlayingStatNumberCsEl = document.getElementById("now-playing-stat-numbe
 const nowPlayingStatNumberArEl = document.getElementById("now-playing-stat-number-ar")
 const nowPlayingStatNumberOdEl = document.getElementById("now-playing-stat-number-od")
 
+// Chat Display
+const chatDisplayContainerEl = document.getElementById("chat-display-container")
+let chatLen
+
 /**
  * Handles incoming websocket messages from Tosu.
  *
@@ -188,7 +193,7 @@ const nowPlayingStatNumberOdEl = document.getElementById("now-playing-stat-numbe
 const socket = createTosuWsSocket()
 socket.onmessage = async event => {
     const data = JSON.parse(event.data)
-    // console.log(data)
+    console.log(data)
 
     // Player information
     const teamInfo = data.tourney.team
@@ -234,6 +239,7 @@ socket.onmessage = async event => {
         }
     }
 
+    // Update stats if not from mappool
     if (updateStats) {
         const stats = data.beatmap.stats
         updateStats = false
@@ -242,6 +248,12 @@ socket.onmessage = async event => {
         nowPlayingStatNumberCsEl.textContent = stats.cs.converted.toFixed(2)
         nowPlayingStatNumberArEl.textContent = stats.ar.converted.toFixed(2)
         nowPlayingStatNumberOdEl.textContent = stats.od.converted.toFixed(2)
+    }
+
+    // Chat Display
+    const chatData = data.tourney.chat
+    if (chatLen !== chatData.length) {
+        chatLen = updateChat(chatLen, chatData, chatDisplayContainerEl)
     }
 }
 
