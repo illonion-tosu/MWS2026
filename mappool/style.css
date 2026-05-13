@@ -306,7 +306,12 @@
     width: inherit;
     color: var(--vanilla-colour);
 }
-.chat-display-name { margin-right: 10px; }
+
+.chat-display-name {
+    margin-right: 10px;
+    white-space: nowrap;
+}
+
 .chat-display-content { width: 100%; }
 .left { color: lightpink; }
 .right { color: lightblue;}
