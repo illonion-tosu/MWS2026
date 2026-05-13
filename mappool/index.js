@@ -62,7 +62,7 @@ async function createTile(beatmapInfo) {
     const image = await findImage(finalUrl)
 
     if (image) {
-        mapBackground.style.backgroundImage = `${image}`
+        mapBackground.style.backgroundImage = `url("${image}")`
     } else {
         mapBackground.style.backgroundImage = `url("https://assets.ppy.sh/beatmaps/${beatmapInfo.beatmapset_id}/covers/cover.jpg")`
     }
@@ -191,25 +191,28 @@ socket.onmessage = async event => {
     // console.log(data)
 
     // Player information
-    if (currentLeftPlayer !== data.tourney.team.left) {
-        currentLeftPlayer = data.tourney.team.left
+    const teamInfo = data.tourney.team
+    if (currentLeftPlayer !== teamInfo.left) {
+        currentLeftPlayer = teamInfo.left
         setPlayerDetails(currentLeftPlayer, leftPlayerNameEl, leftProfilePictureEl)
     }
-    if (currentRightPlayer !== data.tourney.team.right) {
-        currentRightPlayer = data.tourney.team.right
+    if (currentRightPlayer !== teamInfo.right) {
+        currentRightPlayer = teamInfo.right
         setPlayerDetails(currentRightPlayer, rightPlayerNameEl, rightProfilePictureEl)
     }
 
     // Now Playing Information
-    if ((nowPlayingId !== data.beatmap.id || nowPlayingChecksum !== data.beatmap.checksum && allBeatmaps)) {
-        nowPlayingId = data.beatmap.id
-        nowPlayingChecksum = data.beatmap.checksum
+    const beatmapData = data.beatmap
+    if ((nowPlayingId !== beatmapData.id || nowPlayingChecksum !== beatmapData.checksum && allBeatmaps)) {
+        nowPlayingId = beatmapData.id
+        nowPlayingChecksum = beatmapData.checksum
         updateStats = true
  
         const bg = data.directPath.beatmapBackground
             .replace(/\\/g, "/")
             // eslint-disable-next-line no-control-regex
             .replace(/[\u0000-\u001F\u007F]/g, "")
+
         nowPlayingBackgroundEl.style.backgroundImage = `url("http://127.0.0.1:24050/Songs/${bg}")`
 
         // Current Map
@@ -232,12 +235,13 @@ socket.onmessage = async event => {
     }
 
     if (updateStats) {
+        const stats = data.beatmap.stats
         updateStats = false
-        nowPlayingStatNumberSrEl.textContent = data.beatmap.stats.stars.total.toFixed(2)
-        nowPlayingStatNumberBpmEl.textContent = Math.round(data.beatmap.stats.bpm.common)
-        nowPlayingStatNumberCsEl.textContent = data.beatmap.stats.cs.converted.toFixed(2)
-        nowPlayingStatNumberArEl.textContent = data.beatmap.stats.ar.converted.toFixed(2)
-        nowPlayingStatNumberOdEl.textContent = data.beatmap.stats.od.converted.toFixed(2)
+        nowPlayingStatNumberSrEl.textContent = stats.stars.total.toFixed(2)
+        nowPlayingStatNumberBpmEl.textContent = Math.round(stats.bpm.common)
+        nowPlayingStatNumberCsEl.textContent = stats.cs.converted.toFixed(2)
+        nowPlayingStatNumberArEl.textContent = stats.ar.converted.toFixed(2)
+        nowPlayingStatNumberOdEl.textContent = stats.od.converted.toFixed(2)
     }
 }
 
@@ -247,8 +251,8 @@ socket.onmessage = async event => {
  * If the player name is empty, clears the UI elements instead.
  *
  * @param {string} currentPlayer - The player name to look up.
- * @param {HTMLElement | null} playerNameEl - Element used to display the player's name.
- * @param {HTMLElement | null} profilePictureEl - Element used to display the player's profile picture.
+ * @param {HTMLElement} playerNameEl - Element used to display the player's name.
+ * @param {HTMLElement} profilePictureEl - Element used to display the player's profile picture.
  * @returns {Promise<void>}
  */
 async function setPlayerDetails(currentPlayer, playerNameEl, profilePictureEl) {
