@@ -15,3 +15,12 @@
 }
 .date { left: var(--date-time-positioning); }
 .time { right: var(--date-time-positioning); }
+
+/* Logo */
+.logo {
+    position: absolute;
+    top: 36px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 400px;
+}
