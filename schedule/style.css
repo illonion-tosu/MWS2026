@@ -1,6 +1,4 @@
 :root {
-    --foam-colour: #DAC0AB;
-    --colour: rgb(22, 17, 17);
     --date-time-positioning: 24px;
 }
 
@@ -47,4 +45,49 @@
     color: white;
     letter-spacing: 0.5px;
     text-indent: 0.25px;
+}
+
+/* Match Display */
+.match-display {
+    position: absolute;
+    top: 112px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 534px;
+    height: 125px;
+}
+
+/* Match Details */
+.match-details {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    color: white;
+    height: 65px;
+}
+.match-number { font-size: 2rem; }
+.match-time { font-size: 1.5rem; }
+
+/* Match Player */
+.match-player {
+    position: absolute;
+    --dimension: 125px;
+    width: var(--dimension);
+    height: var(--dimension);
+    border: none;
+}
+.match-player-1 { left: 216px; }
+.match-player-2 { right: 0; }
+
+/* Match VS */
+.match-vs {
+    position: absolute;
+    top: 50%;
+    left: 361px;
+    transform: translateY(-50%);
+    color: var(--vanilla-colour);
+    font-size: 1.5rem;
 }

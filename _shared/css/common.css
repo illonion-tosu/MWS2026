@@ -1,3 +1,13 @@
+:root {
+    --bean-colour: #957259;
+    --foam-colour: #DAC0AB;
+    --vanilla-colour: #EBDFD0;
+    --chocolate-colour: #312525;
+    --book-background-colour: #634832;
+    --pick-green: #5F7F63; /* Matcha */
+    --ban-red: #8D3F38; /* Cherry */
+}
+
 /* Whole page */
 .main {
     position: absolute;
