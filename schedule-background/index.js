@@ -6,30 +6,17 @@ window.addEventListener('load', () => {
     return;
   }
 
-  let width = canvas.width = window.innerWidth;
-  let height = canvas.height = window.innerHeight;
-
-  function resizeCanvas() {
-    width = canvas.width = window.innerWidth;
-    height = canvas.height = window.innerHeight;
-    gl.viewport(0, 0, width, height);
-  }
-  window.addEventListener("resize", resizeCanvas);
-
-  let mouse = { x: width / 2, y: height / 2 };
-  function onMouseMove(e) {
-    mouse.x = e.clientX;
-    mouse.y = e.clientY;
-  }
-  window.addEventListener("mousemove", onMouseMove);
+  let width = canvas.width = 1920;
+  let height = canvas.height = 1080;
+  gl.viewport(0, 0, width, height);
 
   const circleColors = [
-    [18 / 255, 113 / 255, 1.0],
-    [221 / 255, 74 / 255, 1.0],
-    [100 / 255, 220 / 255, 1.0],
+    [18 / 255, 113 / 255, 255 / 255],
+    [221 / 255, 74 / 255, 255 / 255],
+    [100 / 255, 220 / 255, 255 / 255],
     [200 / 255, 50 / 255, 50 / 255],
     [180 / 255, 180 / 255, 50 / 255],
-    [140 / 255, 100 / 255, 1.0],
+    [140 / 255, 100 / 255, 255 / 255],
   ];
 
   let circles = [];
@@ -63,7 +50,7 @@ window.addEventListener('load', () => {
       color: circleColors[5],
       vx: 0,
       vy: 0,
-      interactive: true,
+      interactive: false,
     });
   }
 
@@ -84,11 +71,9 @@ precision mediump float;
 varying vec2 v_uv;
 
 uniform vec2 u_resolution;
-uniform bool u_darkMode;
 uniform int u_circleCount;
 uniform vec3 u_circlesColor[6];
 uniform vec3 u_circlesPosRad[6];
-uniform vec2 u_mouse;
 
 void main(void) {
     vec2 st = v_uv * u_resolution;
@@ -158,11 +143,9 @@ void main(void) {
   gl.vertexAttribPointer(a_position, 2, gl.FLOAT, false, 0, 0);
 
   const u_resolution = gl.getUniformLocation(program, "u_resolution");
-  const u_darkMode = gl.getUniformLocation(program, "u_darkMode");
   const u_circleCount = gl.getUniformLocation(program, "u_circleCount");
   const u_circlesColor = gl.getUniformLocation(program, "u_circlesColor");
   const u_circlesPosRad = gl.getUniformLocation(program, "u_circlesPosRad");
-  const u_mouse = gl.getUniformLocation(program, "u_mouse");
 
   gl.uniform2f(u_resolution, width, height);
 
@@ -176,9 +159,6 @@ void main(void) {
         if (c.x + c.radius < 0) c.x = width + c.radius;
         if (c.y - c.radius > height) c.y = -c.radius;
         if (c.y + c.radius < 0) c.y = height + c.radius;
-      } else {
-        c.x += (mouse.x - c.x) * 0.1;
-        c.y += (mouse.y - c.y) * 0.1;
       }
     }
   }
@@ -194,7 +174,6 @@ void main(void) {
 
     gl.uniform1i(u_circleCount, circles.length);
     gl.uniform2f(u_resolution, width, height);
-    gl.uniform2f(u_mouse, mouse.x, mouse.y);
 
     let colorsArr = [];
     let posRadArr = [];
