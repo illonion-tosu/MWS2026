@@ -27,6 +27,7 @@ module.exports = [
                 Blob: "readonly",
                 URL: "readonly",
                 DOMParser: "readonly",
+                requestAnimationFrame: "readonly",
             },
         },
         rules: {
