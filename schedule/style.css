@@ -134,3 +134,30 @@
     left: 282px;
     width: 1616px;
 }
+
+/* Round Name */
+.round-name {
+    position: absolute;
+    left: 35px;
+    font-size: 2rem;
+}
+
+/* Social Media Section */
+.social-media-section {
+    position: absolute;
+    right: 35px;
+    display: flex;
+    font-size: 1.5rem;
+    gap: 25px;
+}
+
+.social-media-container {
+    display: flex;
+    align-items: center;
+    gap: 25px;
+}
+
+.social-media-logo {
+    width: 35px;
+    height: 35px;
+}
