@@ -3,7 +3,7 @@ let allBeatmaps = []
 // Load showcase beatmaps
 export async function loadBeatmaps() {
     const response = await fetch("../_data/beatmaps.json")
-    const allBeatmaps = await response.json();
+    allBeatmaps = await response.json();
     return allBeatmaps
 }
 

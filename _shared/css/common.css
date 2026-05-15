@@ -1,0 +1,24 @@
+:root {
+    --bean-colour: #957259;
+    --book-background-colour: #634832;
+    --chocolate-colour: #312525;
+    --expresso-colour-60: #16111199;
+    --foam-colour: #DAC0AB;
+    --strawberry-colour: #C7886E;
+    --vanilla-colour: #EBDFD0;
+    --pick-green: #5F7F63; /* Matcha */
+    --ban-red: #8D3F38; /* Cherry */
+    --common-border-radius: 22px;
+}
+
+/* Whole page */
+.main {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 1920px;
+    height: 1080px;
+    background-size: cover;
+    background-position: center;
+    font-family: Lexend, sans-serif;
+}
