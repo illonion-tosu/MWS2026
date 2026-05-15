@@ -82,8 +82,9 @@
 
 /* Match Player */
 .match-player {
-    position: absolute;
     --dimension: 125px;
+    
+    position: absolute;
     width: var(--dimension);
     height: var(--dimension);
     border: none;
@@ -111,6 +112,7 @@
 /* Bottom Section */
 .bottom-section {
     --height: 121px;
+
     position: absolute;
     top: 926px;
     height: var(--height);
