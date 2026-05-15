@@ -9,7 +9,7 @@
 .date-time {
     position: absolute;
     top: var(--date-time-positioning);
-    font-size: 1.25rem;
+    font-size: 2rem;
     color: var(--foam-colour)
 }
 .date { left: var(--date-time-positioning); }
@@ -120,5 +120,6 @@
     line-height: 121px;
     font-size: 4rem;
     background-color: var(--expresso-colour-60);
-    border-radius: var(--common-border-radius)
+    border-radius: var(--common-border-radius);
+    box-shadow: 1.5px 4px 2px 1px var(--strawberry-colour);
 }
