@@ -78,7 +78,7 @@
     top: 128px;
     width: 815.5px;
     height: 397.5px;
-    border-radius: 22px;
+    border-radius: var(--common-border-radius);
 }
 
 .now-playing-background {
@@ -193,12 +193,10 @@
 
 /* Map Tile */
 .map-tile {
-    --border-radius: 22px;
-
     position: relative;
     width: 195px;
     height: 205px;
-    border-radius: var(--border-radius) var(--border-radius) 0 0;
+    border-radius: var(--common-border-radius) var(--common-border-radius) 0 0;
     overflow: hidden;
     font-size: 0.75rem;
 }
@@ -265,7 +263,7 @@
     width: 100%;
     height: 205px;
     background-color: var(--chocolate-colour);
-    border-radius: 22px;
+    border-radius: var(--common-border-radius);
 }
 
 /* Chat Display Container */

@@ -4,8 +4,10 @@
     --vanilla-colour: #EBDFD0;
     --chocolate-colour: #312525;
     --book-background-colour: #634832;
+    --expresso-colour-60: #16111199;
     --pick-green: #5F7F63; /* Matcha */
     --ban-red: #8D3F38; /* Cherry */
+    --common-border-radius: 22px;
 }
 
 /* Whole page */
