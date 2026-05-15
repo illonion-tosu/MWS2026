@@ -108,18 +108,29 @@
     border: 1.5px solid var(--bean-colour);
 }
 
+/* Bottom Section */
+.bottom-section {
+    --height: 121px;
+    position: absolute;
+    top: 926px;
+    height: var(--height);
+    line-height: var(--height);
+    color: white;
+    box-shadow: 1.5px 4px 2px 1px var(--strawberry-colour);
+    border-radius: var(--common-border-radius);
+    background-color: var(--expresso-colour-60);
+}
+
 /* Timer */
 .timer {
-    position: absolute;
     left: 21px;
-    top: 926px;
-    color: white;
     text-align: center;
     width: 240px;
-    height: 121px;
-    line-height: 121px;
     font-size: 4rem;
-    background-color: var(--expresso-colour-60);
-    border-radius: var(--common-border-radius);
-    box-shadow: 1.5px 4px 2px 1px var(--strawberry-colour);
+}
+
+/* Bottom Area */
+.bottom-area {
+    left: 282px;
+    width: 1616px;
 }
