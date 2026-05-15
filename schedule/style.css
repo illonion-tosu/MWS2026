@@ -47,12 +47,21 @@
     text-indent: 0.25px;
 }
 
-/* Match Display */
-.match-display {
+/* Match Display Container */
+.match-display-container {
     position: absolute;
     top: 112px;
     left: 50%;
     transform: translateX(-50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 39px;
+}
+
+/* Match Display */
+.match-display {
+    position: relative;
     width: 534px;
     height: 125px;
 }
@@ -90,4 +99,11 @@
     transform: translateY(-50%);
     color: var(--vanilla-colour);
     font-size: 1.5rem;
+}
+
+/* Match Display Separator */
+.match-display-separator {
+    width: 436px;
+    height: 0;
+    border: 1.5px solid var(--bean-colour);
 }
