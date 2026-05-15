@@ -11,12 +11,12 @@ window.addEventListener('load', () => {
   gl.viewport(0, 0, width, height);
 
   const circleColors = [
-    [18 / 255, 113 / 255, 255 / 255],
-    [221 / 255, 74 / 255, 255 / 255],
-    [100 / 255, 220 / 255, 255 / 255],
-    [200 / 255, 50 / 255, 50 / 255],
-    [180 / 255, 180 / 255, 50 / 255],
-    [140 / 255, 100 / 255, 255 / 255],
+    [235 / 255, 223 / 255, 208 / 255],
+    [164 / 255, 86 / 255, 78 / 255],
+    [218 / 255, 192 / 255, 171 / 255],
+    [200 / 255, 120 / 255, 110 / 255],
+    [217 / 255, 217 / 255, 217 / 255],
+    [156 / 255, 183 / 255, 199 / 255],
   ];
 
   let circles = [];
@@ -78,8 +78,8 @@ uniform vec3 u_circlesPosRad[6];
 void main(void) {
     vec2 st = v_uv * u_resolution;
 
-    vec3 topColor = vec3(108.0/255.0, 0.0, 162.0/255.0);
-    vec3 bottomColor = vec3(0.0, 17.0/255.0, 82.0/255.0);
+    vec3 topColor = vec3(149.0/255.0, 114.0/255.0, 89.0/255.0);
+    vec3 bottomColor = vec3(49.0/255.0, 37.0/255.0, 37.0/255.0);
     vec3 bgColor = mix(topColor, bottomColor, st.y / u_resolution.y);
 
     float fieldSum = 0.0;
