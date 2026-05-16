@@ -3,20 +3,47 @@ const elements = {
     countdown: {
         minutes: document.getElementById("minutes-number"),
         seconds: document.getElementById("seconds-number"),
-        errorMessage: document.getElementById("timer1-error-message")
+        errorMessage: document.getElementById("timer1-error-message"),
     },
     utc: {
         hours: document.getElementById("hours-number-utc"),
         minutes: document.getElementById("minutes-number-utc"),
-        errorMessage: document.getElementById("timer2-error-message")
+        errorMessage: document.getElementById("timer2-error-message"),
     },
     display: document.getElementById("timer"),
+}
+
+// Helper Functions
+/*
+ *
+*/
+function formatTime(...parts) {
+    return parts.map((part) => String(part).padStart(2, "0")).join(":")
+}
+
+function secondsToDisplay(totalSeconds) {
+    const hours = Math.floor(totalSeconds / 3600)
+    const minutes = Math.floor((totalSeconds % 3600) / 60)
+    const seconds = totalSeconds % 60
+    return hours >= 1
+        ? formatTime(hours, minutes, seconds)
+        : formatTime(minutes, seconds)
+}
+
+function showError(errorEl) {
+    elements.countdown.errorMessage.style.display = errorEl === elements.countdown.errorMessage ? "block" : "none"
+    elements.utc.errorMessage.style.display = errorEl === elements.utc.errorMessage ? "block" : "none"
+}
+
+function hideErrors() {
+    elements.countdown.errorMessage.style.display = "none"
+    elements.utc.errorMessage.style.display = "none"
 }
 
 // Countdown Timer
 class CountdownTimer {
     constructor() {
-        this.intervalId = null
+        this.active = false
         this.remainingSeconds = 0
     }
 
@@ -29,40 +56,29 @@ class CountdownTimer {
         const minutesValue = Number(elements.countdown.minutes.value)
         const minutesNumber = Math.floor(minutesValue)
         const secondsValue = Number(elements.countdown.seconds.value)
-        
-        this.remainingSeconds = Math.round(secondsValue) + 
-                              minutesNumber * 60 + 
-                              Math.round((minutesValue - minutesNumber) * 60)
+
+        this.remainingSeconds =
+            Math.round(secondsValue) +
+            minutesNumber * 60 +
+            Math.round((minutesValue - minutesNumber) * 60)
 
         if (this.remainingSeconds < 0) {
-            elements.countdown.errorMessage.style.display = "block"
-            elements.utc.errorMessage.style.display = "none"
+            showError(elements.countdown.errorMessage)
             return
         }
 
-        elements.countdown.errorMessage.style.display = "none"
-        this.updateDisplay()
+        hideErrors()
+        elements.display.textContent = secondsToDisplay(this.remainingSeconds)
         this.stop()
     }
 
     start() {
         this.stop()
-        
-        if (this.remainingSeconds > 0) {
-            this.intervalId = setInterval(() => {
-                this.remainingSeconds--
-                this.updateDisplay()
-                
-                if (this.remainingSeconds <= 0) this.stop()
-            }, 1000)
-        }
+        if (this.remainingSeconds > 0) this.active = true
     }
 
     stop() {
-        if (this.intervalId) {
-            clearInterval(this.intervalId)
-            this.intervalId = null
-        }
+        this.active = false
     }
 
     reset() {
@@ -71,66 +87,56 @@ class CountdownTimer {
         elements.display.textContent = "00:00"
     }
 
-    updateDisplay() {
-        const hours = Math.floor(this.remainingSeconds / 3600)
-        const minutes = Math.floor((this.remainingSeconds % 3600) / 60)
-        const seconds = this.remainingSeconds % 60
-
-        elements.display.textContent = hours >= 1
-            ? formatTime(hours, minutes, seconds)
-            : formatTime(minutes, seconds)
+    tick() {
+        if (!this.active) return
+        this.remainingSeconds--
+        elements.display.textContent = secondsToDisplay(this.remainingSeconds)
+        if (this.remainingSeconds <= 0) this.stop()
     }
 }
 
 // UTC Timer
 class UTCTimer {
     constructor() {
-        this.intervalId = null
+        this.active = false
         this.targetTime = null
     }
 
     start() {
         this.stop()
-        
+
         const hours = Number(elements.utc.hours.value) || 0
         const minutes = Number(elements.utc.minutes.value) || 0
 
         if (hours < 0 || minutes < 0) {
-            elements.countdown.errorMessage.style.display = "none"
-            elements.utc.errorMessage.style.display = "block"
+            showError(elements.utc.errorMessage)
             return
         }
-        
+
         const now = new Date()
-        now.setUTCHours(hours, minutes, 0)
+        now.setUTCHours(hours, minutes, 0, 0)
         this.targetTime = now.getTime()
-        
-        this.updateDisplay()
-        this.intervalId = setInterval(() => this.updateDisplay(), 1000)
+
+        hideErrors()
+        this.active = true
+        this.tick()
     }
 
     stop() {
-        if (this.intervalId) {
-            clearInterval(this.intervalId)
-            this.intervalId = null
-        }
+        this.active = false
+        this.targetTime = null
     }
 
-    updateDisplay() {
-        const currentTime = new Date().getTime()
-        let timeDiff = this.targetTime - currentTime
-        
+    tick() {
+        if (!this.active) return
+
+        let timeDiff = this.targetTime - Date.now()
         if (timeDiff < 0) {
             this.targetTime += 24 * 60 * 60 * 1000
-            return this.updateDisplay()
+            timeDiff = this.targetTime - Date.now()
         }
-        
-        const hours = Math.floor(timeDiff / (1000 * 60 * 60))
-        const minutes = Math.floor((timeDiff % (1000 * 60 * 60)) / (1000 * 60))
-        const seconds = Math.floor((timeDiff % (1000 * 60)) / 1000)
-        
-        elements.display.textContent = formatTime(hours, minutes, seconds)
-        if (hours === 0) elements.display.textContent = formatTime(minutes, seconds)
+
+        elements.display.textContent = secondsToDisplay(Math.floor(timeDiff / 1000))
     }
 }
 
@@ -287,14 +293,15 @@ function createMatchSeparator() {
 const currentDateEl = document.getElementById("current-date")
 const currentTimeEl = document.getElementById("current-time")
 
-/**
- * Updates the current date and time display elements every second.
- * Displays the date in "DD Month YYYY" format and time in "HH:MM UTC" format,
- * both based on UTC.
- * @type {number} The interval ID returned by setInterval.
- */
-setInterval(() => {
+function updateDateTime() {
     let currentTime = new Date()
     currentDateEl.textContent = `${currentTime.getUTCDate()} ${currentTime.toLocaleString('default', { month: 'long', timeZone: "UTC" })} ${currentTime.getUTCFullYear()}`
     currentTimeEl.textContent = `${String(currentTime.getUTCHours()).padStart(2, "0")}:${String(currentTime.getUTCMinutes()).padStart(2, "0")} UTC`
+}
+
+setInterval(() => {
+    countdownTimer.tick()
+    utcTimer.tick()
+    filterMatches()
+    updateDateTime()
 }, 1000)
