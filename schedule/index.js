@@ -14,13 +14,22 @@ const elements = {
 }
 
 // Helper Functions
-/*
- *
-*/
+/**
+ * Format time
+ * @constructor
+ * @param {...number} parts - Time values to fromat
+ * @returns {string} - Fully formatted time string
+ */
 function formatTime(...parts) {
     return parts.map((part) => String(part).padStart(2, "0")).join(":")
 }
 
+/**
+ * Converts total seconds to hours, minutes, and seconds, then formats it
+ * 
+ * @param {number} seconds - Total number of seconds
+ * @returns {string} - Fully formatted time string
+ */
 function secondsToDisplay(totalSeconds) {
     const hours = Math.floor(totalSeconds / 3600)
     const minutes = Math.floor((totalSeconds % 3600) / 60)
@@ -30,11 +39,19 @@ function secondsToDisplay(totalSeconds) {
         : formatTime(minutes, seconds)
 }
 
+/**
+ * Displays the specified error message and hides the other.
+ *
+ * @param {HTMLElement} errorEl - The error element to display.
+ */
 function showError(errorEl) {
     elements.countdown.errorMessage.style.display = errorEl === elements.countdown.errorMessage ? "block" : "none"
     elements.utc.errorMessage.style.display = errorEl === elements.utc.errorMessage ? "block" : "none"
 }
 
+/**
+ * Hides all timer error messages.
+ */
 function hideErrors() {
     elements.countdown.errorMessage.style.display = "none"
     elements.utc.errorMessage.style.display = "none"
@@ -47,11 +64,20 @@ class CountdownTimer {
         this.remainingSeconds = 0
     }
 
+    /**
+     * Sets the countdown time from inputs and immediately starts the timer
+     */
     setAndStart() {
         this.setTime()
         this.start()
     }
 
+    /**
+     * Reads the countdown inputs and updates the remaining time
+     *
+     * Supports decimal minute input
+     * Updates the timer display immediately
+     */
     setTime() {
         const minutesValue = Number(elements.countdown.minutes.value)
         const minutesNumber = Math.floor(minutesValue)
@@ -72,21 +98,35 @@ class CountdownTimer {
         this.stop()
     }
 
+    /**
+     * Starts the countdown timer if time remains
+     */
     start() {
         this.stop()
         if (this.remainingSeconds > 0) this.active = true
     }
 
+    /**
+     * Stops the countdown timer.
+     */
     stop() {
         this.active = false
     }
 
+    /**
+     * Resets the timer state and display.
+     */
     reset() {
         this.stop()
         this.remainingSeconds = 0
         elements.display.textContent = "00:00"
     }
 
+    /**
+     * Advances the timer by one second.
+     *
+     * Stops automatically when the timer reaches zero.
+     */
     tick() {
         if (!this.active) return
         this.remainingSeconds--
@@ -102,6 +142,12 @@ class UTCTimer {
         this.targetTime = null
     }
 
+    /**
+     * Starts the UTC countdown timer using the provided UTC hour and minute.
+     *
+     * If the selected time has already passed today,
+     * the timer rolls over to the next UTC day.
+     */
     start() {
         this.stop()
 
@@ -113,20 +159,28 @@ class UTCTimer {
             return
         }
 
-        const now = new Date()
-        now.setUTCHours(hours, minutes, 0, 0)
-        this.targetTime = now.getTime()
+        const utcTime = new Date()
+        utcTime.setUTCHours(hours, minutes, 0, 0)
+        this.targetTime = utcTime.getTime()
 
         hideErrors()
         this.active = true
         this.tick()
     }
 
+    /**
+     * Stops the UTC timer and clears the target time.
+     */
     stop() {
         this.active = false
         this.targetTime = null
     }
 
+    /**
+     * Updates the display based on the remaining time until the target UTC time.
+     *
+     * Automatically rolls over to the next day if the target time has passed.
+     */
     tick() {
         if (!this.active) return
 
