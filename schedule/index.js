@@ -194,11 +194,6 @@ class UTCTimer {
     }
 }
 
-// Helper function for consistent time formatting
-function formatTime(...parts) {
-    return parts.map(part => String(part).padStart(2, '0')).join(':')
-}
-
 // Create timer instances
 const countdownTimer = new CountdownTimer()
 const utcTimer = new UTCTimer()
