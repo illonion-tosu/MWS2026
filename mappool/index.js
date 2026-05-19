@@ -1,9 +1,15 @@
 import { initialiseOsuApi, getOsuApi } from "../_shared/core/apis.js"
 import { loadBeatmaps, findBeatmap } from "../_shared/core/beatmaps.js"
 import { updateChat } from "../_shared/core/chat.js"
+import { setDefaultStarCount } from "../_shared/core/stars.js"
 import { delay, getModDetails } from "../_shared/core/utils.js"
 import { createTosuWsSocket } from "../_shared/core/websocket.js"
 
+// Player Scores
+const leftPlayerScoreEl = document.getElementById("left-player-score")
+const rightPlayerScoreEl = document.getElementById("right-player-score")
+
+// Mappool Container Sections
 const mappoolContainerLeftEl = document.getElementById("mappool-container-left")
 const mappoolContainerRightEl = document.getElementById("mappool-container-right")
 const chatDisplayEl = document.getElementById("chat-display")
@@ -31,6 +37,20 @@ async function getBeatmaps() {
     if (mappoolContainerRightEl.childElementCount >= 14) {
         chatDisplayEl.style.gridColumn = "3 / 5"
     }
+
+    // Set default star count
+    let bestOf
+    switch (data.roundName) {
+        case "RO64": case "RO32": case "RO16":
+            bestOf = 9
+            break
+        case "QF": case "SF":
+            bestOf = 11
+            break
+        default:
+            bestOf = 13
+    }
+    setDefaultStarCount(bestOf, leftPlayerScoreEl, rightPlayerScoreEl, "mappool")
 }
 
 /**
