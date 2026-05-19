@@ -173,8 +173,8 @@
     height: 1080px;
     color: white;
     font-size: 1.25rem;
-    background-color: rgb(149, 114, 89);
-    font-family: "Lexend"
+    background-color: rgb(149 114 89);
+    font-family: Lexend, sans-serif;
 }
 
 /* Sidebar Timer */
@@ -184,6 +184,7 @@
     border-right: 2px solid white;
 }
 .sidebar-timer > * { margin-left: 20px; }
+
 .sidebar-stream-idle-text {
     position: absolute;
     left: 270px;
@@ -192,6 +193,7 @@
     height: inherit;
     border-right: 2px solid white;
 }
+
 .sidebar-team-text {
     position: absolute; 
     left: 520px;
@@ -205,10 +207,12 @@
     padding-top: 10px;
     font-size: 2rem;
 }
+
 #team-vs-text {
     margin-right: 20px;
     margin-bottom: 40px;
 }
+
 /* Sidebar text */
 .sidebar-text { margin-bottom: 10px; }
 #sidebar-red-team-text { color: var(--love-fumes-colour); }
@@ -227,11 +231,13 @@
     border-bottom: 1px solid white;
     margin-bottom: 10px;
 }
+
 .sidebar-input[type="number"]::-webkit-inner-spin-button, 
 .sidebar-input[type="number"]::-webkit-outer-spin-button {
     -webkit-appearance: none;
     margin: 0;
 }
+
 .sidebar-input-long { 
     width: 210px;
     text-align: left;
@@ -251,6 +257,7 @@
     font-size: inherit;
     cursor: pointer;
 }
+
 .sidebar-button:active {
     background-color: white;
     color: var(--main-text);
@@ -277,6 +284,7 @@
     border-color: var(--love-fumes-colour);
     color: var(--love-fumes-colour);
 }
+
 .light-pink-button:active {
     background-color: var(--love-fumes-colour);
     color: var(--book-background-colour);
