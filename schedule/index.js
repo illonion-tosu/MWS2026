@@ -347,6 +347,10 @@ function createMatchSeparator() {
 const currentDateEl = document.getElementById("current-date")
 const currentTimeEl = document.getElementById("current-time")
 
+/**
+ * Updates the displayed current date and time using UTC values.
+ * The date is formatted as "D Month YYYY" and the time as "HH:MM UTC".
+ */
 function updateDateTime() {
     let currentTime = new Date()
     currentDateEl.textContent = `${currentTime.getUTCDate()} ${currentTime.toLocaleString('default', { month: 'long', timeZone: "UTC" })} ${currentTime.getUTCFullYear()}`
