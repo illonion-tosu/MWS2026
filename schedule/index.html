@@ -20,8 +20,8 @@
 <body>
     <div class="main">
         <!-- Time -->
-        <div class="date-time date">13 May 2026</div>
-        <div class="date-time time">03:11 UTC</div>
+        <div class="date-time date" id="current-date">13 May 2026</div>
+        <div class="date-time time" id="current-time">03:11 UTC</div>
 
         <!-- Logo -->
         <img class="logo" src="static/logo.png">
@@ -29,7 +29,7 @@
         <!-- Upcoming Matches -->
         <section class="upcoming-matches">
             <div class="upcoming-matches-text">UPCOMIONG MATCHES</div>
-            <div class="match-display-container">
+            <div class="match-display-container" id="match-display-container">
                 <div class="match-display">
                     <div class="match-details">
                         <div class="match-number">MATCH 8</div>
@@ -63,7 +63,7 @@
         </section>
 
         <!-- Timer -->
-        <div class="bottom-section timer">03:32</div>
+        <div class="bottom-section timer" id="timer">03:32</div>
 
         <!-- Bottom Area -->
         <section class="bottom-section bottom-area">
@@ -84,5 +84,34 @@
             </div>
         </section>
     </div>
+
+    <!-- Sidebar -->
+    <section class="sidebar">
+        <div class="sidebar-timer">
+            <div class="sidebar-title">Timer</div>
+            <section id="normal-timer">
+                <div class="sidebar-text">Set timer for: </div>
+                <input id="minutes-number" class="sidebar-input" type="number"> minutes<br>
+                <input id="seconds-number" class="sidebar-input" type="number"> seconds<br>
+                <button class="sidebar-button" onclick="setAndStartTimer()">Set / Start Timer</button>
+                <button class="sidebar-button" onclick="setMinuteSecondTimer()">Set Timer Only</button>
+                <button class="sidebar-button" onclick="startTimer()">Start Timer Only</button>
+                <div class="sidebar-text timer-error-message" id="timer1-error-message">Make sure your timer is positive!</div>
+            </section>
+            <section id="utc-timer">
+                <div class="sidebar-text">or... set timer for: </div>
+                <div>
+                    <input id="hours-number-utc" class="sidebar-input time-input" type="number">:
+                    <input id="minutes-number-utc" class="sidebar-input time-input" type="number"> UTC
+                </div>
+                <button class="sidebar-button" onclick="startUTCTimer()">Start Timer</button>
+                <div class="sidebar-text timer-error-message" id="timer2-error-message">Make sure your hours and minutes are over 0!</div>
+            </section>
+            <button class="sidebar-button light-pink-button" onclick="stopTimer()">Stop Timer</button>
+            <button class="sidebar-button light-pink-button" onclick="resetTimer()">Reset Timer</button>
+        </div>
+    </section>
+
+    <script src="index.js"></script>
 </body>
 </html>
