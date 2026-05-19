@@ -300,3 +300,91 @@
 .right { color: lightblue;}
 .bot { color: lightyellow; }
 .unknown { color: lightgreen}
+
+/* Sidebar */
+.sidebar {
+    position: absolute;
+    left: 1920px;
+    top: 0;
+    width: 750;
+    height: 1080px;
+    background-color: var(--gondola-colour);
+    display: flex;
+    font-family: Lexend, sans-serif;
+}
+
+/* Sidebar Section */
+.sidebar-section {
+    width: inherit;
+    padding: 20px 0;
+    border-bottom: 2px solid white;
+}
+
+/* Sidebar Title */
+.sidebar-title {
+    width: inherit;
+    text-align: center;
+    margin-bottom: 10px;
+    color: white;
+    font-weight: 700;
+    font-size: 1.25rem;
+}
+
+/* Sidebar Regular Text */
+.sidebar-text {
+    width: inherit;
+    text-align: center;
+    color: white;
+    font-size: 1.25rem;
+    margin-bottom: 20px;
+}
+
+/* Sidebar Button Container */
+.sidebar-button-container {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+/* Sidebar Button */
+.sidebar-button-container button, div.full-length-button {
+    width: 100px;
+    height: 43px;
+    font-family: inherit;
+    font-weight: 700;
+    background-color: transparent;
+    color: white;
+    font-size: 1rem;
+    border: 3px solid white;
+    border-radius: 20px;
+    text-align: center;
+    line-height: 43px;
+}
+
+/* Sidebar Full Length B utton */
+.sidebar-button-container button.full-length-button, div.full-length-button {
+    width: 210px;
+}
+
+.sidebar-button-container button:active, div.full-length-button:active {
+    color: var(--gondola-colour);
+    background-color: white;
+}
+
+/* Columns */
+.column {
+    width: 250px;
+    height: inherit;
+}
+
+/* Divider */
+.divider {
+    position: absolute;
+    top: 0;
+    width: 2px;
+    height: 1080px;
+    background-color: white;
+}
+.divider-1 { left: 249px; }
+.divider-2 { left: 499px; }

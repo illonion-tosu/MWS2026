@@ -87,6 +87,40 @@
         </div>
     </div>
 
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <section class="column column-1">
+            <div class="sidebar-section">
+                <div class="sidebar-title">Star Control</div>
+                <div class="sidebar-button-container">
+                    <button id="update-star-red-minus">Red --</button>
+                    <button id="update-star-red-plus">Red ++</button>
+                    <button id="update-star-blue-minus">Blue --</button>
+                    <button id="update-star-blue-plus">Blue ++</button>
+                </div>
+            </div>
+            <div class="sidebar-section">
+                <div class="sidebar-title">Mappool</div>
+                <div class="sidebar-text">
+                    Left Click (LC) = Red Pick<br>
+                    Right Click (RC) = Blue Pick<br>
+                    Ctrl + LC = Red Ban<br>
+                    Ctrl + RC = Blue Ban
+                 </div>
+                <div class="sidebar-button-container" id="sidebar-mappool-container"></div>
+            </div>
+            <div class="sidebar-section">
+                <div class="sidebar-title">Next Picker</div>
+                <div class="sidebar-text" id="next-auto-picker-team"></div>
+                <div class="sidebar-button-container">
+                    <button id="update-next-autopicker-red">Red</button>
+                    <button id="update-next-autopicker-blue">Blue</button>
+                    <button class="full-length-button" id="toggle-autopick">Toggle Autopick: OFF</button>
+                </div>
+            </div>
+        </section>
+    </div>
+
     <script src="index.js" type="module"></script>
 </body>
 </html>
