@@ -153,7 +153,12 @@ async function findImage(url) {
     }
 }
 
-// Map Click Event
+/**
+ * Handles map selection logic based on mouse clicks and modifier keys.
+ *
+ * @param {MouseEvent} event - The mouse event triggered by the user.
+ * @this {HTMLElement} - The map element that received the click.
+ */
 function mapClickEvent(event) {
     // Team
     let team
