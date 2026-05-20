@@ -307,7 +307,7 @@
     position: absolute;
     left: 1920px;
     top: 0;
-    width: 750;
+    width: 500px;
     height: 1080px;
     background-color: var(--gondola-colour);
     display: flex;
@@ -389,3 +389,19 @@
 }
 .divider-1 { left: 249px; }
 .divider-2 { left: 499px; }
+
+/* Sidebar Select */
+.sidebar-select {
+    width: 250px;
+    text-align: center;
+    font-family: inherit;
+    font-weight: inherit;
+    font-size: 20px;
+    background-color: transparent;
+    color: white;
+    margin-bottom: 20px;
+    border: none;
+}
+
+.sidebar-select::-webkit-scrollbar { display: none; }
+.sidebar-select option {  line-height: 20px; }

@@ -329,7 +329,7 @@ async function setPlayerDetails(currentPlayer, playerNameEl, profilePictureEl) {
         playerNameEl.textContent = result[0].username
         profilePictureEl.style.backgroundImage = `url("https://a.ppy.sh/${result[0].user_id}")`
     } catch(error) {
-        console.error(error.message);
+        console.error(error.message)
     }
 }
 
