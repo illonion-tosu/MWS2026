@@ -371,3 +371,58 @@ document.addEventListener("DOMContentLoaded", () => {
     updateNextAutopickerBlueEl.addEventListener("click", () => updateNextAutoPicker('blue'))
     toggleAutopickEl.addEventListener("click", toggleAutopick)
 })
+
+const redPlayerManager = PlayerManager("red")
+const bluePlayerManager = PlayerManager("blue")
+
+class PlayerManager {
+    constructor(color) {
+        this.color = color
+        this.ingredients = {
+            egg: 0,
+            sugar: 0,
+            butter: 0,
+            flour: 0,
+            milk: 0
+        }
+        this.activeRecipe = null
+
+        this.mapsRemaining = 0
+        this.condition = null
+    }
+
+    /**
+     * @param {Object} recipe - The recipe JSON
+     * @param {number|string} duration - A number (maps) or string (condition name)
+     */
+    craftRecipe(recipe, duration = 1) {
+        // Ingredients draining
+        const costs = recipe.data_points
+        for (const [ing, cost] of Object.entries(costs)) {
+            this.ingredients[ing] = Math.max(0, this.ingredients[ing] - (cost || 0))
+        }
+
+        this.activeRecipe = recipe
+
+        if (typeof duration === 'number') {
+            this.mapsRemaining = duration
+            this.condition = null
+        } else {
+            this.mapsRemaining = Infinity
+            this.condition = duration
+        }
+
+        console.log(`${this.color.toUpperCase()} crafted ${recipe.recipe}. Duration: ${duration}`)
+    }
+
+    /**
+     * Clears the active recipe after it has been used in a map
+     */
+    consumeRecipe() {
+        const used = this.activeRecipe
+        this.activeRecipe = null
+        this.mapsRemaining = 0
+        this.condition = null
+        return used
+    }
+}
