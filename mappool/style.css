@@ -144,26 +144,26 @@
 }
 
 /* Recipes */
-.recipes {
+.ingredients {
     position: absolute;
     top: 50%;
     display: flex;
     flex-direction: column;
 }
 
-.recipes img {
+.ingredients img {
     --dimension: 50px;
 
     width: var(--dimension);
     height: var(--dimension);
 }
 
-.left-recipes {
+.left-ingredients {
     left: 0;
     transform: translate(-40%, -50%);
 }
 
-.right-recipes {
+.right-ingredients {
     right: 0;
     transform: translate(40%, -50%);
 }
@@ -231,6 +231,7 @@
 .map-mod-ps { background-color: #957259; }
 .map-mod-hr { background-color: #8D3F38; }
 .map-mod-dt { background-color: #634E7A; }
+.map-mod-fm { background-color: #5F7F63; }
 .map-mod-tb { background-color: #454545; }
 
 /* Ingredient */

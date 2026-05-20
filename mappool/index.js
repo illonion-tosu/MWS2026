@@ -102,9 +102,31 @@ async function createTile(beatmapInfo) {
     mapModId.textContent = `${beatmapInfo.mod}${beatmapInfo.order}`
     
     // Ingredient
-    const ingredient = document.createElement("img")
-    ingredient.classList.add("ingredient")
-    ingredient.setAttribute("src", "static/ingredients/ingredient-1.png")
+    const ingredientImg = document.createElement("img")
+    ingredientImg.classList.add("ingredient")
+    let ingredient
+    switch (beatmapInfo.mod) {
+        case "NM":
+            ingredient = "egg"
+            break
+        case "PS":
+            ingredient = "sugar"
+            break
+        case "HR":
+            ingredient = "butter"
+            break
+        case "DT":
+            ingredient = "flour"
+            break
+        case "FM":
+            ingredient = "milk"
+            break
+        default:
+            ingredient
+    }
+    if (beatmapInfo.mod !== "TB") {
+        ingredientImg.setAttribute("src", `static/ingredients/${ingredient}.png`)
+    }
 
     // Metadata
     const mapMetadata = document.createElement("div")
@@ -113,7 +135,7 @@ async function createTile(beatmapInfo) {
 
     // Append everything together
     mapBackground.append(imageOverlay, pickBanBorder, mapModId)
-    mapTile.append(mapBackground, ingredient, mapMetadata)
+    mapTile.append(mapBackground, ingredientImg, mapMetadata)
 
     // Map Tile
     mapTile.addEventListener("mousedown", mapClickEvent)
