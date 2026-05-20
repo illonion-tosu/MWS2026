@@ -1,7 +1,7 @@
 import { initialiseOsuApi, getOsuApi } from "../_shared/core/apis.js"
 import { loadBeatmaps, findBeatmap } from "../_shared/core/beatmaps.js"
 import { updateChat } from "../_shared/core/chat.js"
-import { setDefaultStarCount } from "../_shared/core/stars.js"
+import { setDefaultStarCount, updateStarCount } from "../_shared/core/stars.js"
 import { delay, getModDetails } from "../_shared/core/utils.js"
 import { createTosuWsSocket } from "../_shared/core/websocket.js"
 
@@ -310,3 +310,42 @@ async function setPlayerDetails(currentPlayer, playerNameEl, profilePictureEl) {
         console.error(error.message);
     }
 }
+
+/**
+ * Updates the next auto picker
+ * 
+ * @param {string} team - The current side that will be assigned as the next picker
+ */
+const nextAutopickerEl = document.getElementById("next-auto-picker-team")
+let nextPicker
+function updateNextAutoPicker(team) {
+    nextAutopickerEl.innerText = team === "red" ? "Red" : "Blue"
+    nextPicker = team
+}
+
+/**
+ * Toggles autopick on and off
+ */
+const toggleAutopickEl = document.getElementById("toggle-autopick")
+let isAutopickOn = false
+function toggleAutopick() {
+    isAutopickOn = !isAutopickOn
+    toggleAutopickEl.innerText = `Toggle Autopick: ${isAutopickOn? "ON" : "OFF"}`
+}
+
+// Buttons
+const updateStarRedMinusEl = document.getElementById("update-star-red-minus")
+const updateStarRedPlusEl = document.getElementById("update-star-red-plus")
+const updateStarBlueMinusEl = document.getElementById("update-star-blue-minus")
+const updateStarBluePlusEl = document.getElementById("update-star-blue-plus")
+const updateNextAutopickerRedEl = document.getElementById("update-next-autopicker-red")
+const updateNextAutopickerBlueEl = document.getElementById("update-next-autopicker-blue")
+document.addEventListener("DOMContentLoaded", () => {
+    updateStarRedMinusEl.addEventListener("click", () => updateStarCount("red", "minus", leftPlayerScoreEl, rightPlayerScoreEl))
+    updateStarRedPlusEl.addEventListener("click", () => updateStarCount("red", "plus", leftPlayerScoreEl, rightPlayerScoreEl))
+    updateStarBlueMinusEl.addEventListener("click", () => updateStarCount("blue", "minus", leftPlayerScoreEl, rightPlayerScoreEl))
+    updateStarBluePlusEl.addEventListener("click", () => updateStarCount("blue", "plus", leftPlayerScoreEl, rightPlayerScoreEl))
+    updateNextAutopickerRedEl.addEventListener("click", () => updateNextAutoPicker('red'))
+    updateNextAutopickerBlueEl.addEventListener("click", () => updateNextAutoPicker('blue'))
+    toggleAutopickEl.addEventListener("click", toggleAutopick)
+})

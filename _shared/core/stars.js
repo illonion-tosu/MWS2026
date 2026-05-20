@@ -21,6 +21,8 @@ export function toggleStars(buttonText, button, redTeamStarContainerEl, blueTeam
 }
 
 export function updateStarCount(side, action, redTeamStarContainerEl, blueTeamStarContainerEl, redTeamName, blueTeamName) {
+    if (redStarCount + blueStarCount === totalBestOf && action === "plus") return
+
     // Update star count
     if (side === "red" && action === "plus") redStarCount++
     else if (side === "red" && action === "minus") redStarCount--
@@ -34,7 +36,7 @@ export function updateStarCount(side, action, redTeamStarContainerEl, blueTeamSt
     else if (blueStarCount < 0) blueStarCount = 0
 
     saveStarCount()
-    renderStars(redTeamStarContainerEl, blueTeamStarContainerEl)
+    renderStarsMappool(redTeamStarContainerEl, blueTeamStarContainerEl)
 
     // Set winner details
     const currentWinner = redStarCount > blueStarCount ? redTeamName : blueStarCount > redStarCount ? blueTeamName : "none"
