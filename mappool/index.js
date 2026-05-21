@@ -355,29 +355,11 @@ function toggleAutopick() {
     toggleAutopickEl.innerText = `Toggle Autopick: ${isAutopickOn? "ON" : "OFF"}`
 }
 
-// Buttons
-const updateStarRedMinusEl = document.getElementById("update-star-red-minus")
-const updateStarRedPlusEl = document.getElementById("update-star-red-plus")
-const updateStarBlueMinusEl = document.getElementById("update-star-blue-minus")
-const updateStarBluePlusEl = document.getElementById("update-star-blue-plus")
-const updateNextAutopickerRedEl = document.getElementById("update-next-autopicker-red")
-const updateNextAutopickerBlueEl = document.getElementById("update-next-autopicker-blue")
-document.addEventListener("DOMContentLoaded", () => {
-    updateStarRedMinusEl.addEventListener("click", () => updateStarCount("red", "minus", leftPlayerScoreEl, rightPlayerScoreEl))
-    updateStarRedPlusEl.addEventListener("click", () => updateStarCount("red", "plus", leftPlayerScoreEl, rightPlayerScoreEl))
-    updateStarBlueMinusEl.addEventListener("click", () => updateStarCount("blue", "minus", leftPlayerScoreEl, rightPlayerScoreEl))
-    updateStarBluePlusEl.addEventListener("click", () => updateStarCount("blue", "plus", leftPlayerScoreEl, rightPlayerScoreEl))
-    updateNextAutopickerRedEl.addEventListener("click", () => updateNextAutoPicker('red'))
-    updateNextAutopickerBlueEl.addEventListener("click", () => updateNextAutoPicker('blue'))
-    toggleAutopickEl.addEventListener("click", toggleAutopick)
-})
-
-const redPlayerManager = PlayerManager("red")
-const bluePlayerManager = PlayerManager("blue")
-
 class PlayerManager {
-    constructor(color) {
+    constructor(color, ingredientListEl, ingredientDisplayEl) {
         this.color = color
+        this.ingredientListEl = ingredientListEl
+        this.ingredientDisplayEl = ingredientDisplayEl
         this.ingredients = {
             egg: 0,
             sugar: 0,
@@ -425,4 +407,112 @@ class PlayerManager {
         this.condition = null
         return used
     }
+
+    /**
+     * Display Ingredient List
+     */
+    displayIngredientList() {
+        // Display text on the side
+        const ingredientsText = Object.entries(this.ingredients).map(([ingredient, amount]) => `${ingredient.charAt(0).toUpperCase()}${ingredient.slice(1)}: ${amount}`).join('<br>')
+        this.ingredientListEl.innerHTML = ingredientsText
+
+        // Display images
+        this.ingredientDisplayEl.innerHTML = ""
+        let imagesHTML = document.createDocumentFragment()
+        for (const [ingredient, amount] of Object.entries(this.ingredients)) {
+            for (let i = 0; i < amount; i++) {
+                const image = document.createElement("img")
+                image.setAttribute("src", `static/ingredients/${ingredient}.png`)
+                imagesHTML.append(image)
+            }
+        }
+        this.ingredientDisplayEl.append(imagesHTML)
+    }
+
+    /**
+     * Adds the amount to the ingredient
+     * 
+     * @param {string} ingredient - name of ingredient
+     * @param {number} amount -amount to add
+     */
+    addIngredient(ingredient, amount) {
+        this.ingredients[ingredient] += amount
+        this.displayIngredientList()
+    }
+
+    /**
+     * Minuses the amount to the ingredient
+     * 
+     * @param {string} ingredient - name of ingredient
+     * @param {number} amount -amount to add
+     */
+    subtractIngredient(ingredient, amount) {
+        this.ingredients[ingredient] = Math.max(0, this.ingredients[ingredient] - amount)
+        this.displayIngredientList()
+    }
 }
+
+// Ingredient Lists
+const redIngredientsEl = document.getElementById("red-ingredients")
+const blueIngredientsEl = document.getElementById("blue-ingredients")
+// Ingredients Display
+const leftIngredientsDisplayEl = document.getElementById("left-ingredients-display")
+const rightIngredientsDisplayEl = document.getElementById("right-ingredients-display")
+
+// Player Managers
+const redPlayerManager = new PlayerManager("red", redIngredientsEl, leftIngredientsDisplayEl)
+const bluePlayerManager = new PlayerManager("blue", blueIngredientsEl, rightIngredientsDisplayEl)
+redPlayerManager.displayIngredientList()
+bluePlayerManager.displayIngredientList()
+
+// Select elements
+const whichActionEl = document.getElementById("which-action")
+const whichTeamEl = document.getElementById("which-team")
+const whichIngredientEl = document.getElementById("which-ingredient")
+
+/**
+ * Toggles autopick on and off
+ */
+function applyChanges() {
+    whichActionEl.value
+    whichTeamEl.value
+    whichIngredientEl.value
+
+    // Set Team
+    let team
+    if (whichTeamEl.value === "red") {
+        team = redPlayerManager
+    } else if (whichTeamEl.value === "blue") {
+        team = bluePlayerManager
+    }
+    if (!team) return
+
+    // See if ingredient exists
+    if (!whichIngredientEl.value) return
+
+    // Set Action
+    if (whichActionEl.value === "add") {
+        team.addIngredient(whichIngredientEl.value, 1)
+    } else if (whichActionEl.value === "remove") {
+        team.subtractIngredient(whichIngredientEl.value, 1)
+    }
+}
+
+// Buttons
+const updateStarRedMinusEl = document.getElementById("update-star-red-minus")
+const updateStarRedPlusEl = document.getElementById("update-star-red-plus")
+const updateStarBlueMinusEl = document.getElementById("update-star-blue-minus")
+const updateStarBluePlusEl = document.getElementById("update-star-blue-plus")
+const updateNextAutopickerRedEl = document.getElementById("update-next-autopicker-red")
+const updateNextAutopickerBlueEl = document.getElementById("update-next-autopicker-blue")
+const applyChangesEl = document.getElementById("apply-changes")
+document.addEventListener("DOMContentLoaded", () => {
+    updateStarRedMinusEl.addEventListener("click", () => updateStarCount("red", "minus", leftPlayerScoreEl, rightPlayerScoreEl))
+    updateStarRedPlusEl.addEventListener("click", () => updateStarCount("red", "plus", leftPlayerScoreEl, rightPlayerScoreEl))
+    updateStarBlueMinusEl.addEventListener("click", () => updateStarCount("blue", "minus", leftPlayerScoreEl, rightPlayerScoreEl))
+    updateStarBluePlusEl.addEventListener("click", () => updateStarCount("blue", "plus", leftPlayerScoreEl, rightPlayerScoreEl))
+    updateNextAutopickerRedEl.addEventListener("click", () => updateNextAutoPicker('red'))
+    updateNextAutopickerBlueEl.addEventListener("click", () => updateNextAutoPicker('blue'))
+    toggleAutopickEl.addEventListener("click", toggleAutopick)
+    applyChangesEl.addEventListener("click", applyChanges)
+})

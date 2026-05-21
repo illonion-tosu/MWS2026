@@ -57,22 +57,8 @@
                     <div class="now-playing-stat-number" id="now-playing-stat-number-od">10.00</div>
                 </div>
             </section>
-            <div class="ingredients left-ingredients">
-                <img src="static/ingredients/butter.png">
-                <img src="static/ingredients/egg.png">
-                <img src="static/ingredients/sugar.png">
-                <img src="static/ingredients/milk.png">
-                <img src="static/ingredients/flour.png">
-                <img src="static/ingredients/butter.png">
-            </div>
-            <div class="ingredients right-ingredients">
-                <img src="static/ingredients/butter.png">
-                <img src="static/ingredients/egg.png">
-                <img src="static/ingredients/sugar.png">
-                <img src="static/ingredients/milk.png">
-                <img src="static/ingredients/flour.png">
-                <img src="static/ingredients/butter.png">
-            </div>
+            <div class="ingredients left-ingredients" id="left-ingredients-display"></div>
+            <div class="ingredients right-ingredients" id="right-ingredients-display"></div>
         </div>
 
         <!-- Start of mappool section -->
@@ -118,13 +104,13 @@
                     <button class="full-length-button" id="toggle-autopick">Toggle Autopick: OFF</button>
                 </div>
             </div>
-        </section>
-        <div class="divider divider-1"></div>
-        <section class="column column-2">
             <div class="sidebar-section">
                 <div class="sidebar-title">Current Red<br>Ingredients</div>
                 <div class="sidebar-text" id="red-ingredients"></div>
             </div>
+        </section>
+        <div class="divider divider-1"></div>
+        <section class="column column-2">
             <div class="sidebar-section">
                 <div class="sidebar-title">Current Blue Ingredients</div>
                 <div class="sidebar-text" id="blue-ingredients"></div>
@@ -134,18 +120,18 @@
                 <div class="sidebar-text">
                     Only to be used in case<br>things go wrong!
                 </div>
-                <div class="sidebar-title">Which option?</div>
-                <select class="sidebar-select" size="2">
+                <div class="sidebar-title">Which action?</div>
+                <select class="sidebar-select" id="which-action" size="2">
                     <option value="add">Add Ingredients</option>
                     <option value="remove">Remove Ingredients</option>
                 </select>
                 <div class="sidebar-title">Which Team?</div>
-                <select class="sidebar-select" size="2">
-                    <option value="add">Red</option>
-                    <option value="remove">Blue</option>
+                <select class="sidebar-select" id="which-team" size="2">
+                    <option value="red">Red</option>
+                    <option value="blue">Blue</option>
                 </select>
                 <div class="sidebar-title">Which Ingredient?</div>
-                <select class="sidebar-select" size="5">
+                <select class="sidebar-select" id="which-ingredient" size="5">
                     <option value="egg">Egg</option>
                     <option value="sugar">Sugar</option>
                     <option value="butter">Butter</option>
@@ -153,7 +139,7 @@
                     <option value="milk">Milk</option>
                 </select>
                 <div class="sidebar-button-container">
-                    <button class="full-length-button">APPLY CHANGES</button>
+                    <button class="full-length-button" id="apply-changes">APPLY CHANGES</button>
                 </div>
             </div>
         </section>
