@@ -17,7 +17,7 @@ function calculateScore(id, redPlay, bluePlay, user) {
     let redModified = { ...redPlay, winValue: redPlay.score };
     let blueModified = { ...bluePlay, winValue: bluePlay.score };
 
-    const logic = recipeLogic[id] || recipeLogic["default"]
+    const logic = recipeLogic[id] ?? recipeLogic["default"]
 
     if (user === "red") {
         redModified = logic(redModified)
