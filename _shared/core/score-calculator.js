@@ -8,22 +8,21 @@ const recipeLogic = {
 }
 
 /**
- * @param {string} id - Recipe ID
+ * @param {number} redRecipeId - Recipe ID for red
+ * @param {number} blueRecipeId - Recipe ID for blue
  * @param {Object} redPlay - 'play' object for red
  * @param {Object} bluePlay - 'play' object for blue
  * @param {string} user - 'red' or 'blue'
  */
-function calculateScore(id, redPlay, bluePlay, user) {
+function calculateScore(redRecipeId, blueRecipeId, redPlay, bluePlay,) {
     let redModified = { ...redPlay, winValue: redPlay.score };
     let blueModified = { ...bluePlay, winValue: bluePlay.score };
 
-    const logic = recipeLogic[id] ?? recipeLogic["default"]
+    const redLogic = recipeLogic[redRecipeId] ?? recipeLogic["default"]
+    const blueLogic = recipeLogic[blueRecipeId] ?? recipeLogic["default"]
 
-    if (user === "red") {
-        redModified = logic(redModified)
-    } else if (user === "blue") {
-        blueModified = logic(blueModified);
-    }
+    redModified = redLogic(redModified)
+    blueModified = blueLogic(blueModified)
 
     let winner = "Tie"
     if (redModified.winValue > blueModified.winValue) winner = "Red"
