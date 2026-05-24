@@ -5,6 +5,28 @@ import { setDefaultStarCount, updateStarCount } from "../_shared/core/stars.js"
 import { delay, getModDetails } from "../_shared/core/utils.js"
 import { createTosuWsSocket } from "../_shared/core/websocket.js"
 
+initialiseOsuApi()
+getBeatmaps()
+getRecipes()
+
+/**
+ * Loads recipes into recipes variable
+ */
+let allRecipes = []
+async function getRecipes() {
+    const response = await fetch("../_data/recipes.json")
+    allRecipes = await response.json()
+}
+
+/**
+ * Returns the recipe based on the Recipe ID
+ * @param {*} id - Recipe ID
+ * @returns {Object} - Recipe
+ */
+export function findRecipe(id) {
+    return allRecipes.find(r => Number(r.id) === id)
+}
+
 // Player Scores
 const leftPlayerScoreEl = document.getElementById("left-player-score")
 const rightPlayerScoreEl = document.getElementById("right-player-score")
@@ -195,9 +217,6 @@ function mapClickEvent(event) {
     else if (action === "pick") pickBanBorder.classList.add("pick-border")
     else if (action === "ban") pickBanBorder.classList.add("ban-border")
 }
-
-initialiseOsuApi()
-getBeatmaps()
 
 // Player Names
 const leftProfilePictureEl = document.getElementById("left-profile-picture")
@@ -495,6 +514,7 @@ class PlayerManager {
         for (const [ing, cost] of Object.entries(costs)) {
             this.ingredients[ing] = Math.max(0, this.ingredients[ing] - (cost || 0))
         }
+        console.log(costs)
 
         this.activeRecipe = recipe
 
@@ -584,7 +604,7 @@ const whichTeamEl = document.getElementById("which-team")
 const whichIngredientEl = document.getElementById("which-ingredient")
 
 /**
- * Toggles autopick on and off
+ * Adds and Subtracts Recipes
  */
 function applyChanges() {
     whichActionEl.value
@@ -611,6 +631,26 @@ function applyChanges() {
     }
 }
 
+// Select Elements Recipe
+const whichTeamRecipeEl = document.getElementById("which-team-recipe")
+const whichActionRecipeEl = document.getElementById("which-action-recipe")
+const selectRecipeEl = document.getElementById("select-recipe")
+const applyChangesRecipeEl = document.getElementById("apply-changes-recipe")
+
+function applyChangesRecipe() {
+    if (!whichTeamRecipeEl.value || !whichActionRecipeEl.value) return
+
+    // Add Recipe
+    if (whichActionRecipeEl.value === "add-recipe" && !selectRecipeEl.value) return
+    else if (whichActionRecipeEl.value === "add-recipe") {
+        // Set active recipe
+        const playerManager = whichTeamRecipeEl.value === "red" ? redPlayerManager : bluePlayerManager
+        const currentRecipe = findRecipe(Number(selectRecipeEl.value))
+        playerManager.craftRecipe(currentRecipe, currentRecipe.duration === "Infinity" ? Infinity : currentRecipe.duration)
+        console.log(playerManager)
+    }
+}
+
 // Buttons
 const updateStarRedMinusEl = document.getElementById("update-star-red-minus")
 const updateStarRedPlusEl = document.getElementById("update-star-red-plus")
@@ -628,4 +668,5 @@ document.addEventListener("DOMContentLoaded", () => {
     updateNextAutopickerBlueEl.addEventListener("click", () => updateNextAutoPicker('blue'))
     toggleAutopickEl.addEventListener("click", toggleAutopick)
     applyChangesEl.addEventListener("click", applyChanges)
+    applyChangesRecipeEl.addEventListener("click", applyChangesRecipe)
 })

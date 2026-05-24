@@ -307,7 +307,7 @@
     position: absolute;
     left: 1920px;
     top: 0;
-    width: 500px;
+    width: 750px;
     height: 1080px;
     background-color: var(--gondola-colour);
     display: flex;
