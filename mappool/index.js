@@ -315,13 +315,14 @@ socket.onmessage = async event => {
 
         // Get scores
         let currentActiveRecipe = redPlayerManager.activeRecipe ?? bluePlayerManager.activeRecipe ?? null
-        const scores = calculateScore(currentActiveRecipe, data.tourney.clients[0].play, data.tourney.clients[1].play, "red")
+        const accRecipeActive = redPlayerManager.activeRecipe === 12 || bluePlayerManager.activeRecipe === 12
+        const scores = calculateScore(redPlayerManager.activeRecipe, bluePlayerManager.activeRecipe, data.tourney.clients[0].play, data.tourney.clients[1].play)
         
         // Determine if a winner is to be set
         let requiredToSetWinner = true
-        if (currentActiveRecipe === 16) {
+        if (currentActiveRecipe === 16 && !accRecipeActive) {
             if (Math.abs(scores.redFinalScore - scores.blueFinalScore) <= 10000) requiredToSetWinner = false
-        } else if (currentActiveRecipe === 7) {
+        } else if (currentActiveRecipe === 7 && !accRecipeActive) {
             if (redPlayerManager.activeRecipe === 7) {
                 redPlayerManager.mapsRemaining--
                 if (redPlayerManager.mapsRemaining > 0) {
@@ -339,15 +340,15 @@ socket.onmessage = async event => {
         }
 
         // For Active Recipe 7 only, set scores
-        if (currentActiveRecipe === 7 && bluePlayerManager.savedScore === 0 && redPlayerManager.savedScore === 0) {
-            bluePlayerManager.savedSCore = scores.blueFinalScore
-            redPlayerManager.savedSCore = scores.redFinalScore
+        if (currentActiveRecipe === 7 && bluePlayerManager.savedScore === 0 && redPlayerManager.savedScore === 0 && !accRecipeActive) {
+            bluePlayerManager.savedScore = scores.blueFinalScore
+            redPlayerManager.savedScore = scores.redFinalScore
         }
 
         // Set winner
         if (requiredToSetWinner && currentActiveRecipe !== 21) {
             let winner
-            if (currentActiveRecipe === 7) {
+            if (currentActiveRecipe === 7 && !accRecipeActive) {
                 const maxScore = Math.max(bluePlayerManager.savedScore, redPlayerManager.savedScore, scores.redFinalScore, scores.blueFinalScore)
                 winner = (bluePlayerManager.savedScore === maxScore || scores.blueFinalScore === maxScore) ? "blue" : "red"
             } else {
