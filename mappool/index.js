@@ -382,6 +382,7 @@ socket.onmessage = async event => {
             // Give ingredients based on win
             let winnerPlayerManager = winner === "red" ? redPlayerManager : bluePlayerManager
             addIngredient(winnerPlayerManager, currentMap.mod)
+            
             // Handles 24 - Shortbread
             if (winnerPlayerManager.activeRecipe === 24) {
                 addIngredient(winnerPlayerManager, currentMap.mod)
@@ -394,6 +395,8 @@ socket.onmessage = async event => {
             // 23 Hot chocolate
             handleHotChocolateCondition(redPlayerManager, currentMap.mod)
             handleHotChocolateCondition(bluePlayerManager, currentMap.mod)
+
+            displayActiveRecipe()
         }
     }
 }
@@ -527,6 +530,7 @@ class PlayerManager {
         }
 
         console.log(`${this.color.toUpperCase()} crafted ${recipe.recipe}. Duration: ${duration}`)
+        displayActiveRecipe()
     }
 
     /**
@@ -538,6 +542,7 @@ class PlayerManager {
         this.mapsRemaining = 0
         this.condition = null
         this.savedScore = 0
+        displayActiveRecipe()
         return used
     }
 
@@ -560,6 +565,7 @@ class PlayerManager {
             }
         }
         this.ingredientDisplayEl.append(imagesHTML)
+        displayActiveRecipe()
     }
 
     /**
@@ -571,6 +577,7 @@ class PlayerManager {
     addIngredient(ingredient, amount) {
         this.ingredients[ingredient] += amount
         this.displayIngredientList()
+        displayActiveRecipe()
     }
 
     /**
@@ -582,7 +589,21 @@ class PlayerManager {
     subtractIngredient(ingredient, amount) {
         this.ingredients[ingredient] = Math.max(0, this.ingredients[ingredient] - amount)
         this.displayIngredientList()
+        displayActiveRecipe()
     }
+}
+
+const redActiveRecipeEl = document.getElementById("red-active-recipe")
+const blueActiveRecipeEl = document.getElementById("blue-active-recipe")
+/**
+ * Display Active Recipe
+ */
+function displayActiveRecipe() {
+    const redRecipe = redPlayerManager.activeRecipe ? findRecipe(redPlayerManager.activeRecipe.id).recipe : "None"
+    const blueRecipe = bluePlayerManager.activeRecipe ? findRecipe(bluePlayerManager.activeRecipe.id).recipe : "None"
+
+    redActiveRecipeEl.textContent = redRecipe
+    blueActiveRecipeEl.textContent = blueRecipe
 }
 
 // Ingredient Lists
@@ -640,14 +661,16 @@ const applyChangesRecipeEl = document.getElementById("apply-changes-recipe")
 function applyChangesRecipe() {
     if (!whichTeamRecipeEl.value || !whichActionRecipeEl.value) return
 
+    const playerManager = whichTeamRecipeEl.value === "red" ? redPlayerManager : bluePlayerManager
+
     // Add Recipe
     if (whichActionRecipeEl.value === "add-recipe" && !selectRecipeEl.value) return
     else if (whichActionRecipeEl.value === "add-recipe") {
         // Set active recipe
-        const playerManager = whichTeamRecipeEl.value === "red" ? redPlayerManager : bluePlayerManager
         const currentRecipe = findRecipe(Number(selectRecipeEl.value))
         playerManager.craftRecipe(currentRecipe, currentRecipe.duration === "Infinity" ? Infinity : currentRecipe.duration)
-        console.log(playerManager)
+    } else if (whichActionRecipeEl.value === "remove-recipe") {
+        playerManager.consumeRecipe()
     }
 }
 
