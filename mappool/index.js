@@ -374,6 +374,9 @@ socket.onmessage = async event => {
                 winner = scores.blueFinalScore > scores.redFinalScore
             }
 
+            // Set the star count
+            updateStarCount(winner, "plus", leftPlayerScoreEl, rightPlayerScoreEl)
+
             // Consume recipes at the end
             redPlayerManager.consumeRecipe()
             bluePlayerManager.consumeRecipe()
