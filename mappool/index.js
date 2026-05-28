@@ -79,6 +79,7 @@ async function getBeatmaps() {
  * Creates a DOM element representing a beatmap tile
  * 
  * @param {Object} beatmapInfo - The data object containing beatmap details
+ * @param {string} beatmapInfo.beatmap_id - Beatmap ID
  * @param {string} beatmapInfo.beatmapset_id - Beatmapset ID
  * @param {string} beatmapInfo.mod - The mod acronym
  * @param {number} beatmapInfo.order - The sequence number within the mod group
@@ -93,6 +94,7 @@ async function createTile(beatmapInfo) {
     // Map Tile
     const mapTile = document.createElement("div")
     mapTile.classList.add("map-tile")
+    mapTile.setAttribute("id", beatmapInfo.beatmap_id)
 
     // Map background
     const mapBackground = document.createElement("div")
@@ -286,7 +288,7 @@ socket.onmessage = async event => {
         // Current Map
         currentMap = findBeatmap(nowPlayingId)
         if (currentMap) {
-            updateStats = false;
+            updateStats = false
             const { cs, ar, od, bpm } = getModDetails(currentMap.diff_size, currentMap.diff_approach, currentMap.diff_overall, currentMap.bpm, currentMap.total_length, currentMap.mod === "PS"? currentMap.extra_mod : currentMap.mod)
             
             nowPlayingStatNumberSrEl.textContent = Number(currentMap.difficultyrating).toFixed(2)
@@ -294,6 +296,18 @@ socket.onmessage = async event => {
             nowPlayingStatNumberCsEl.textContent = cs
             nowPlayingStatNumberArEl.textContent = ar
             nowPlayingStatNumberOdEl.textContent = od
+
+            // Click on map
+            const mapElement = document.getElementById(nowPlayingId)
+            if (mapElement && isAutopickOn) {
+                const event = new MouseEvent("mousedown", {
+                    bubbles: true,
+                    cancelable: true,
+                    view: window,
+                    button: 0
+                })
+                mapElement.dispatchEvent(event)
+            }
         }
 
         // Update stats
