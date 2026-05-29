@@ -575,11 +575,18 @@ class PlayerManager {
         this.ingredientDisplayEl.innerHTML = ""
         let imagesHTML = document.createDocumentFragment()
         for (const [ingredient, amount] of Object.entries(this.ingredients)) {
-            for (let i = 0; i < amount; i++) {
-                const image = document.createElement("img")
-                image.setAttribute("src", `static/ingredients/${ingredient}.png`)
-                imagesHTML.append(image)
-            }
+            const div = document.createElement("div")
+            div.classList.add("ingredient-container")
+
+            const image = document.createElement("img")
+            image.setAttribute("src", `static/ingredients/${ingredient}.png`)
+            imagesHTML.append(div)
+
+            const amountDiv = document.createElement("div")
+            amountDiv.classList.add("ingredient-amount")
+            amountDiv.textContent = amount
+
+            div.append(image, amountDiv)
         }
         this.ingredientDisplayEl.append(imagesHTML)
         displayActiveRecipe()

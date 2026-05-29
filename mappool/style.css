@@ -3,6 +3,7 @@
     --right-profile-picture-x: 1030px;
     --player-name-x: 102.5px;
     --player-score-x: 318px;
+    --ingredient-amount-x: 30px;
 }
 
 /* Whole page */
@@ -151,13 +152,6 @@
     flex-direction: column;
 }
 
-.ingredients img {
-    --dimension: 50px;
-
-    width: var(--dimension);
-    height: var(--dimension);
-}
-
 .left-ingredients {
     left: 0;
     transform: translate(-40%, -50%);
@@ -167,6 +161,38 @@
     right: 0;
     transform: translate(40%, -50%);
 }
+
+/* Ingredient Containers */
+.ingredient-container {
+    position: relative;
+}
+
+.ingredients img {
+    --dimension: 50px;
+
+    width: var(--dimension);
+    height: var(--dimension);
+}
+
+/* Ingredient Amount */
+.ingredient-amount {
+    --dimension: 20px;
+
+    position: absolute;
+    top: 25px;
+    width: var(--dimension);
+    height: var(--dimension);
+    border-radius: 50%;
+    background-color: white;
+
+    color: black;
+    font-size: 10px;
+    text-align: center;
+    line-height: var(--dimension);
+}
+
+.left-ingredients .ingredient-container .ingredient-amount { left: var(--ingredient-amount-x); }
+.right-ingredients .ingredient-container .ingredient-amount { right: var(--ingredient-amount-x); }
 
 /* Mappool container */
 .mappool-container {
