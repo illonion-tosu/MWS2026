@@ -343,45 +343,47 @@ socket.onmessage = async event => {
     }
 
     // Check winner
-    if (ipcState === 4 && (currentMap || redPlayerManager.activeRecipe === 21 || bluePlayerManager.activeRecipe === 21) && setWinner) {
+    if (ipcState === 4 && (currentMap || redPlayerManager.activeRecipe.id === 21 || bluePlayerManager.activeRecipe.id === 21) && setWinner) {
         setWinner = true
 
         // Get scores
-        let currentActiveRecipe = redPlayerManager.activeRecipe ?? bluePlayerManager.activeRecipe ?? null
-        const accRecipeActive = redPlayerManager.activeRecipe === 12 || bluePlayerManager.activeRecipe === 12
-        const scores = calculateScore(redPlayerManager.activeRecipe, bluePlayerManager.activeRecipe, data.tourney.clients[0].play, data.tourney.clients[1].play)
+        const isRecipe7Active = redPlayerManager.activeRecipe.id === 7 || bluePlayerManager.activeRecipe.id === 7
+        const isRecipe16Active = redPlayerManager.activeRecipe.id === 16 || bluePlayerManager.activeRecipe.id === 16
+        const isRecipe21Active = redPlayerManager.activeRecipe.id === 21 || bluePlayerManager.activeRecipe.id === 21
+        const accRecipeActive = redPlayerManager.activeRecipe.id === 12 || bluePlayerManager.activeRecipe.id === 12
+        const scores = calculateScore(redPlayerManager.activeRecipe.id, bluePlayerManager.activeRecipe.id, data.tourney.clients[0].play, data.tourney.clients[1].play)
         
         // Determine if a winner is to be set
         let requiredToSetWinner = true
-        if (currentActiveRecipe === 16 && !accRecipeActive) {
-            if (Math.abs(scores.redFinalScore - scores.blueFinalScore) <= 10000) requiredToSetWinner = false
-        } else if (currentActiveRecipe === 7 && !accRecipeActive) {
-            if (redPlayerManager.activeRecipe === 7) {
+        if (isRecipe7Active && !accRecipeActive) {
+            if (redPlayerManager.activeRecipe.id === 7) {
                 redPlayerManager.mapsRemaining--
                 if (redPlayerManager.mapsRemaining > 0) {
                     requiredToSetWinner = false
                     redPlayerManager.savedScore = scores.redFinalScore
                 }
             }
-            else if (bluePlayerManager.activeRecipe === 7) {
+            else if (bluePlayerManager.activeRecipe.id === 7) {
                 bluePlayerManager.mapsRemaining--
                 if (bluePlayerManager.mapsRemaining > 0) {
                     requiredToSetWinner = false
                     bluePlayerManager.savedScore = scores.blueFinalScore
                 }
             }
-        }
+        } else if (isRecipe16Active && !accRecipeActive) {
+            if (Math.abs(scores.redFinalScore - scores.blueFinalScore) <= 10000) requiredToSetWinner = false
+        } 
 
         // For Active Recipe 7 only, set scores
-        if (currentActiveRecipe === 7 && bluePlayerManager.savedScore === 0 && redPlayerManager.savedScore === 0 && !accRecipeActive) {
+        if (isRecipe7Active && bluePlayerManager.savedScore === 0 && redPlayerManager.savedScore === 0 && !accRecipeActive) {
             bluePlayerManager.savedScore = scores.blueFinalScore
             redPlayerManager.savedScore = scores.redFinalScore
         }
 
         // Set winner
-        if (requiredToSetWinner && currentActiveRecipe !== 21) {
+        if (requiredToSetWinner) {
             let winner
-            if (currentActiveRecipe === 7 && !accRecipeActive) {
+            if (isRecipe7Active && !accRecipeActive) {
                 const maxScore = Math.max(bluePlayerManager.savedScore, redPlayerManager.savedScore, scores.redFinalScore, scores.blueFinalScore)
                 winner = (bluePlayerManager.savedScore === maxScore || scores.blueFinalScore === maxScore) ? "blue" : "red"
             } else {
@@ -391,28 +393,31 @@ socket.onmessage = async event => {
             // Set the star count
             updateStarCount(winner, "plus", leftPlayerScoreEl, rightPlayerScoreEl)
 
+            if (!isRecipe21Active) {
+                // RECIPE APPLICATION SECTION (determining which recipes to give to people)
+                // Give ingredients based on win
+                let winnerPlayerManager = winner === "red" ? redPlayerManager : bluePlayerManager
+                addIngredient(winnerPlayerManager, currentMap.mod)
+            
+                // Handles 24 - Shortbread
+                if (winnerPlayerManager.activeRecipe.id === 24) {
+                    addIngredient(winnerPlayerManager, currentMap.mod)
+                }
+
+                // Give ingredients based on home base ingredient
+                handleHomeBaseCondition(redPlayerManager)
+                handleHomeBaseCondition(bluePlayerManager)
+
+                // 23 Hot chocolate
+                handleHotChocolateCondition(redPlayerManager, currentMap.mod)
+                handleHotChocolateCondition(bluePlayerManager, currentMap.mod)
+            }
+
             // Consume recipes at the end
             redPlayerManager.consumeRecipe()
             bluePlayerManager.consumeRecipe()
 
-            // RECIPE APPLICATION SECTION (determining which recipes to give to people)
-            // Give ingredients based on win
-            let winnerPlayerManager = winner === "red" ? redPlayerManager : bluePlayerManager
-            addIngredient(winnerPlayerManager, currentMap.mod)
-            
-            // Handles 24 - Shortbread
-            if (winnerPlayerManager.activeRecipe === 24) {
-                addIngredient(winnerPlayerManager, currentMap.mod)
-            }
-
-            // Give ingredients based on home base ingredient
-            handleHomeBaseCondition(redPlayerManager)
-            handleHomeBaseCondition(bluePlayerManager)
-
-            // 23 Hot chocolate
-            handleHotChocolateCondition(redPlayerManager, currentMap.mod)
-            handleHotChocolateCondition(bluePlayerManager, currentMap.mod)
-
+            // Display recipe
             displayActiveRecipe()
         }
     }
@@ -424,7 +429,7 @@ socket.onmessage = async event => {
  * @param {string} currentMapMod - Mod of current map
  */
 function handleHotChocolateCondition(playerManager, currentMapMod) {
-    if (playerManager.mod !== currentMapMod && playerManager.activeRecipe === 23) {
+    if (playerManager.mod !== currentMapMod && playerManager.activeRecipe.id === 23) {
         addIngredient(playerManager, playerManager.mod)
     }
 }
@@ -516,7 +521,7 @@ class PlayerManager {
             flour: 0,
             milk: 0
         }
-        this.activeRecipe = null
+        this.activeRecipe.id = null
         this.savedScore = 0
         this.mod = mod
 
@@ -536,7 +541,7 @@ class PlayerManager {
         }
         console.log(costs)
 
-        this.activeRecipe = recipe
+        this.activeRecipe.id = recipe
 
         if (typeof duration === 'number') {
             this.mapsRemaining = duration
@@ -554,8 +559,8 @@ class PlayerManager {
      * Clears the active recipe after it has been used in a map
      */
     consumeRecipe() {
-        const used = this.activeRecipe
-        this.activeRecipe = null
+        const used = this.activeRecipe.id
+        this.activeRecipe.id = null
         this.mapsRemaining = 0
         this.condition = null
         this.savedScore = 0
@@ -623,8 +628,8 @@ const blueActiveRecipeEl = document.getElementById("blue-active-recipe")
  * Display Active Recipe
  */
 function displayActiveRecipe() {
-    const redRecipe = redPlayerManager.activeRecipe ? findRecipe(redPlayerManager.activeRecipe.id).recipe : "None"
-    const blueRecipe = bluePlayerManager.activeRecipe ? findRecipe(bluePlayerManager.activeRecipe.id).recipe : "None"
+    const redRecipe = redPlayerManager.activeRecipe.id ? findRecipe(redPlayerManager.activeRecipe.id.id).recipe : "None"
+    const blueRecipe = bluePlayerManager.activeRecipe.id ? findRecipe(bluePlayerManager.activeRecipe.id.id).recipe : "None"
 
     redActiveRecipeEl.textContent = redRecipe
     blueActiveRecipeEl.textContent = blueRecipe
