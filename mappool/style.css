@@ -3,10 +3,22 @@
     --right-profile-picture-x: 1030px;
     --player-name-x: 102.5px;
     --player-score-x: 318px;
+    --ingredient-amount-x: 30px;
 }
 
 /* Whole page */
 .main { background-image: url("static/background.png"); }
+
+/* Binder */
+.binder {
+    position: absolute;
+    top: -310px;
+    left: 966px;
+    transform: translateX(-50%) scale(0.5);
+    display: flex;
+    flex-direction: column;
+    gap: 50px;
+}
 
 /* Profile Picture */
 .profile-picture {
@@ -144,29 +156,53 @@
 }
 
 /* Recipes */
-.recipes {
+.ingredients {
     position: absolute;
     top: 50%;
     display: flex;
     flex-direction: column;
 }
 
-.recipes img {
+.left-ingredients {
+    left: 0;
+    transform: translate(-40%, -50%);
+}
+
+.right-ingredients {
+    right: 0;
+    transform: translate(40%, -50%);
+}
+
+/* Ingredient Containers */
+.ingredient-container {
+    position: relative;
+}
+
+.ingredients img {
     --dimension: 50px;
 
     width: var(--dimension);
     height: var(--dimension);
 }
 
-.left-recipes {
-    left: 0;
-    transform: translate(-40%, -50%);
+/* Ingredient Amount */
+.ingredient-amount {
+    --dimension: 20px;
+
+    position: absolute;
+    top: 25px;
+    width: var(--dimension);
+    height: var(--dimension);
+    border-radius: 50%;
+    background-color: white;
+    color: black;
+    font-size: 10px;
+    text-align: center;
+    line-height: var(--dimension);
 }
 
-.right-recipes {
-    right: 0;
-    transform: translate(40%, -50%);
-}
+.left-ingredients .ingredient-container .ingredient-amount { left: var(--ingredient-amount-x); }
+.right-ingredients .ingredient-container .ingredient-amount { right: var(--ingredient-amount-x); }
 
 /* Mappool container */
 .mappool-container {
@@ -231,6 +267,7 @@
 .map-mod-ps { background-color: #957259; }
 .map-mod-hr { background-color: #8D3F38; }
 .map-mod-dt { background-color: #634E7A; }
+.map-mod-fm { background-color: #5F7F63; }
 .map-mod-tb { background-color: #454545; }
 
 /* Ingredient */
@@ -300,3 +337,107 @@
 .right { color: lightblue;}
 .bot { color: lightyellow; }
 .unknown { color: lightgreen}
+
+/* Sidebar */
+.sidebar {
+    position: absolute;
+    left: 1920px;
+    top: 0;
+    width: 750px;
+    height: 1080px;
+    background-color: var(--gondola-colour);
+    display: flex;
+    font-family: Lexend, sans-serif;
+}
+
+/* Sidebar Section */
+.sidebar-section {
+    width: inherit;
+    padding: 20px 0;
+    border-bottom: 2px solid white;
+}
+
+/* Sidebar Title */
+.sidebar-title {
+    width: inherit;
+    text-align: center;
+    margin-bottom: 10px;
+    color: white;
+    font-weight: 700;
+    font-size: 1.25rem;
+}
+
+/* Sidebar Regular Text */
+.sidebar-text {
+    width: inherit;
+    text-align: center;
+    color: white;
+    font-size: 19px;
+    margin-bottom: 20px;
+}
+
+/* Sidebar Button Container */
+.sidebar-button-container {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+/* Sidebar Button */
+.sidebar-button-container button, div.full-length-button {
+    width: 100px;
+    height: 43px;
+    font-family: inherit;
+    font-weight: 700;
+    background-color: transparent;
+    color: white;
+    font-size: 1rem;
+    border: 3px solid white;
+    border-radius: 20px;
+    text-align: center;
+    line-height: 37px;
+}
+
+/* Sidebar Full Length B utton */
+.sidebar-button-container button.full-length-button, div.full-length-button {
+    width: 210px;
+}
+
+.sidebar-button-container button:active, div.full-length-button:active {
+    color: var(--gondola-colour);
+    background-color: white;
+}
+
+/* Columns */
+.column {
+    width: 250px;
+    height: inherit;
+}
+
+/* Divider */
+.divider {
+    position: absolute;
+    top: 0;
+    width: 2px;
+    height: 1080px;
+    background-color: white;
+}
+.divider-1 { left: 249px; }
+.divider-2 { left: 499px; }
+
+/* Sidebar Select */
+.sidebar-select {
+    width: 250px;
+    text-align: center;
+    font-family: inherit;
+    font-weight: inherit;
+    font-size: 19px;
+    background-color: transparent;
+    color: white;
+    margin-bottom: 20px;
+    border: none;
+}
+
+.sidebar-select::-webkit-scrollbar { display: none; }
+.sidebar-select option {  line-height: 20px; }

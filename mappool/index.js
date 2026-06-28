@@ -1,13 +1,42 @@
 import { initialiseOsuApi, getOsuApi } from "../_shared/core/apis.js"
 import { loadBeatmaps, findBeatmap } from "../_shared/core/beatmaps.js"
 import { updateChat } from "../_shared/core/chat.js"
+import { calculateScore } from "../_shared/core/score-calculator.js"
+import { setDefaultStarCount, updateStarCount } from "../_shared/core/stars.js"
 import { delay, getModDetails } from "../_shared/core/utils.js"
 import { createTosuWsSocket } from "../_shared/core/websocket.js"
 
+initialiseOsuApi()
+getBeatmaps()
+getRecipes()
+
+/**
+ * Loads recipes into recipes variable
+ */
+let allRecipes = []
+async function getRecipes() {
+    const response = await fetch("../_data/recipes.json")
+    allRecipes = await response.json()
+}
+
+/**
+ * Returns the recipe based on the Recipe ID
+ * @param {*} id - Recipe ID
+ * @returns {Object} - Recipe
+ */
+export function findRecipe(id) {
+    return allRecipes.find(r => Number(r.id) === id)
+}
+
+// Player Scores
+const leftPlayerScoreEl = document.getElementById("left-player-score")
+const rightPlayerScoreEl = document.getElementById("right-player-score")
+
+// Mappool Container Sections
 const mappoolContainerLeftEl = document.getElementById("mappool-container-left")
 const mappoolContainerRightEl = document.getElementById("mappool-container-right")
 const chatDisplayEl = document.getElementById("chat-display")
-let allBeatmaps = []
+let allBeatmaps = [], currentMap
 /**
  * Loads beatmaps into allBeatmaps variable
  */
@@ -31,12 +60,27 @@ async function getBeatmaps() {
     if (mappoolContainerRightEl.childElementCount >= 14) {
         chatDisplayEl.style.gridColumn = "3 / 5"
     }
+
+    // Set default star count
+    let bestOf
+    switch (data.roundName) {
+        case "RO64": case "RO32": case "RO16":
+            bestOf = 9
+            break
+        case "QF": case "SF":
+            bestOf = 11
+            break
+        default:
+            bestOf = 13
+    }
+    setDefaultStarCount(bestOf, leftPlayerScoreEl, rightPlayerScoreEl, "mappool")
 }
 
 /**
  * Creates a DOM element representing a beatmap tile
  * 
  * @param {Object} beatmapInfo - The data object containing beatmap details
+ * @param {string} beatmapInfo.beatmap_id - Beatmap ID
  * @param {string} beatmapInfo.beatmapset_id - Beatmapset ID
  * @param {string} beatmapInfo.mod - The mod acronym
  * @param {number} beatmapInfo.order - The sequence number within the mod group
@@ -51,6 +95,7 @@ async function createTile(beatmapInfo) {
     // Map Tile
     const mapTile = document.createElement("div")
     mapTile.classList.add("map-tile")
+    mapTile.setAttribute("id", beatmapInfo.beatmap_id)
 
     // Map background
     const mapBackground = document.createElement("div")
@@ -82,9 +127,31 @@ async function createTile(beatmapInfo) {
     mapModId.textContent = `${beatmapInfo.mod}${beatmapInfo.order}`
     
     // Ingredient
-    const ingredient = document.createElement("img")
-    ingredient.classList.add("ingredient")
-    ingredient.setAttribute("src", "static/ingredients/ingredient-1.png")
+    const ingredientImg = document.createElement("img")
+    ingredientImg.classList.add("ingredient")
+    let ingredient
+    switch (beatmapInfo.mod) {
+        case "NM":
+            ingredient = "egg"
+            break
+        case "PS":
+            ingredient = "sugar"
+            break
+        case "HR":
+            ingredient = "butter"
+            break
+        case "DT":
+            ingredient = "flour"
+            break
+        case "FM":
+            ingredient = "milk"
+            break
+        default:
+            ingredient
+    }
+    if (beatmapInfo.mod !== "TB") {
+        ingredientImg.setAttribute("src", `static/ingredients/${ingredient}.png`)
+    }
 
     // Metadata
     const mapMetadata = document.createElement("div")
@@ -93,7 +160,7 @@ async function createTile(beatmapInfo) {
 
     // Append everything together
     mapBackground.append(imageOverlay, pickBanBorder, mapModId)
-    mapTile.append(mapBackground, ingredient, mapMetadata)
+    mapTile.append(mapBackground, ingredientImg, mapMetadata)
 
     // Map Tile
     mapTile.addEventListener("mousedown", mapClickEvent)
@@ -133,14 +200,13 @@ async function findImage(url) {
     }
 }
 
-// Map Click Event
+/**
+ * Handles map selection logic based on mouse clicks and modifier keys.
+ *
+ * @param {MouseEvent} event - The mouse event triggered by the user.
+ * @this {HTMLElement} - The map element that received the click.
+ */
 function mapClickEvent(event) {
-    // Team
-    let team
-    if (event.button === 0) team = "red"
-    else if (event.button === 2) team = "blue"
-    if (!team) return
-
     // Action
     let action = "pick"
     if (event.ctrlKey) action = "ban"
@@ -154,9 +220,6 @@ function mapClickEvent(event) {
     else if (action === "pick") pickBanBorder.classList.add("pick-border")
     else if (action === "ban") pickBanBorder.classList.add("ban-border")
 }
-
-initialiseOsuApi()
-getBeatmaps()
 
 // Player Names
 const leftProfilePictureEl = document.getElementById("left-profile-picture")
@@ -181,6 +244,9 @@ const nowPlayingStatNumberOdEl = document.getElementById("now-playing-stat-numbe
 const chatDisplayContainerEl = document.getElementById("chat-display-container")
 let chatLen
 
+// IPC State
+let ipcState, setWinner = false
+
 /**
  * Handles incoming websocket messages from Tosu.
  *
@@ -193,7 +259,7 @@ let chatLen
 const socket = createTosuWsSocket()
 socket.onmessage = async event => {
     const data = JSON.parse(event.data)
-    console.log(data)
+    // console.log(data)
 
     // Player information
     const teamInfo = data.tourney.team
@@ -221,9 +287,9 @@ socket.onmessage = async event => {
         nowPlayingBackgroundEl.style.backgroundImage = `url("http://127.0.0.1:24050/Songs/${bg}")`
 
         // Current Map
-        const currentMap = findBeatmap(nowPlayingId)
+        currentMap = findBeatmap(nowPlayingId)
         if (currentMap) {
-            updateStats = false;
+            updateStats = false
             const { cs, ar, od, bpm } = getModDetails(currentMap.diff_size, currentMap.diff_approach, currentMap.diff_overall, currentMap.bpm, currentMap.total_length, currentMap.mod === "PS"? currentMap.extra_mod : currentMap.mod)
             
             nowPlayingStatNumberSrEl.textContent = Number(currentMap.difficultyrating).toFixed(2)
@@ -231,6 +297,18 @@ socket.onmessage = async event => {
             nowPlayingStatNumberCsEl.textContent = cs
             nowPlayingStatNumberArEl.textContent = ar
             nowPlayingStatNumberOdEl.textContent = od
+
+            // Click on map
+            const mapElement = document.getElementById(nowPlayingId)
+            if (mapElement && isAutopickOn) {
+                const event = new MouseEvent("mousedown", {
+                    bubbles: true,
+                    cancelable: true,
+                    view: window,
+                    button: 0
+                })
+                mapElement.dispatchEvent(event)
+            }
         }
 
         // Update stats
@@ -255,6 +333,142 @@ socket.onmessage = async event => {
     if (chatLen !== chatData.length) {
         chatLen = updateChat(chatLen, chatData, chatDisplayContainerEl)
     }
+
+    // IPC State
+    if (data.tourney.ipcState !== ipcState) {
+        ipcState = data.tourney.ipcState
+        setWinner = true
+        if (ipcState === 4) {
+            setWinner = false
+        }
+    }
+
+    console.log(currentMap, setWinner)
+    // Check winner
+    if (ipcState === 4 && (currentMap || redPlayerManager.activeRecipe.id === 21 || bluePlayerManager.activeRecipe.id === 21) && !setWinner) {
+        console.log("do we set winner")
+        setWinner = true
+
+        // Get scores
+        const isRecipe7Active = redPlayerManager.activeRecipe.id === 7 || bluePlayerManager.activeRecipe.id === 7
+        const isRecipe16Active = redPlayerManager.activeRecipe.id === 16 || bluePlayerManager.activeRecipe.id === 16
+        const isRecipe21Active = redPlayerManager.activeRecipe.id === 21 || bluePlayerManager.activeRecipe.id === 21
+        const accRecipeActive = redPlayerManager.activeRecipe.id === 12 || bluePlayerManager.activeRecipe.id === 12
+        const scores = calculateScore(redPlayerManager.activeRecipe.id, bluePlayerManager.activeRecipe.id, data.tourney.clients[0].play, data.tourney.clients[1].play)
+        
+        console.log(scores)
+
+        // Determine if a winner is to be set
+        let requiredToSetWinner = true
+        if (isRecipe7Active && !accRecipeActive) {
+            if (redPlayerManager.activeRecipe.id === 7) {
+                redPlayerManager.mapsRemaining--
+                if (redPlayerManager.mapsRemaining > 0) {
+                    requiredToSetWinner = false
+                    redPlayerManager.savedScore = scores.redFinalScore
+                    bluePlayerManager.savedScore = scores.blueFinalScore
+                }
+            }
+            else if (bluePlayerManager.activeRecipe.id === 7) {
+                bluePlayerManager.mapsRemaining--
+                if (bluePlayerManager.mapsRemaining > 0) {
+                    requiredToSetWinner = false
+                    redPlayerManager.savedScore = scores.redFinalScore
+                    bluePlayerManager.savedScore = scores.blueFinalScore
+                }
+            }
+        } else if (isRecipe16Active && !accRecipeActive) {
+            if (Math.abs(scores.redFinalScore - scores.blueFinalScore) <= 10000) requiredToSetWinner = false
+        } 
+
+        console.log(requiredToSetWinner)
+
+        // For Active Recipe 7 only, set scores
+        if (isRecipe7Active && bluePlayerManager.savedScore === 0 && redPlayerManager.savedScore === 0 && !accRecipeActive) {
+            bluePlayerManager.savedScore = scores.blueFinalScore
+            redPlayerManager.savedScore = scores.redFinalScore
+        }
+
+        console.log(bluePlayerManager.savedScore)
+
+        // Set winner
+        if (requiredToSetWinner) {
+            let winner
+            if (isRecipe7Active && !accRecipeActive) {
+                const maxScore = Math.max(bluePlayerManager.savedScore, redPlayerManager.savedScore, scores.redFinalScore, scores.blueFinalScore)
+                winner = (bluePlayerManager.savedScore === maxScore || scores.blueFinalScore === maxScore) ? "blue" : "red"
+            } else {
+                winner = scores.blueFinalScore > scores.redFinalScore ? "blue" : "red"
+            }
+
+            console.log(winner)
+            // Set the star count
+            updateStarCount(winner, "plus", leftPlayerScoreEl, rightPlayerScoreEl)
+
+            if (!isRecipe21Active) {
+                console.log("recipe 21 not active")
+                // RECIPE APPLICATION SECTION (determining which recipes to give to people)
+                // Give ingredients based on win
+                let winnerPlayerManager = winner === "red" ? redPlayerManager : bluePlayerManager
+                addIngredient(winnerPlayerManager, currentMap.mod)
+            
+                // Handles 24 - Shortbread
+                if (winnerPlayerManager.activeRecipe.id === 24) {
+                    addIngredient(winnerPlayerManager, currentMap.mod)
+                }
+
+                // Give ingredients based on home base ingredient
+                handleHomeBaseCondition(redPlayerManager)
+                handleHomeBaseCondition(bluePlayerManager)
+
+                // 23 Hot chocolate
+                handleHotChocolateCondition(redPlayerManager, currentMap.mod)
+                handleHotChocolateCondition(bluePlayerManager, currentMap.mod)
+            }
+
+            // Consume recipes at the end
+            redPlayerManager.consumeRecipe()
+            bluePlayerManager.consumeRecipe()
+
+            // Display recipe
+            displayActiveRecipe()
+        }
+    }
+}
+
+/**
+ * Handles adding of ingredients based on hot chocolate 
+ * @param {PlayerManager} playerManager - Player Manager
+ * @param {string} currentMapMod - Mod of current map
+ */
+function handleHotChocolateCondition(playerManager, currentMapMod) {
+    if (playerManager.mod !== currentMapMod && playerManager.activeRecipe.id === 23) {
+        addIngredient(playerManager, playerManager.mod)
+    }
+}
+
+/**
+ * Handles adding of ingredients based on home base mod
+ * @param {PlayerManager} playerManager - Player Manager
+ * @param {string} currentMapMod - Mod of current map
+ */
+function handleHomeBaseCondition(playerManager, currentMapMod) {
+    if (playerManager.mod === currentMapMod) {
+        addIngredient(playerManager, playerManager.mod)
+    }
+}
+
+/**
+ * Adds ingredients to player manager
+ * @param {playerManager} playerManager  - Player Manager
+ * @param {string} mod - Mod to be checked against
+ */
+function addIngredient(playerManager, mod) {
+    if (mod === "NM") playerManager.addIngredient("egg", 1)
+    if (mod === "HR") playerManager.addIngredient("sugar", 1)
+    if (mod === "PS") playerManager.addIngredient("butter", 1)
+    if (mod === "DT") playerManager.addIngredient("flour", 1)
+    if (mod === "FM") playerManager.addIngredient("milk", 1)
 }
 
 /**
@@ -282,6 +496,242 @@ async function setPlayerDetails(currentPlayer, playerNameEl, profilePictureEl) {
         playerNameEl.textContent = result[0].username
         profilePictureEl.style.backgroundImage = `url("https://a.ppy.sh/${result[0].user_id}")`
     } catch(error) {
-        console.error(error.message);
+        console.error(error.message)
     }
 }
+
+/**
+ * Updates the next auto picker
+ * 
+ * @param {string} team - The current side that will be assigned as the next picker
+ */
+// const nextAutopickerEl = document.getElementById("next-auto-picker-team")
+// let nextPicker
+// function updateNextAutoPicker(team) {
+//     nextAutopickerEl.innerText = team === "red" ? "Red" : "Blue"
+//     nextPicker = team
+// }
+
+/**
+ * Toggles autopick on and off
+ */
+const toggleAutopickEl = document.getElementById("toggle-autopick")
+let isAutopickOn = false
+function toggleAutopick() {
+    isAutopickOn = !isAutopickOn
+    toggleAutopickEl.innerText = `Toggle Autopick: ${isAutopickOn? "ON" : "OFF"}`
+}
+
+class PlayerManager {
+    constructor(color, ingredientListEl, ingredientDisplayEl, mod) {
+        this.color = color
+        this.ingredientListEl = ingredientListEl
+        this.ingredientDisplayEl = ingredientDisplayEl
+        this.ingredients = {
+            egg: 0,
+            sugar: 0,
+            butter: 0,
+            flour: 0,
+            milk: 0
+        }
+        this.activeRecipe = { id: null }
+        this.savedScore = 0
+        this.mod = mod
+
+        this.mapsRemaining = 0
+        this.condition = null
+    }
+
+    /**
+     * @param {Object} recipe - The recipe JSON
+     * @param {number|string} duration - A number (maps) or string (condition name)
+     */
+    craftRecipe(recipe, duration = 1) {
+        // Ingredients draining
+        const costs = recipe.data_points
+        for (const [ing, cost] of Object.entries(costs)) {
+            this.ingredients[ing] = Math.max(0, this.ingredients[ing] - (cost || 0))
+        }
+        console.log(costs)
+
+        this.activeRecipe = recipe
+
+        if (typeof duration === 'number') {
+            this.mapsRemaining = duration
+            this.condition = null
+        } else {
+            this.mapsRemaining = Infinity
+            this.condition = duration
+        }
+
+        console.log(`${this.color.toUpperCase()} crafted ${recipe.recipe}. Duration: ${duration}`)
+        displayActiveRecipe()
+    }
+
+    /**
+     * Clears the active recipe after it has been used in a map
+     */
+    consumeRecipe() {
+        const used = this.activeRecipe.id
+        this.activeRecipe.id = null
+        this.mapsRemaining = 0
+        this.condition = null
+        this.savedScore = 0
+        displayActiveRecipe()
+        return used
+    }
+
+    /**
+     * Display Ingredient List
+     */
+    displayIngredientList() {
+        // Display text on the side
+        const ingredientsText = Object.entries(this.ingredients).map(([ingredient, amount]) => `${ingredient.charAt(0).toUpperCase()}${ingredient.slice(1)}: ${amount}`).join('<br>')
+        this.ingredientListEl.innerHTML = ingredientsText
+
+        // Display images
+        this.ingredientDisplayEl.innerHTML = ""
+        let imagesHTML = document.createDocumentFragment()
+        for (const [ingredient, amount] of Object.entries(this.ingredients)) {
+            const div = document.createElement("div")
+            div.classList.add("ingredient-container")
+
+            const image = document.createElement("img")
+            image.setAttribute("src", `static/ingredients/${ingredient}.png`)
+            imagesHTML.append(div)
+
+            const amountDiv = document.createElement("div")
+            amountDiv.classList.add("ingredient-amount")
+            amountDiv.textContent = amount
+
+            div.append(image, amountDiv)
+        }
+        this.ingredientDisplayEl.append(imagesHTML)
+        displayActiveRecipe()
+    }
+
+    /**
+     * Adds the amount to the ingredient
+     * 
+     * @param {string} ingredient - name of ingredient
+     * @param {number} amount -amount to add
+     */
+    addIngredient(ingredient, amount) {
+        this.ingredients[ingredient] += amount
+        this.displayIngredientList()
+        displayActiveRecipe()
+    }
+
+    /**
+     * Minuses the amount to the ingredient
+     * 
+     * @param {string} ingredient - name of ingredient
+     * @param {number} amount -amount to add
+     */
+    subtractIngredient(ingredient, amount) {
+        this.ingredients[ingredient] = Math.max(0, this.ingredients[ingredient] - amount)
+        this.displayIngredientList()
+        displayActiveRecipe()
+    }
+}
+
+const redActiveRecipeEl = document.getElementById("red-active-recipe")
+const blueActiveRecipeEl = document.getElementById("blue-active-recipe")
+/**
+ * Display Active Recipe
+ */
+function displayActiveRecipe() {
+    const redRecipe = redPlayerManager.activeRecipe && redPlayerManager.activeRecipe.id ? findRecipe(redPlayerManager.activeRecipe.id).recipe : "None"
+    const blueRecipe = bluePlayerManager.activeRecipe && bluePlayerManager.activeRecipe.id ? findRecipe(bluePlayerManager.activeRecipe.id).recipe : "None"
+
+    redActiveRecipeEl.textContent = redRecipe
+    blueActiveRecipeEl.textContent = blueRecipe
+}
+
+// Ingredient Lists
+const redIngredientsEl = document.getElementById("red-ingredients")
+const blueIngredientsEl = document.getElementById("blue-ingredients")
+// Ingredients Display
+const leftIngredientsDisplayEl = document.getElementById("left-ingredients-display")
+const rightIngredientsDisplayEl = document.getElementById("right-ingredients-display")
+
+// Player Managers
+const redPlayerManager = new PlayerManager("red", redIngredientsEl, leftIngredientsDisplayEl, "HD")
+const bluePlayerManager = new PlayerManager("blue", blueIngredientsEl, rightIngredientsDisplayEl, "HR")
+redPlayerManager.displayIngredientList()
+bluePlayerManager.displayIngredientList()
+
+// Select elements
+const whichActionEl = document.getElementById("which-action")
+const whichTeamEl = document.getElementById("which-team")
+const whichIngredientEl = document.getElementById("which-ingredient")
+
+/**
+ * Adds and Subtracts Recipes
+ */
+function applyChanges() {
+    whichActionEl.value
+    whichTeamEl.value
+    whichIngredientEl.value
+
+    // Set Team
+    let team
+    if (whichTeamEl.value === "red") {
+        team = redPlayerManager
+    } else if (whichTeamEl.value === "blue") {
+        team = bluePlayerManager
+    }
+    if (!team) return
+
+    // See if ingredient exists
+    if (!whichIngredientEl.value) return
+
+    // Set Action
+    if (whichActionEl.value === "add") {
+        team.addIngredient(whichIngredientEl.value, 1)
+    } else if (whichActionEl.value === "remove") {
+        team.subtractIngredient(whichIngredientEl.value, 1)
+    }
+}
+
+// Select Elements Recipe
+const whichTeamRecipeEl = document.getElementById("which-team-recipe")
+const whichActionRecipeEl = document.getElementById("which-action-recipe")
+const selectRecipeEl = document.getElementById("select-recipe")
+const applyChangesRecipeEl = document.getElementById("apply-changes-recipe")
+
+function applyChangesRecipe() {
+    if (!whichTeamRecipeEl.value || !whichActionRecipeEl.value) return
+
+    const playerManager = whichTeamRecipeEl.value === "red" ? redPlayerManager : bluePlayerManager
+
+    // Add Recipe
+    if (whichActionRecipeEl.value === "add-recipe" && !selectRecipeEl.value) return
+    else if (whichActionRecipeEl.value === "add-recipe") {
+        // Set active recipe
+        const currentRecipe = findRecipe(Number(selectRecipeEl.value))
+        playerManager.craftRecipe(currentRecipe, currentRecipe.duration === "Infinity" ? Infinity : currentRecipe.duration)
+    } else if (whichActionRecipeEl.value === "remove-recipe") {
+        playerManager.consumeRecipe()
+    }
+}
+
+// Buttons
+const updateStarRedMinusEl = document.getElementById("update-star-red-minus")
+const updateStarRedPlusEl = document.getElementById("update-star-red-plus")
+const updateStarBlueMinusEl = document.getElementById("update-star-blue-minus")
+const updateStarBluePlusEl = document.getElementById("update-star-blue-plus")
+// const updateNextAutopickerRedEl = document.getElementById("update-next-autopicker-red")
+// const updateNextAutopickerBlueEl = document.getElementById("update-next-autopicker-blue")
+const applyChangesEl = document.getElementById("apply-changes")
+document.addEventListener("DOMContentLoaded", () => {
+    updateStarRedMinusEl.addEventListener("click", () => updateStarCount("red", "minus", leftPlayerScoreEl, rightPlayerScoreEl))
+    updateStarRedPlusEl.addEventListener("click", () => updateStarCount("red", "plus", leftPlayerScoreEl, rightPlayerScoreEl))
+    updateStarBlueMinusEl.addEventListener("click", () => updateStarCount("blue", "minus", leftPlayerScoreEl, rightPlayerScoreEl))
+    updateStarBluePlusEl.addEventListener("click", () => updateStarCount("blue", "plus", leftPlayerScoreEl, rightPlayerScoreEl))
+    // updateNextAutopickerRedEl.addEventListener("click", () => updateNextAutoPicker('red'))
+    // updateNextAutopickerBlueEl.addEventListener("click", () => updateNextAutoPicker('blue'))
+    toggleAutopickEl.addEventListener("click", toggleAutopick)
+    applyChangesEl.addEventListener("click", applyChanges)
+    applyChangesRecipeEl.addEventListener("click", applyChangesRecipe)
+})

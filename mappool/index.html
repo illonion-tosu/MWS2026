@@ -19,6 +19,13 @@
 </head>
 <body>
     <div class="main">
+        <!-- Rings -->
+        <div class="binder">
+            <img src="static/binder/Rings-0.png">
+            <img src="static/binder/Rings-1.png">
+            <img src="static/binder/Rings-2.png">
+        </div>
+
         <!-- Profile Pictures -->
         <div class="profile-picture left-profile-picture" id="left-profile-picture"></div>
         <div class="profile-picture right-profile-picture" id="right-profile-picture"></div>
@@ -28,8 +35,8 @@
         <div class="player-name right-player-name" id="right-player-name">thisisalongname</div>
 
         <!-- Player Scores -->
-        <div class="player-score left-player-score">5</div>
-        <div class="player-score right-player-score">3</div>
+        <div class="player-score left-player-score" id="left-player-score">5</div>
+        <div class="player-score right-player-score" id="right-player-score">3</div>
 
         <!-- Now Playing Stying -->
         <div class="now-playing">
@@ -57,22 +64,8 @@
                     <div class="now-playing-stat-number" id="now-playing-stat-number-od">10.00</div>
                 </div>
             </section>
-            <div class="recipes left-recipes">
-                <img src="static/recipes/recipe-1.png">
-                <img src="static/recipes/recipe-2.png">
-                <img src="static/recipes/recipe-3.png">
-                <img src="static/recipes/recipe-4.png">
-                <img src="static/recipes/recipe-5.png">
-                <img src="static/recipes/recipe-6.png">
-            </div>
-            <div class="recipes right-recipes">
-                <img src="static/recipes/recipe-1.png">
-                <img src="static/recipes/recipe-2.png">
-                <img src="static/recipes/recipe-3.png">
-                <img src="static/recipes/recipe-4.png">
-                <img src="static/recipes/recipe-5.png">
-                <img src="static/recipes/recipe-6.png">
-            </div>
+            <div class="ingredients left-ingredients" id="left-ingredients-display"></div>
+            <div class="ingredients right-ingredients" id="right-ingredients-display"></div>
         </div>
 
         <!-- Start of mappool section -->
@@ -85,6 +78,130 @@
                 <div class="chat-display-container" id="chat-display-container"></div>
             </div>
         </div>
+    </div>
+
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <section class="column column-1">
+            <div class="sidebar-section">
+                <div class="sidebar-title">Star Control</div>
+                <div class="sidebar-button-container">
+                    <button id="update-star-red-minus">Red --</button>
+                    <button id="update-star-red-plus">Red ++</button>
+                    <button id="update-star-blue-minus">Blue --</button>
+                    <button id="update-star-blue-plus">Blue ++</button>
+                </div>
+            </div>
+            <div class="sidebar-section">
+                <div class="sidebar-title">Mappool</div>
+                <div class="sidebar-text">
+                    Left Click (LC) = Red Pick<br>
+                    Right Click (RC) = Blue Pick<br>
+                    Ctrl + LC = Red Ban<br>
+                    Ctrl + RC = Blue Ban
+                 </div>
+                <div class="sidebar-button-container" id="sidebar-mappool-container"></div>
+            </div>
+            <div class="sidebar-section">
+                <div class="sidebar-title">Next Picker</div>
+                <div class="sidebar-text" id="next-auto-picker-team"></div>
+                <div class="sidebar-button-container">
+                    <button id="update-next-autopicker-red">Red</button>
+                    <button id="update-next-autopicker-blue">Blue</button>
+                    <button class="full-length-button" id="toggle-autopick">Toggle Autopick: OFF</button>
+                </div>
+            </div>
+            <div class="sidebar-section">
+                <div class="sidebar-title">Current Red<br>Ingredients</div>
+                <div class="sidebar-text" id="red-ingredients"></div>
+            </div>
+        </section>
+        <div class="divider divider-1"></div>
+        <section class="column column-2">
+            <div class="sidebar-section">
+                <div class="sidebar-title">Current Blue Ingredients</div>
+                <div class="sidebar-text" id="blue-ingredients"></div>
+            </div>
+            <div class="sidebar-section">
+                <div class="sidebar-title">Add / Remove Ingredients</div>
+                <div class="sidebar-text">
+                    Only to be used in case<br>things go wrong!
+                </div>
+                <div class="sidebar-title">Which action?</div>
+                <select class="sidebar-select" id="which-action" size="2">
+                    <option value="add">Add Ingredients</option>
+                    <option value="remove">Remove Ingredients</option>
+                </select>
+                <div class="sidebar-title">Which Team?</div>
+                <select class="sidebar-select" id="which-team" size="2">
+                    <option value="red">Red</option>
+                    <option value="blue">Blue</option>
+                </select>
+                <div class="sidebar-title">Which Ingredient?</div>
+                <select class="sidebar-select" id="which-ingredient" size="5">
+                    <option value="egg">Egg</option>
+                    <option value="sugar">Sugar</option>
+                    <option value="butter">Butter</option>
+                    <option value="flour">Flour</option>
+                    <option value="milk">Milk</option>
+                </select>
+                <div class="sidebar-button-container">
+                    <button class="full-length-button" id="apply-changes">APPLY CHANGES</button>
+                </div>
+            </div>
+        </section>
+        <div class="divider divider-2"></div>
+        <section class="column column-3">
+            <div class="sidebar-section">
+                <div class="sidebar-title">Active Recipes</div>
+                <div class="sidebar-text">
+                    Red: <span id="red-active-recipe">None</span>
+                    <br>
+                    Blue: <span id="blue-active-recipe">None</span>
+                </div>
+            </div>
+            <div class="sidebar-section">
+                <div class="sidebar-title">Which Team?</div>
+                <select class="sidebar-select" id="which-team-recipe" size="2">
+                    <option value="red">Red</option>
+                    <option value="blue">Blue</option>
+                </select>
+                <div class="sidebar-title">Select Action</div>
+                <select class="sidebar-select" id="which-action-recipe" size="2">
+                    <option value="add-recipe">Add Recipe</option>
+                    <option value="remove-recipe">Remove Recipe</option>
+                </select>
+                <div class="sidebar-title">Select Recipes</div>
+                <select class="sidebar-select" id="select-recipe" size="23">
+                    <option value="1">Sugar Cube</option>
+                    <option value="2">Sheet Cake</option>
+                    <option value="3">Sourdough</option>
+                    <option value="4">Sugar Cookies</option>
+                    <option value="5">2 Tier Cake</option>
+                    <option value="6">Custard</option>
+                    <option value="7">Banana Bread</option>
+                    <option value="9">Beignets</option>
+                    <option value="10">3 Tier Cake</option>
+                    <option value="11">Quiche</option>
+                    <option value="12">Crepe</option>
+                    <option value="13">Pancakes</option>
+                    <option value="14">Brown Butter</option>
+                    <option value="15">Omelette</option>
+                    <option value="16">Bubble Tea</option>
+                    <option value="17">Pound Cake</option>
+                    <option value="18">Cinnamon Roll</option>
+                    <option value="19">Sugar Cookies</option>
+                    <option value="20">Tiramisu</option>
+                    <option value="21">Caramel</option>
+                    <option value="22">Dough</option>
+                    <option value="23">Hot Chocolate</option>
+                    <option value="24">Shortbread</option>
+                </select>
+                <div class="sidebar-button-container">
+                    <button class="full-length-button" id="apply-changes-recipe">APPLY CHANGES</button>
+                </div>
+            </div>
+        </section>
     </div>
 
     <script src="index.js" type="module"></script>
