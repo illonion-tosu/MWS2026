@@ -1,6 +1,6 @@
 :root {
     --profile-picture-x: 71px;
-    --player-name-x: 218px;
+    --player-details-x: 218px;
 }
 
 /* Profile Picture */
@@ -20,6 +20,16 @@
 .right-profile-picture { right: var(--profile-picture-x); }
 
 /* Player Names */
+.active-recipe {
+    position: absolute;
+    top: 48px;
+    font-size: 19px;
+    color: var(--vanilla-colour);
+}
+.left-active-recipe { left: var(--player-details-x); }
+.right-active-recipe { right: var(--player-details-x); }
+
+/* Player Names */
 .player-name {
     position: absolute;
     top: 76px;
@@ -27,5 +37,5 @@
     font-size: 25px;
     color: var(--chocolate-colour);
 }
-.left-player-name { left: var(--player-name-x); }
-.right-player-name { right: var(--player-name-x); }
+.left-player-name { left: var(--player-details-x); }
+.right-player-name { right: var(--player-details-x); }
