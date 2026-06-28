@@ -26,10 +26,40 @@ jobs:
                   npm install --global eslint htmlhint stylelint stylelint-config-standard
 
             - name: Lint JavaScript
+              id: js
+              continue-on-error: true
               run: eslint "**/*.js" --ignore-pattern eslint.config.js
 
             - name: Lint HTML
+              id: html
+              continue-on-error: true
               run: htmlhint "**/*.html"
 
             - name: Lint CSS
+              id: css
+              continue-on-error: true
               run: stylelint "**/*.css"
+
+            - name: Fail if any lint step failed
+              if: always()
+              run: |
+                  failed=0
+
+                  if [ "${{ steps.js.outcome }}" = "failure" ]; then
+                      echo "JavaScript lint failed"
+                      failed=1
+                  fi
+
+                  if [ "${{ steps.html.outcome }}" = "failure" ]; then
+                      echo "HTML lint failed"
+                      failed=1
+                  fi
+
+                  if [ "${{ steps.css.outcome }}" = "failure" ]; then
+                      echo "CSS lint failed"
+                      failed=1
+                  fi
+
+                  if [ "$failed" -ne 0 ]; then
+                      exit 1
+                  fi
