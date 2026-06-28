@@ -106,7 +106,6 @@ export function renderStars(redTeamStarContainerEl, blueTeamStarContainerEl) {
 }
 
 function iterateStarImages(starCount, starContainer, firstTo) {
-    let i = 0
     for (let i = 0; i < firstTo; i++) {
         starContainer.append(createStarImage(`${i < starCount ? "full" : "empty"}`))
     }

@@ -505,12 +505,12 @@ async function setPlayerDetails(currentPlayer, playerNameEl, profilePictureEl) {
  * 
  * @param {string} team - The current side that will be assigned as the next picker
  */
-const nextAutopickerEl = document.getElementById("next-auto-picker-team")
-let nextPicker
-function updateNextAutoPicker(team) {
-    nextAutopickerEl.innerText = team === "red" ? "Red" : "Blue"
-    nextPicker = team
-}
+// const nextAutopickerEl = document.getElementById("next-auto-picker-team")
+// let nextPicker
+// function updateNextAutoPicker(team) {
+//     nextAutopickerEl.innerText = team === "red" ? "Red" : "Blue"
+//     nextPicker = team
+// }
 
 /**
  * Toggles autopick on and off
