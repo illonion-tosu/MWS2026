@@ -721,8 +721,8 @@ const updateStarRedMinusEl = document.getElementById("update-star-red-minus")
 const updateStarRedPlusEl = document.getElementById("update-star-red-plus")
 const updateStarBlueMinusEl = document.getElementById("update-star-blue-minus")
 const updateStarBluePlusEl = document.getElementById("update-star-blue-plus")
-const updateNextAutopickerRedEl = document.getElementById("update-next-autopicker-red")
-const updateNextAutopickerBlueEl = document.getElementById("update-next-autopicker-blue")
+// const updateNextAutopickerRedEl = document.getElementById("update-next-autopicker-red")
+// const updateNextAutopickerBlueEl = document.getElementById("update-next-autopicker-blue")
 const applyChangesEl = document.getElementById("apply-changes")
 document.addEventListener("DOMContentLoaded", () => {
     
