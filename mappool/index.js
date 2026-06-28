@@ -1,6 +1,7 @@
 import { initialiseOsuApi, getOsuApi } from "../_shared/core/apis.js"
 import { loadBeatmaps, findBeatmap } from "../_shared/core/beatmaps.js"
 import { updateChat } from "../_shared/core/chat.js"
+import { calculateScore } from "../_shared/core/score-calculator.js"
 import { setDefaultStarCount, updateStarCount } from "../_shared/core/stars.js"
 import { delay, getModDetails } from "../_shared/core/utils.js"
 import { createTosuWsSocket } from "../_shared/core/websocket.js"
@@ -258,7 +259,7 @@ let ipcState, setWinner = false
 const socket = createTosuWsSocket()
 socket.onmessage = async event => {
     const data = JSON.parse(event.data)
-    console.log(data)
+    // console.log(data)
 
     // Player information
     const teamInfo = data.tourney.team
@@ -342,8 +343,10 @@ socket.onmessage = async event => {
         }
     }
 
+    console.log(currentMap, setWinner)
     // Check winner
-    if (ipcState === 4 && (currentMap || redPlayerManager.activeRecipe.id === 21 || bluePlayerManager.activeRecipe.id === 21) && setWinner) {
+    if (ipcState === 4 && (currentMap || redPlayerManager.activeRecipe.id === 21 || bluePlayerManager.activeRecipe.id === 21) && !setWinner) {
+        console.log("do we set winner")
         setWinner = true
 
         // Get scores
@@ -353,6 +356,8 @@ socket.onmessage = async event => {
         const accRecipeActive = redPlayerManager.activeRecipe.id === 12 || bluePlayerManager.activeRecipe.id === 12
         const scores = calculateScore(redPlayerManager.activeRecipe.id, bluePlayerManager.activeRecipe.id, data.tourney.clients[0].play, data.tourney.clients[1].play)
         
+        console.log(scores)
+
         // Determine if a winner is to be set
         let requiredToSetWinner = true
         if (isRecipe7Active && !accRecipeActive) {
@@ -361,12 +366,14 @@ socket.onmessage = async event => {
                 if (redPlayerManager.mapsRemaining > 0) {
                     requiredToSetWinner = false
                     redPlayerManager.savedScore = scores.redFinalScore
+                    bluePlayerManager.savedScore = scores.blueFinalScore
                 }
             }
             else if (bluePlayerManager.activeRecipe.id === 7) {
                 bluePlayerManager.mapsRemaining--
                 if (bluePlayerManager.mapsRemaining > 0) {
                     requiredToSetWinner = false
+                    redPlayerManager.savedScore = scores.redFinalScore
                     bluePlayerManager.savedScore = scores.blueFinalScore
                 }
             }
@@ -374,11 +381,15 @@ socket.onmessage = async event => {
             if (Math.abs(scores.redFinalScore - scores.blueFinalScore) <= 10000) requiredToSetWinner = false
         } 
 
+        console.log(requiredToSetWinner)
+
         // For Active Recipe 7 only, set scores
         if (isRecipe7Active && bluePlayerManager.savedScore === 0 && redPlayerManager.savedScore === 0 && !accRecipeActive) {
             bluePlayerManager.savedScore = scores.blueFinalScore
             redPlayerManager.savedScore = scores.redFinalScore
         }
+
+        console.log(bluePlayerManager.savedScore)
 
         // Set winner
         if (requiredToSetWinner) {
@@ -387,13 +398,15 @@ socket.onmessage = async event => {
                 const maxScore = Math.max(bluePlayerManager.savedScore, redPlayerManager.savedScore, scores.redFinalScore, scores.blueFinalScore)
                 winner = (bluePlayerManager.savedScore === maxScore || scores.blueFinalScore === maxScore) ? "blue" : "red"
             } else {
-                winner = scores.blueFinalScore > scores.redFinalScore
+                winner = scores.blueFinalScore > scores.redFinalScore ? "blue" : "red"
             }
 
+            console.log(winner)
             // Set the star count
             updateStarCount(winner, "plus", leftPlayerScoreEl, rightPlayerScoreEl)
 
             if (!isRecipe21Active) {
+                console.log("recipe 21 not active")
                 // RECIPE APPLICATION SECTION (determining which recipes to give to people)
                 // Give ingredients based on win
                 let winnerPlayerManager = winner === "red" ? redPlayerManager : bluePlayerManager
@@ -521,7 +534,7 @@ class PlayerManager {
             flour: 0,
             milk: 0
         }
-        this.activeRecipe.id = null
+        this.activeRecipe = { id: null }
         this.savedScore = 0
         this.mod = mod
 
@@ -541,7 +554,7 @@ class PlayerManager {
         }
         console.log(costs)
 
-        this.activeRecipe.id = recipe
+        this.activeRecipe = recipe
 
         if (typeof duration === 'number') {
             this.mapsRemaining = duration
@@ -628,8 +641,8 @@ const blueActiveRecipeEl = document.getElementById("blue-active-recipe")
  * Display Active Recipe
  */
 function displayActiveRecipe() {
-    const redRecipe = redPlayerManager.activeRecipe.id ? findRecipe(redPlayerManager.activeRecipe.id.id).recipe : "None"
-    const blueRecipe = bluePlayerManager.activeRecipe.id ? findRecipe(bluePlayerManager.activeRecipe.id.id).recipe : "None"
+    const redRecipe = redPlayerManager.activeRecipe && redPlayerManager.activeRecipe.id ? findRecipe(redPlayerManager.activeRecipe.id).recipe : "None"
+    const blueRecipe = bluePlayerManager.activeRecipe && bluePlayerManager.activeRecipe.id ? findRecipe(bluePlayerManager.activeRecipe.id).recipe : "None"
 
     redActiveRecipeEl.textContent = redRecipe
     blueActiveRecipeEl.textContent = blueRecipe
@@ -712,6 +725,7 @@ const updateNextAutopickerRedEl = document.getElementById("update-next-autopicke
 const updateNextAutopickerBlueEl = document.getElementById("update-next-autopicker-blue")
 const applyChangesEl = document.getElementById("apply-changes")
 document.addEventListener("DOMContentLoaded", () => {
+    
     updateStarRedMinusEl.addEventListener("click", () => updateStarCount("red", "minus", leftPlayerScoreEl, rightPlayerScoreEl))
     updateStarRedPlusEl.addEventListener("click", () => updateStarCount("red", "plus", leftPlayerScoreEl, rightPlayerScoreEl))
     updateStarBlueMinusEl.addEventListener("click", () => updateStarCount("blue", "minus", leftPlayerScoreEl, rightPlayerScoreEl))
@@ -721,4 +735,6 @@ document.addEventListener("DOMContentLoaded", () => {
     toggleAutopickEl.addEventListener("click", toggleAutopick)
     applyChangesEl.addEventListener("click", applyChanges)
     applyChangesRecipeEl.addEventListener("click", applyChangesRecipe)
+
+    console.log(" what the fuck")
 })

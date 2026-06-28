@@ -14,12 +14,19 @@ const recipeLogic = {
  * @param {Object} bluePlay - 'play' object for blue
  * @param {string} user - 'red' or 'blue'
  */
-function calculateScore(redRecipeId, blueRecipeId, redPlay, bluePlay,) {
+export function calculateScore(redRecipeId, blueRecipeId, redPlay, bluePlay,) {
     let redModified = { ...redPlay, winValue: redPlay.score };
     let blueModified = { ...bluePlay, winValue: bluePlay.score };
 
-    const redLogic = recipeLogic[redRecipeId] ?? recipeLogic["default"]
-    const blueLogic = recipeLogic[blueRecipeId] ?? recipeLogic["default"]
+    let redLogic, blueLogic
+    if (redRecipeId === 12 || blueRecipeId === 12) {
+        let recipeId = 12
+        redLogic = recipeLogic[recipeId] ?? recipeLogic["default"]
+        blueLogic = recipeLogic[recipeId] ?? recipeLogic["default"]
+    } else {
+        redLogic = recipeLogic[redRecipeId] ?? recipeLogic["default"]
+        blueLogic = recipeLogic[blueRecipeId] ?? recipeLogic["default"]
+    }
 
     redModified = redLogic(redModified)
     blueModified = blueLogic(blueModified)
