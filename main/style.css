@@ -1,5 +1,6 @@
 :root {
-    --profile-picture-x: 71px
+    --profile-picture-x: 71px;
+    --player-name-x: 218px;
 }
 
 /* Profile Picture */
@@ -17,3 +18,14 @@
 }
 .left-profile-picture { left: var(--profile-picture-x); }
 .right-profile-picture { right: var(--profile-picture-x); }
+
+/* Player Names */
+.player-name {
+    position: absolute;
+    top: 76px;
+    line-height: 52px;
+    font-size: 25px;
+    color: var(--chocolate-colour);
+}
+.left-player-name { left: var(--player-name-x); }
+.right-player-name { right: var(--player-name-x); }

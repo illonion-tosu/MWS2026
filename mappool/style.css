@@ -34,12 +34,12 @@
 }
 
 .left-profile-picture {
-    left: 112px;
+    left: var(--left-profile-picture-x);
     background-image: url("https://a.ppy.sh/9536345");
 }
 
 .right-profile-picture {
-    right: 1030px;
+    right: var(--right-profile-picture-x);
     background-image: url("https://a.ppy.sh/9574522");
 }
 
@@ -50,14 +50,8 @@
     line-height: 52px;
     color: var(--chocolate-colour);
 }
-
-.left-player-name {
-    left: calc(var(--left-profile-picture-x) + var(--player-name-x));
-}
-
-.right-player-name {
-    right: calc(var(--right-profile-picture-x) + var(--player-name-x));
-}
+.left-player-name { left: calc(var(--left-profile-picture-x) + var(--player-name-x)); }
+.right-player-name { right: calc(var(--right-profile-picture-x) + var(--player-name-x)); }
 
 /* Player Score */
 .player-score {
