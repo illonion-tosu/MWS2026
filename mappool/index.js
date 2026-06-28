@@ -725,7 +725,6 @@ const updateStarBluePlusEl = document.getElementById("update-star-blue-plus")
 // const updateNextAutopickerBlueEl = document.getElementById("update-next-autopicker-blue")
 const applyChangesEl = document.getElementById("apply-changes")
 document.addEventListener("DOMContentLoaded", () => {
-    
     updateStarRedMinusEl.addEventListener("click", () => updateStarCount("red", "minus", leftPlayerScoreEl, rightPlayerScoreEl))
     updateStarRedPlusEl.addEventListener("click", () => updateStarCount("red", "plus", leftPlayerScoreEl, rightPlayerScoreEl))
     updateStarBlueMinusEl.addEventListener("click", () => updateStarCount("blue", "minus", leftPlayerScoreEl, rightPlayerScoreEl))
@@ -735,6 +734,4 @@ document.addEventListener("DOMContentLoaded", () => {
     toggleAutopickEl.addEventListener("click", toggleAutopick)
     applyChangesEl.addEventListener("click", applyChanges)
     applyChangesRecipeEl.addEventListener("click", applyChangesRecipe)
-
-    console.log(" what the fuck")
 })
