@@ -1,0 +1,19 @@
+:root {
+    --profile-picture-x: 71px
+}
+
+/* Profile Picture */
+.profile-picture {
+    --dimension: 131px;
+
+    position: absolute;
+    top: 13px;
+    width: var(--dimension);
+    height: var(--dimension);
+    background: center / cover;
+    border-radius: 23px;
+    z-index: 1;
+    background-image: url("https://a.ppy.sh/9536345");
+}
+.left-profile-picture { left: var(--profile-picture-x); }
+.right-profile-picture { right: var(--profile-picture-x); }
