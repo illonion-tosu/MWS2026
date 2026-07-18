@@ -63,3 +63,21 @@
 }
 .left-gameplay-scene { left: var(--gameplay-scene-x); }
 .right-gameplay-scene { right: var(--gameplay-scene-x); }
+
+/* Score Bar */
+.score-bar {
+    position: absolute;
+    top: 741px;
+    width: 800px;
+    height: 37px;
+}
+
+.left-score-bar {
+    right: 50%;
+    background-color: var(--strawberry-colour);
+}
+
+.right-score-bar {
+    left: 50%;
+    background-color: var(--sage-colour);
+}
