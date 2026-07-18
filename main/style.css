@@ -69,10 +69,18 @@
     top: 204px;
     width: 744px;
     height: 558px;
-    background-color: red;
+    background-color: var(--chocolate-colour);
 }
 .left-gameplay-scene { left: var(--gameplay-scene-x); }
 .right-gameplay-scene { right: var(--gameplay-scene-x); }
+
+/* Texts */
+.texts {
+    position: absolute;
+    top: 740px;
+    left: 133px;
+    width: 1753px;
+}
 
 /* Score Bar */
 .score-bar {
@@ -100,6 +108,7 @@
     font-size: 3rem;
     font-weight: 400;
     color: var(--chocolate-colour);
+    font-variant-numeric: tabular-nums;
 }
 .left-score { right: var(--score-x); }
 .right-score { left: var(--score-x); }
@@ -112,7 +121,7 @@
     width: 472px;
     height: 104px;
     background: center / cover;
-    /* background-image: url("https://assets.ppy.sh/beatmaps/2462810/covers/cover.jpg"); */
+    background-image: url("https://assets.ppy.sh/beatmaps/2462810/covers/cover.jpg");
 }
 
 .now-playing-banner {
@@ -192,11 +201,14 @@
     text-align: center;
     color: var(--chocolate-colour);
 }
+.now-playing-mapper { left: 1202px; }
+.now-playing-difficulty { left: 1480px; }
 
-.now-playing-mapper {
-    left: 1202px;
-}
-
-.now-playing-difficulty {
-    left: 1480px;
+/* Chat Display */
+.chat-display {
+    position: absolute;
+    bottom: 70px;
+    right: 165px;
+    width: 535px;
+    height: 215px;
 }
