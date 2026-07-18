@@ -176,3 +176,27 @@
     line-clamp: 3;
     overflow: hidden;
 }
+
+/* Now Playing Mapper + Difficulty */
+.now-playing-mapper-difficulty {
+    --height: 35px;
+
+    position: absolute;
+    top: 955px;
+    font-family: Lexend, sans-serif;
+    font-weight: 400;
+    font-size: 1.25rem;
+    width: 275px;
+    height: var(--height);
+    line-height: var(--height);
+    text-align: center;
+    color: var(--chocolate-colour);
+}
+
+.now-playing-mapper {
+    left: 1202px;
+}
+
+.now-playing-difficulty {
+    left: 1480px;
+}
