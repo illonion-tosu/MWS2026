@@ -150,3 +150,29 @@
     font-family: Lexend, sans-serif;
     background-color: var(--nm-colour);
 }
+
+/* Artist + Title */
+.now-playing-artist-title-wrapper {
+    position: absolute;
+    top: 911px;
+    left: 726px;
+    width: 472px;
+    height: 104px;
+    color: var(--chocolate-colour);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.now-playing-artist-title {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
+    font-family: Lexend, sans-serif;
+    font-weight: 400;
+    font-size: 1.5rem;
+    color: var(--chocolate-colour);
+    text-align: center;
+    line-clamp: 3;
+    overflow: hidden;
+}
