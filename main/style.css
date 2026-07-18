@@ -103,3 +103,50 @@
 }
 .left-score { right: var(--score-x); }
 .right-score { left: var(--score-x); }
+
+/* Now Playing Background */
+.now-playing-background {
+    position: absolute;
+    left: 228px;
+    top: 911px;
+    width: 472px;
+    height: 104px;
+    background: center / cover;
+    /* background-image: url("https://assets.ppy.sh/beatmaps/2462810/covers/cover.jpg"); */
+}
+
+.now-playing-banner {
+    position: absolute;
+    left: 17px;
+    width: 68px;
+    height: 78px;
+    line-height: 69px;
+    text-align: center;
+    clip-path: polygon(0% 0%, 100% 0%, 100% 100%, 50% 71.5%, 0% 100%);
+    color: var(--cream-colour);
+    background-color: var(--nm-colour);
+    font-family: "Josefin Sans", sans-serif;
+    font-size: 1.25rem;
+}
+
+.now-playing-dotted-lines {
+    position: absolute;
+    left: 19px;
+    top: 3px;
+    height: 71px;
+}
+
+.now-playing-custom {
+    --height: 29px;
+
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    width: 141.5px;
+    height: var(--height);
+    line-height: var(--height);
+    text-align: center;
+    color: var(--cream-colour);
+    font-family: Lexend, sans-serif;
+    background-color: var(--nm-colour);
+}

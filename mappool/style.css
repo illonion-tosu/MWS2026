@@ -257,12 +257,12 @@
     line-height: var(--height);
     transition: 500ms ease-in-out;
 }
-.map-mod-nm { background-color: #4E6A7A; }
-.map-mod-ps { background-color: #957259; }
-.map-mod-hr { background-color: #8D3F38; }
-.map-mod-dt { background-color: #634E7A; }
-.map-mod-fm { background-color: #5F7F63; }
-.map-mod-tb { background-color: #454545; }
+.map-mod-nm { background-color: var(--nm-colour); }
+.map-mod-ps { background-color: var(--ps-colour); }
+.map-mod-hr { background-color: var(--hr-colour); }
+.map-mod-dt { background-color: var(--dt-colour); }
+.map-mod-fm { background-color: var(--fm-colour); }
+.map-mod-tb { background-color: var(--tb-colour); }
 
 /* Ingredient */
 .ingredient {
