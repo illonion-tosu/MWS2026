@@ -39,3 +39,15 @@
 }
 .left-player-name { left: var(--player-details-x); }
 .right-player-name { right: var(--player-details-x); }
+
+/* Round Name */
+.round-name {
+    position: absolute;
+    top: 136px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-family: Lexend, sans-serif;
+    font-size: 3rem;
+    font-weight: 700;
+    color: var(--chocolate-colour);
+}
