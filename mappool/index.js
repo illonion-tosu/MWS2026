@@ -252,6 +252,7 @@ let ipcState, setWinner = false
  *
  * Updates player information when the left/right team names change
  * Updates now playing background when the beatmap changes.
+ * Handles Winner information
  *
  * @param {MessageEvent<string>} event - Websocket message event containing JSON data.
  * @returns {Promise<void>}
