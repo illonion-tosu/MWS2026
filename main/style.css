@@ -5,6 +5,15 @@
     --score-x: 975px;
 }
 
+/* Logo */
+.logo {
+    position: absolute;
+    left: 50%;
+    top: 0;
+    transform: translateX(-50%);
+    width: 240px;
+}
+
 /* Profile Picture */
 .profile-picture {
     --dimension: 131px;
