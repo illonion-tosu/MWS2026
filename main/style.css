@@ -1,6 +1,7 @@
 :root {
     --profile-picture-x: 71px;
     --player-details-x: 218px;
+    --gameplay-scene-x: 58px;
 }
 
 /* Profile Picture */
@@ -51,3 +52,14 @@
     font-weight: 700;
     color: var(--chocolate-colour);
 }
+
+/* Gameplay Scene */
+.gameplay-scene {
+    position: absolute;
+    top: 204px;
+    width: 744px;
+    height: 558px;
+    background-color: red;
+}
+.left-gameplay-scene { left: var(--gameplay-scene-x); }
+.right-gameplay-scene { right: var(--gameplay-scene-x); }
