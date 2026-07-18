@@ -2,6 +2,7 @@
     --profile-picture-x: 71px;
     --player-details-x: 218px;
     --gameplay-scene-x: 58px;
+    --score-x: 975px;
 }
 
 /* Profile Picture */
@@ -81,3 +82,15 @@
     left: 50%;
     background-color: var(--sage-colour);
 }
+
+/* Score */
+.score {
+    position: absolute;
+    top: 794px;
+    font-family: Lexend, sans-serif;
+    font-size: 3rem;
+    font-weight: 400;
+    color: var(--chocolate-colour);
+}
+.left-score { right: var(--score-x); }
+.right-score { left: var(--score-x); }
