@@ -221,7 +221,6 @@ let ipcState, setWinner = false
 const socket = createTosuWsSocket()
 socket.onmessage = async event => {
     const data = JSON.parse(event.data)
-    // console.log(data)
 
     // Player information
     const teamInfo = data.tourney.team
@@ -304,7 +303,6 @@ socket.onmessage = async event => {
         }
     }
 
-    console.log(currentMap, setWinner)
     // Check winner
     if (ipcState === 4 && (currentMap || redPlayerManager.activeRecipe.id === 21 || bluePlayerManager.activeRecipe.id === 21) && !setWinner) {
         console.log("do we set winner")
@@ -317,8 +315,6 @@ socket.onmessage = async event => {
         const accRecipeActive = redPlayerManager.activeRecipe.id === 12 || bluePlayerManager.activeRecipe.id === 12
         const scores = calculateScore(redPlayerManager.activeRecipe.id, bluePlayerManager.activeRecipe.id, data.tourney.clients[0].play, data.tourney.clients[1].play)
         
-        console.log(scores)
-
         // Determine if a winner is to be set
         let requiredToSetWinner = true
         if (isRecipe7Active && !accRecipeActive) {
@@ -342,15 +338,11 @@ socket.onmessage = async event => {
             if (Math.abs(scores.redFinalScore - scores.blueFinalScore) <= 10000) requiredToSetWinner = false
         } 
 
-        console.log(requiredToSetWinner)
-
         // For Active Recipe 7 only, set scores
         if (isRecipe7Active && bluePlayerManager.savedScore === 0 && redPlayerManager.savedScore === 0 && !accRecipeActive) {
             bluePlayerManager.savedScore = scores.blueFinalScore
             redPlayerManager.savedScore = scores.redFinalScore
         }
-
-        console.log(bluePlayerManager.savedScore)
 
         // Set winner
         if (requiredToSetWinner) {
@@ -362,12 +354,10 @@ socket.onmessage = async event => {
                 winner = scores.blueFinalScore > scores.redFinalScore ? "blue" : "red"
             }
 
-            console.log(winner)
             // Set the star count
             updateStarCount(winner, "plus", leftPlayerScoreEl, rightPlayerScoreEl)
 
             if (!isRecipe21Active) {
-                console.log("recipe 21 not active")
                 // RECIPE APPLICATION SECTION (determining which recipes to give to people)
                 // Give ingredients based on win
                 let winnerPlayerManager = winner === "red" ? redPlayerManager : bluePlayerManager

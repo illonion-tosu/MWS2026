@@ -63,6 +63,13 @@ const animation = {
     accRightScore: new CountUp(accRightScoreEl, 0, 0, 2, 0.2, { useEasing: true, useGrouping: true, separator: ",", decimal: ".", suffix: "%"}),
 }
 
+// Now Playing Information
+const nowPlayingBackgroundEl = document.getElementById("now-playing-background")
+const nowPlayingBannerEl = document.getElementById("now-playing-banner")
+const nowPlayingCustomEl = document.getElementById("now-playing-custom")
+const nowPlayingDottedLinesEl = document.getElementById("now-playing-dotted-lines")
+let nowPlayingId, nowPlayingChecksum
+
 /**
  * Handles incoming websocket messages from Tosu.
  *
@@ -161,6 +168,32 @@ socket.onmessage = async event => {
         animation.scoreRightScore.update(0)
         animation.accLeftScore.update(1)
         animation.accRightScore.update(1)
+    }
+
+    // Now Playing Information
+    if (nowPlayingId !== data.beatmap.id || nowPlayingChecksum !== data.beatmap.checksum) {
+        nowPlayingId = data.beatmap.id
+        nowPlayingChecksum = data.beatmap.checksum
+
+        // Background Image
+        const url = `${window.location.origin}/Songs/${data.directPath.beatmapBackground}`
+        const fixedUrl = encodeURI(url.replaceAll("\\", "/"));
+        nowPlayingBackgroundEl.style.backgroundImage = `url("${fixedUrl}")`
+
+
+        currentMap = findBeatmap(nowPlayingId)
+        if (currentMap) {
+            nowPlayingBannerEl.style.display = "block"
+            nowPlayingDottedLinesEl.style.display = "block"
+            nowPlayingCustomEl.style.display = currentMap.MWSCustom ? "block" : "none"
+
+            nowPlayingBannerEl.style.backgroundColor = `var(--${currentMap.mod}-colour)`
+            nowPlayingCustomEl.style.backgroundColor = `var(--${currentMap.mod}-colour)`
+        } else {
+            nowPlayingBannerEl.style.display = "none"
+            nowPlayingDottedLinesEl.style.display = "none"
+            nowPlayingCustomEl.style.display = "none"
+        }
     }
 }
 
@@ -289,7 +322,6 @@ setInterval(() => {
             return image
         }
     }
-
 }, 200)
 
 /**
