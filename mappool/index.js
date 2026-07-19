@@ -231,7 +231,8 @@ let currentLeftPlayer, currentRightPlayer
 // Now Playing
 const nowPlayingBackgroundEl = document.getElementById("now-playing-background")
 let nowPlayingId, nowPlayingChecksum
-let updateStats
+let awaitingLiveStats = false
+let liveStatsReadyAt = 0
 
 // Now Playing Stats
 const nowPlayingStatNumberSrEl = document.getElementById("now-playing-stat-number-sr")
@@ -275,11 +276,10 @@ socket.onmessage = async event => {
 
     // Now Playing Information
     const beatmapData = data.beatmap
-    if ((nowPlayingId !== beatmapData.id || nowPlayingChecksum !== beatmapData.checksum && allBeatmaps)) {
+    if ((nowPlayingId !== beatmapData.id || nowPlayingChecksum !== beatmapData.checksum) && allBeatmaps.length > 0) {
         nowPlayingId = beatmapData.id
         nowPlayingChecksum = beatmapData.checksum
-        updateStats = true
- 
+
         const bg = data.directPath.beatmapBackground
             .replace(/\\/g, "/")
             // eslint-disable-next-line no-control-regex
@@ -287,12 +287,12 @@ socket.onmessage = async event => {
 
         nowPlayingBackgroundEl.style.backgroundImage = `url("http://127.0.0.1:24050/Songs/${bg}")`
 
-        // Current Map
+        // Current Map — use pool data if available, otherwise wait for fresh tosu stats
         currentMap = findBeatmap(nowPlayingId)
         if (currentMap) {
-            updateStats = false
-            const { cs, ar, od, bpm } = getModDetails(currentMap.diff_size, currentMap.diff_approach, currentMap.diff_overall, currentMap.bpm, currentMap.total_length, currentMap.mod === "PS"? currentMap.extra_mod : currentMap.mod)
-            
+            awaitingLiveStats = false
+            const { cs, ar, od, bpm } = getModDetails(currentMap.diff_size, currentMap.diff_approach, currentMap.diff_overall, currentMap.bpm, currentMap.total_length, currentMap.mod === "PS" ? currentMap.extra_mod : currentMap.mod)
+
             nowPlayingStatNumberSrEl.textContent = Number(currentMap.difficultyrating).toFixed(2)
             nowPlayingStatNumberBpmEl.textContent = bpm
             nowPlayingStatNumberCsEl.textContent = cs
@@ -302,26 +302,26 @@ socket.onmessage = async event => {
             // Click on map
             const mapElement = document.getElementById(nowPlayingId)
             if (mapElement && isAutopickOn) {
-                const event = new MouseEvent("mousedown", {
+                const clickEvent = new MouseEvent("mousedown", {
                     bubbles: true,
                     cancelable: true,
                     view: window,
                     button: 0
                 })
-                mapElement.dispatchEvent(event)
+                mapElement.dispatchEvent(clickEvent)
             }
-        }
-
-        // Update stats
-        if (updateStats) {
-            await delay(250)
+        } else {
+            // Not in the pool: tosu's converted stats aren't settled yet on map change.
+            // Defer reading them so a later message supplies fresher values.
+            awaitingLiveStats = true
+            liveStatsReadyAt = Date.now() + 250
         }
     }
 
-    // Update stats if not from mappool
-    if (updateStats) {
+    // Pick up fresh live stats from a later message once tosu has had time to recompute.
+    if (awaitingLiveStats && Date.now() >= liveStatsReadyAt) {
+        awaitingLiveStats = false
         const stats = data.beatmap.stats
-        updateStats = false
         nowPlayingStatNumberSrEl.textContent = stats.stars.total.toFixed(2)
         nowPlayingStatNumberBpmEl.textContent = Math.round(stats.bpm.common)
         nowPlayingStatNumberCsEl.textContent = stats.cs.converted.toFixed(2)
@@ -419,8 +419,8 @@ socket.onmessage = async event => {
                 }
 
                 // Give ingredients based on home base ingredient
-                handleHomeBaseCondition(redPlayerManager)
-                handleHomeBaseCondition(bluePlayerManager)
+                handleHomeBaseCondition(redPlayerManager, currentMap.mod)
+                handleHomeBaseCondition(bluePlayerManager, currentMap.mod)
 
                 // 23 Hot chocolate
                 handleHotChocolateCondition(redPlayerManager, currentMap.mod)
@@ -603,7 +603,7 @@ class PlayerManager {
      */
     consumeRecipe() {
         const used = this.activeRecipe.id
-        this.activeRecipe.id = null
+        this.activeRecipe = { id: null }
         this.mapsRemaining = 0
         this.condition = null
         this.savedScore = 0
@@ -686,7 +686,7 @@ const leftIngredientsDisplayEl = document.getElementById("left-ingredients-displ
 const rightIngredientsDisplayEl = document.getElementById("right-ingredients-display")
 
 // Player Managers
-const redPlayerManager = new PlayerManager("red", redIngredientsEl, leftIngredientsDisplayEl, "HD")
+const redPlayerManager = new PlayerManager("red", redIngredientsEl, leftIngredientsDisplayEl, "DT")
 const bluePlayerManager = new PlayerManager("blue", blueIngredientsEl, rightIngredientsDisplayEl, "HR")
 redPlayerManager.opponent = bluePlayerManager
 bluePlayerManager.opponent = redPlayerManager
@@ -702,10 +702,6 @@ const whichIngredientEl = document.getElementById("which-ingredient")
  * Adds and Subtracts Recipes
  */
 function applyChanges() {
-    whichActionEl.value
-    whichTeamEl.value
-    whichIngredientEl.value
-
     // Set Team
     let team
     if (whichTeamEl.value === "red") {
@@ -742,6 +738,7 @@ function applyChangesRecipe() {
     else if (whichActionRecipeEl.value === "add-recipe") {
         // Set active recipe
         const currentRecipe = findRecipe(Number(selectRecipeEl.value))
+        if (!currentRecipe) return
         playerManager.craftRecipe(currentRecipe, currentRecipe.duration === "Infinity" ? Infinity : currentRecipe.duration)
     } else if (whichActionRecipeEl.value === "remove-recipe") {
         playerManager.consumeRecipe()
