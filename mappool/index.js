@@ -537,9 +537,9 @@ class PlayerManager {
         }
         this.activeRecipe = { id: null }
         this.lastCraftedRecipe = { id: null }
-        this.craftedRecipeId = null       // the recipe literally crafted (18 for Magic Cake)
-        this.usedMagicCake = false        // active effect came from Magic Cake
-        this.copiedRecipeId = null        // which recipe Magic Cake copied (null otherwise)
+        this.craftedRecipeId = null
+        this.usedMagicCake = false
+        this.copiedRecipeId = null
         this.opponent = null
         this.savedScore = 0
         this.mod = mod
