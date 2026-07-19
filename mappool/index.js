@@ -3,7 +3,7 @@ import { loadBeatmaps, findBeatmap } from "../_shared/core/beatmaps.js"
 import { updateChat } from "../_shared/core/chat.js"
 import { calculateScore } from "../_shared/core/score-calculator.js"
 import { setDefaultStarCount, updateStarCount } from "../_shared/core/stars.js"
-import { delay, getModDetails } from "../_shared/core/utils.js"
+import { getModDetails } from "../_shared/core/utils.js"
 import { createTosuWsSocket } from "../_shared/core/websocket.js"
 
 initialiseOsuApi()
@@ -84,7 +84,7 @@ async function getBeatmaps() {
  * @param {string} beatmapInfo.beatmapset_id - Beatmapset ID
  * @param {string} beatmapInfo.mod - The mod acronym
  * @param {number} beatmapInfo.order - The sequence number within the mod group
- * @param {string} beatmapInfo.artist - Name of song artyist
+ * @param {string} beatmapInfo.artist - Name of song artist
  * @param {string} beatmapInfo.title - Title of song
  * @param {string} beatmapInfo.version - Difficulty name
  * 
@@ -276,7 +276,7 @@ socket.onmessage = async event => {
 
     // Now Playing Information
     const beatmapData = data.beatmap
-    if ((nowPlayingId !== beatmapData.id || nowPlayingChecksum !== beatmapData.checksum) && allBeatmaps.length > 0) {
+    if (nowPlayingId !== beatmapData.id || nowPlayingChecksum !== beatmapData.checksum) {
         nowPlayingId = beatmapData.id
         nowPlayingChecksum = beatmapData.checksum
 
@@ -537,6 +537,9 @@ class PlayerManager {
         }
         this.activeRecipe = { id: null }
         this.lastCraftedRecipe = { id: null }
+        this.craftedRecipeId = null       // the recipe literally crafted (18 for Magic Cake)
+        this.usedMagicCake = false        // active effect came from Magic Cake
+        this.copiedRecipeId = null        // which recipe Magic Cake copied (null otherwise)
         this.opponent = null
         this.savedScore = 0
         this.mod = mod
@@ -545,7 +548,7 @@ class PlayerManager {
         this.condition = null
     }
 
-/**
+    /**
      * @param {Object} recipe - The recipe JSON
      * @param {number|string} duration - A number (maps) or string (condition name)
      */
@@ -557,6 +560,11 @@ class PlayerManager {
             this.ingredients[ing] = Math.max(0, this.ingredients[ing] - (cost || 0))
         }
 
+        // Record what was literally crafted; reset Magic Cake tracking (set below if a copy happens).
+        this.craftedRecipeId = recipe.id
+        this.usedMagicCake = false
+        this.copiedRecipeId = null
+
         // Work out which effect actually gets applied.
         let effectRecipe = recipe
         let effectDuration = duration
@@ -567,6 +575,9 @@ class PlayerManager {
             if (!copied || !copied.id) {
                 console.log(`${this.color.toUpperCase()} crafted Magic Cake, but the opponent has no recipe to copy.`)
                 this.activeRecipe = { id: null }
+                this.craftedRecipeId = null
+                this.usedMagicCake = false
+                this.copiedRecipeId = null
                 this.mapsRemaining = 0
                 this.condition = null
                 this.displayIngredientList()
@@ -576,7 +587,9 @@ class PlayerManager {
             // Clone so consumeRecipe nulling the id later can't corrupt the stored copy.
             effectRecipe = { ...copied }
             effectDuration = copied.duration === "Infinity" ? Infinity : copied.duration
-            console.log(`${this.color.toUpperCase()} used Magic Cake to copy ${effectRecipe.recipe}.`)
+            this.usedMagicCake = true
+            this.copiedRecipeId = copied.id
+            console.log(`${this.color.toUpperCase()} used Magic Cake to copy ${effectRecipe.recipe} (id ${copied.id}).`)
         }
 
         // Apply the effect. Clone so consumeRecipe never mutates the shared recipes list.
@@ -604,6 +617,9 @@ class PlayerManager {
     consumeRecipe() {
         const used = this.activeRecipe.id
         this.activeRecipe = { id: null }
+        this.craftedRecipeId = null
+        this.usedMagicCake = false
+        this.copiedRecipeId = null
         this.mapsRemaining = 0
         this.condition = null
         this.savedScore = 0
@@ -671,11 +687,20 @@ const blueActiveRecipeEl = document.getElementById("blue-active-recipe")
  * Display Active Recipe
  */
 function displayActiveRecipe() {
-    const redRecipe = redPlayerManager.activeRecipe && redPlayerManager.activeRecipe.id ? findRecipe(redPlayerManager.activeRecipe.id).recipe : "None"
-    const blueRecipe = bluePlayerManager.activeRecipe && bluePlayerManager.activeRecipe.id ? findRecipe(bluePlayerManager.activeRecipe.id).recipe : "None"
+    redActiveRecipeEl.textContent = describeActiveRecipe(redPlayerManager)
+    blueActiveRecipeEl.textContent = describeActiveRecipe(bluePlayerManager)
+}
 
-    redActiveRecipeEl.textContent = redRecipe
-    blueActiveRecipeEl.textContent = blueRecipe
+/**
+ * Builds the display string for a player's active recipe,
+ * annotating when the effect was copied via Magic Cake.
+ * @param {PlayerManager} pm
+ * @returns {string}
+ */
+function describeActiveRecipe(pm) {
+    if (!pm.activeRecipe || !pm.activeRecipe.id) return "None"
+    const name = findRecipe(pm.activeRecipe.id)?.recipe ?? "None"
+    return pm.usedMagicCake ? `${name} (Magic Cake)` : name
 }
 
 // Ingredient Lists
@@ -768,4 +793,10 @@ document.addEventListener("DOMContentLoaded", () => {
 setInterval(() => {
     document.cookie = `redActiveRecipeId=${redPlayerManager.activeRecipe.id}; path=/`
     document.cookie = `blueActiveRecipeId=${bluePlayerManager.activeRecipe.id}; path=/`
+    document.cookie = `redCraftedRecipeId=${redPlayerManager.craftedRecipeId}; path=/`
+    document.cookie = `blueCraftedRecipeId=${bluePlayerManager.craftedRecipeId}; path=/`
+    document.cookie = `redUsedMagicCake=${redPlayerManager.usedMagicCake}; path=/`
+    document.cookie = `blueUsedMagicCake=${bluePlayerManager.usedMagicCake}; path=/`
+    document.cookie = `redCopiedRecipeId=${redPlayerManager.copiedRecipeId}; path=/`
+    document.cookie = `blueCopiedRecipeId=${bluePlayerManager.copiedRecipeId}; path=/`
 }, 200)
