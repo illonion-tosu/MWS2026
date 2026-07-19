@@ -1,5 +1,27 @@
+import { initialiseOsuApi, getOsuApi } from "../_shared/core/apis.js"
 import { getCookie } from "../_shared/core/utils.js"
 import { createTosuWsSocket } from "../_shared/core/websocket.js"
+
+initialiseOsuApi()
+getRecipes()
+
+/**
+ * Loads recipes into recipes variable
+ */
+let allRecipes = []
+async function getRecipes() {
+    const response = await fetch("../_data/recipes.json")
+    allRecipes = await response.json()
+}
+
+/**
+ * Returns the recipe based on the Recipe ID
+ * @param {*} id - Recipe ID
+ * @returns {Object} - Recipe
+ */
+export function findRecipe(id) {
+    return allRecipes.find(r => Number(r.id) === Number(id))
+}
 
 // Player Names
 const leftProfilePictureEl = document.getElementById("left-profile-picture")
@@ -64,19 +86,74 @@ async function setPlayerDetails(currentPlayer, playerNameEl, profilePictureEl) {
     }
 }
 
-const leftActiveRecipeEl = document.getElementById("red-active-recipe")
-const rightActiveRecipeEl = document.getElementById("blue-active-recipe")
+const redActiveRecipeEl = document.getElementById("left-active-recipe")
+console.log("redActiveRecipeEl:", redActiveRecipeEl)
+const blueActiveRecipeEl = document.getElementById("right-active-recipe")
+// What is currently active
 let currentRedActiveRecipe, previousRedActiveRecipe
 let currentBlueActiveRecipe, previousBlueActiveRecipe
+
+// What the player selected
+let currentRedCraftedRecipe, previousRedCraftedRecipe
+let currentBlueCraftedRecipe, previousBlueCraftedRecipe
+
+// Did they use magic cake
+let currentRedUsedMagicCake, previousRedUsedMagicCake
+let currentBlueUsedMagicCake, previousBlueUsedMagicCake
+
+// What is the copied recipe
+let currentRedCopiedRecipe, previousRedCopiedRecipe
+let currentBlueCopiedRecipe, previousBlueCopiedRecipe
+
 setInterval(() => {
     currentRedActiveRecipe = getCookie("redActiveRecipeId")
-    currentBlueActiveRecipe = getCookie("redActiveRecipeId")
+    currentBlueActiveRecipe = getCookie("blueActiveRecipeId")
 
-    if (previousRedActiveRecipe !== currentRedActiveRecipe) {
+    currentRedCraftedRecipe = getCookie("redCraftedRecipeId")
+    currentBlueCraftedRecipe = getCookie("blueCraftedRecipeId")
+
+    currentRedUsedMagicCake = getCookie("redUsedMagicCake")
+    currentBlueUsedMagicCake = getCookie("blueUsedMagicCake")
+
+    currentRedCopiedRecipe = getCookie("redCopiedRecipeId")
+    currentBlueCopiedRecipe = getCookie("blueCopiedRecipeId")
+
+    const changed =
+        previousRedActiveRecipe !== currentRedActiveRecipe ||
+        previousBlueActiveRecipe !== currentBlueActiveRecipe ||
+        previousRedCraftedRecipe !== currentRedCraftedRecipe ||
+        previousBlueCraftedRecipe !== currentBlueCraftedRecipe ||
+        previousRedUsedMagicCake !== currentRedUsedMagicCake ||
+        previousBlueUsedMagicCake !== currentBlueUsedMagicCake ||
+        previousRedCopiedRecipe !== currentRedCopiedRecipe ||
+        previousBlueCopiedRecipe !== currentBlueCopiedRecipe
+
+    if (changed) {
         previousRedActiveRecipe = currentRedActiveRecipe
-    }
-
-    if (previousBlueActiveRecipe !== currentBlueActiveRecipe) {
         previousBlueActiveRecipe = currentBlueActiveRecipe
+        previousRedCraftedRecipe = currentRedCraftedRecipe
+        previousBlueCraftedRecipe = currentBlueCraftedRecipe
+        previousRedUsedMagicCake = currentRedUsedMagicCake
+        previousBlueUsedMagicCake = currentBlueUsedMagicCake
+        previousRedCopiedRecipe = currentRedCopiedRecipe
+        previousBlueCopiedRecipe = currentBlueCopiedRecipe
+
+        redActiveRecipeEl.textContent = formatActiveRecipe(currentRedActiveRecipe, currentRedUsedMagicCake)
+        blueActiveRecipeEl.textContent = formatActiveRecipe(currentBlueActiveRecipe, currentBlueUsedMagicCake)
     }
 }, 200)
+
+/**
+ * Builds the display string for an active recipe cookie value.
+ * @param {string} activeRecipeId - cookie value (may be "null" or an id string)
+ * @param {string} usedMagicCake - cookie value, the string "true" or "false"
+ * @returns {string}
+ */
+function formatActiveRecipe(activeRecipeId, usedMagicCake) {
+    if (!activeRecipeId || activeRecipeId === "null") return "None"
+
+    const recipe = findRecipe(activeRecipeId)
+    if (!recipe) return "None"
+
+    return usedMagicCake === "true" ? `${recipe.recipe} (Magic Cake)` : recipe.recipe
+}
