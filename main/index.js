@@ -54,6 +54,7 @@ const accLeftScoreEl = document.getElementById("acc-left-score")
 const accRightScoreEl = document.getElementById("acc-right-score")
 // Score Visibility
 let ipcState
+let scoreVisible
 // Animation
 const animation = {
     scoreLeftScore: new CountUp(scoreLeftScoreEl, 0, 0, 0, 0.2, { useEasing: true, useGrouping: true, separator: ",", decimal: ".", suffix: ""}),
@@ -211,6 +212,12 @@ let currentBlueUsedMagicCake, previousBlueUsedMagicCake
 let currentRedCopiedRecipe, previousRedCopiedRecipe
 let currentBlueCopiedRecipe, previousBlueCopiedRecipe
 
+// Stars
+let currentRedStarCount, previousRedStarCount
+let currentBlueStarCount, previousBlueStarCount
+let currentTotalBestOf, previousTotalBestOf
+let currentFirstTo, previousFirstTo
+
 setInterval(() => {
     currentRedActiveRecipe = getCookie("redActiveRecipeId")
     currentBlueActiveRecipe = getCookie("blueActiveRecipeId")
@@ -224,7 +231,7 @@ setInterval(() => {
     currentRedCopiedRecipe = getCookie("redCopiedRecipeId")
     currentBlueCopiedRecipe = getCookie("blueCopiedRecipeId")
 
-    const changed =
+    const recipeChanged =
         previousRedActiveRecipe !== currentRedActiveRecipe ||
         previousBlueActiveRecipe !== currentBlueActiveRecipe ||
         previousRedCraftedRecipe !== currentRedCraftedRecipe ||
@@ -234,7 +241,7 @@ setInterval(() => {
         previousRedCopiedRecipe !== currentRedCopiedRecipe ||
         previousBlueCopiedRecipe !== currentBlueCopiedRecipe
 
-    if (changed) {
+    if (recipeChanged) {
         previousRedActiveRecipe = currentRedActiveRecipe
         previousBlueActiveRecipe = currentBlueActiveRecipe
         previousRedCraftedRecipe = currentRedCraftedRecipe
@@ -247,6 +254,23 @@ setInterval(() => {
         redActiveRecipeEl.textContent = formatActiveRecipe(currentRedActiveRecipe, currentRedUsedMagicCake)
         blueActiveRecipeEl.textContent = formatActiveRecipe(currentBlueActiveRecipe, currentBlueUsedMagicCake)
     }
+
+    // Stars
+    currentRedStarCount = Number(getCookie("redStarCount"))
+    currentBlueStarCount = Number(getCookie("blueStarCount"))
+    currentTotalBestOf = Number(getCookie("totalBestOf"))
+    currentFirstTo = Number(getCookie("firstTo"))
+
+    const starsChanged = 
+        previousRedStarCount !== currentRedStarCount ||
+        previousBlueStarCount !== currentBlueStarCount ||
+        previousTotalBestOf !== currentTotalBestOf ||
+        previousFirstTo !== currentFirstTo
+
+    if (starsChanged) {
+        
+    }
+
 }, 200)
 
 /**

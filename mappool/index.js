@@ -64,10 +64,10 @@ async function getBeatmaps() {
     // Set default star count
     let bestOf
     switch (data.roundName) {
-        case "RO64": case "RO32": case "RO16":
+        case "Round of 64": case "Round of 32": case "Round of 16":
             bestOf = 9
             break
-        case "QF": case "SF":
+        case "Quarterfinals": case "Semifinals":
             bestOf = 11
             break
         default:
