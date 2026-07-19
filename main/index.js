@@ -1,3 +1,4 @@
+import { getCookie } from "../_shared/core/utils.js"
 import { createTosuWsSocket } from "../_shared/core/websocket.js"
 
 // Player Names
@@ -62,3 +63,20 @@ async function setPlayerDetails(currentPlayer, playerNameEl, profilePictureEl) {
         console.error(error.message)
     }
 }
+
+const leftActiveRecipeEl = document.getElementById("red-active-recipe")
+const rightActiveRecipeEl = document.getElementById("blue-active-recipe")
+let currentRedActiveRecipe, previousRedActiveRecipe
+let currentBlueActiveRecipe, previousBlueActiveRecipe
+setInterval(() => {
+    currentRedActiveRecipe = getCookie("redActiveRecipeId")
+    currentBlueActiveRecipe = getCookie("redActiveRecipeId")
+
+    if (previousRedActiveRecipe !== currentRedActiveRecipe) {
+        previousRedActiveRecipe = currentRedActiveRecipe
+    }
+
+    if (previousBlueActiveRecipe !== currentBlueActiveRecipe) {
+        previousBlueActiveRecipe = currentBlueActiveRecipe
+    }
+}, 200)
