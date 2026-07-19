@@ -75,6 +75,7 @@ async function getBeatmaps() {
         responseJson[0].mod = allBeatmaps[i].mod
         responseJson[0].order = allBeatmaps[i].order
         responseJson[0].extra_mod = allBeatmaps[i].extra_mod
+        responseJson[0].MWSCustom = allBeatmaps[i].MWSCustom
 
         allBeatmapsJson.push(responseJson[0])
     }
