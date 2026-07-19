@@ -536,6 +536,8 @@ class PlayerManager {
             milk: 0
         }
         this.activeRecipe = { id: null }
+        this.lastCraftedRecipe = { id: null }
+        this.opponent = null
         this.savedScore = 0
         this.mod = mod
 
@@ -543,29 +545,56 @@ class PlayerManager {
         this.condition = null
     }
 
-    /**
+/**
      * @param {Object} recipe - The recipe JSON
      * @param {number|string} duration - A number (maps) or string (condition name)
      */
     craftRecipe(recipe, duration = 1) {
-        // Ingredients draining
+        // Pay the cost of the recipe you're actually crafting.
+        // (Crafting Magic Cake pays Magic Cake's cost, NOT the copied recipe's.)
         const costs = recipe.data_points
         for (const [ing, cost] of Object.entries(costs)) {
             this.ingredients[ing] = Math.max(0, this.ingredients[ing] - (cost || 0))
         }
-        console.log(costs)
 
-        this.activeRecipe = recipe
+        // Work out which effect actually gets applied.
+        let effectRecipe = recipe
+        let effectDuration = duration
 
-        if (typeof duration === 'number') {
-            this.mapsRemaining = duration
+        // 18 - Magic Cake: apply the opponent's last crafted recipe effect instead.
+        if (recipe.id === 18) {
+            const copied = this.opponent && this.opponent.lastCraftedRecipe
+            if (!copied || !copied.id) {
+                console.log(`${this.color.toUpperCase()} crafted Magic Cake, but the opponent has no recipe to copy.`)
+                this.activeRecipe = { id: null }
+                this.mapsRemaining = 0
+                this.condition = null
+                this.displayIngredientList()
+                displayActiveRecipe()
+                return
+            }
+            // Clone so consumeRecipe nulling the id later can't corrupt the stored copy.
+            effectRecipe = { ...copied }
+            effectDuration = copied.duration === "Infinity" ? Infinity : copied.duration
+            console.log(`${this.color.toUpperCase()} used Magic Cake to copy ${effectRecipe.recipe}.`)
+        }
+
+        // Apply the effect. Clone so consumeRecipe never mutates the shared recipes list.
+        this.activeRecipe = { ...effectRecipe }
+
+        if (typeof effectDuration === 'number') {
+            this.mapsRemaining = effectDuration
             this.condition = null
         } else {
             this.mapsRemaining = Infinity
-            this.condition = duration
+            this.condition = effectDuration
         }
 
-        console.log(`${this.color.toUpperCase()} crafted ${recipe.recipe}. Duration: ${duration}`)
+        // Remember the effect this player actually got, so Magic Cake can copy it later.
+        this.lastCraftedRecipe = { ...effectRecipe }
+
+        this.displayIngredientList()
+        console.log(`${this.color.toUpperCase()} crafted ${recipe.recipe}. Duration: ${effectDuration}`)
         displayActiveRecipe()
     }
 
@@ -659,6 +688,8 @@ const rightIngredientsDisplayEl = document.getElementById("right-ingredients-dis
 // Player Managers
 const redPlayerManager = new PlayerManager("red", redIngredientsEl, leftIngredientsDisplayEl, "HD")
 const bluePlayerManager = new PlayerManager("blue", blueIngredientsEl, rightIngredientsDisplayEl, "HR")
+redPlayerManager.opponent = bluePlayerManager
+bluePlayerManager.opponent = redPlayerManager
 redPlayerManager.displayIngredientList()
 bluePlayerManager.displayIngredientList()
 
@@ -736,3 +767,8 @@ document.addEventListener("DOMContentLoaded", () => {
     applyChangesEl.addEventListener("click", applyChanges)
     applyChangesRecipeEl.addEventListener("click", applyChangesRecipe)
 })
+
+setInterval(() => {
+    document.cookie = `redActiveRecipeId=${redPlayerManager.activeRecipe.id}; path=/`
+    document.cookie = `blueActiveRecipeId=${bluePlayerManager.activeRecipe.id}; path=/`
+}, 200)
