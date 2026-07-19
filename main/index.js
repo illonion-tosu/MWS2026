@@ -213,6 +213,8 @@ let currentRedCopiedRecipe, previousRedCopiedRecipe
 let currentBlueCopiedRecipe, previousBlueCopiedRecipe
 
 // Stars
+const leftPlayerStarContainerEl = document.getElementById("left-player-star-container")
+const rightPlayerStarContainerEl = document.getElementById("right-player-star-container")
 let currentRedStarCount, previousRedStarCount
 let currentBlueStarCount, previousBlueStarCount
 let currentTotalBestOf, previousTotalBestOf
@@ -268,7 +270,24 @@ setInterval(() => {
         previousFirstTo !== currentFirstTo
 
     if (starsChanged) {
-        
+        previousRedStarCount = currentRedStarCount
+        previousBlueStarCount = currentBlueStarCount
+        previousTotalBestOf = currentTotalBestOf
+        previousFirstTo = currentFirstTo
+
+        leftPlayerStarContainerEl.innerHTML = ""
+        rightPlayerStarContainerEl.innerHTML = ""
+
+        for (let i = 0; i < currentFirstTo; i++) {
+            leftPlayerStarContainerEl.append(createStar(i < currentRedStarCount ? "fill" : "empty"))
+            rightPlayerStarContainerEl.append(createStar(i < currentBlueStarCount ? "fill" : "empty"))
+        }
+
+        function createStar(status) {
+            const image = document.createElement("img")
+            image.setAttribute("src", `static/stars/star-${status}.png`)
+            return image
+        }
     }
 
 }, 200)
