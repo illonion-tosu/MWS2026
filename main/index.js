@@ -1,7 +1,9 @@
 import { initialiseOsuApi, getOsuApi } from "../_shared/core/apis.js"
+import { loadBeatmaps, findBeatmap } from "../_shared/core/beatmaps.js"
 import { getCookie } from "../_shared/core/utils.js"
 import { createTosuWsSocket } from "../_shared/core/websocket.js"
 
+getBeatmaps()
 initialiseOsuApi()
 getRecipes()
 
@@ -21,6 +23,17 @@ async function getRecipes() {
  */
 export function findRecipe(id) {
     return allRecipes.find(r => Number(r.id) === Number(id))
+}
+
+const roundNameEl = document.getElementById("round-name")
+let allBeatmaps = [], currentMap
+/**
+ * Loads beatmaps into allBeatmaps variable
+ */
+async function getBeatmaps() {
+    const data = await loadBeatmaps()
+    roundNameEl.textContent = data.roundName
+    allBeatmaps = data.beatmaps
 }
 
 // Player Names
