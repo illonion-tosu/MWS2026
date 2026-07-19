@@ -212,3 +212,17 @@
     width: 535px;
     height: 215px;
 }
+
+/* Player Star Container */
+.player-star-container {
+    position: absolute;
+    top: 85px;
+    display: flex;
+}
+.player-star-container img { width: 52px; }
+
+.right-player-star-container {
+    right: 500px;
+    flex-direction: row-reverse;
+}
+.left-player-star-container { left: 500px; }
