@@ -34,7 +34,7 @@ let allBeatmaps = [], currentMap
 async function getBeatmaps() {
     const data = await loadBeatmaps()
     roundNameEl.textContent = data.roundName
-    allBeatmaps = data.beatmaps
+    allBeatmaps = beatmapDatas
 }
 
 // Player Names
@@ -68,6 +68,10 @@ const nowPlayingBackgroundEl = document.getElementById("now-playing-background")
 const nowPlayingBannerEl = document.getElementById("now-playing-banner")
 const nowPlayingCustomEl = document.getElementById("now-playing-custom")
 const nowPlayingDottedLinesEl = document.getElementById("now-playing-dotted-lines")
+// Now Playing Metadata
+const nowPlayingArtistTitleEl = document.getElementById("now-playing-artist-title")
+const nowPlayingMapperEl = document.getElementById("now-playing-mapper")
+const nowPlayingDifficultyEl = document.getElementById("now-playing-difficulty")
 let nowPlayingId, nowPlayingChecksum
 
 /**
@@ -102,7 +106,12 @@ socket.onmessage = async event => {
         if (scoreVisible) {
 
         } else {
-
+            animation.scoreLeftScore.update(0)
+            animation.scoreRightScore.update(0)
+            animation.accLeftScore.update(1)
+            animation.accRightScore.update(1)
+            leftScoreBarEl.style.width = "0px"
+            rightScoreBarEl.style.width = "0px"
         }
     }
 
@@ -171,15 +180,20 @@ socket.onmessage = async event => {
     }
 
     // Now Playing Information
-    if (nowPlayingId !== data.beatmap.id || nowPlayingChecksum !== data.beatmap.checksum) {
-        nowPlayingId = data.beatmap.id
-        nowPlayingChecksum = data.beatmap.checksum
+    const beatmapData = data.beatmap
+    if (nowPlayingId !== beatmapData.id || nowPlayingChecksum !== beatmapData.checksum) {
+        nowPlayingId = beatmapData.id
+        nowPlayingChecksum = beatmapData.checksum
 
         // Background Image
         const url = `${window.location.origin}/Songs/${data.directPath.beatmapBackground}`
         const fixedUrl = encodeURI(url.replaceAll("\\", "/"));
         nowPlayingBackgroundEl.style.backgroundImage = `url("${fixedUrl}")`
 
+        // Metadata
+        nowPlayingArtistTitleEl.textContent = `${beatmapData.artist} - ${beatmapData.title}`
+        nowPlayingMapperEl.textContent = beatmapData.creator
+        nowPlayingDifficultyEl.textContent = beatmapData.version
 
         currentMap = findBeatmap(nowPlayingId)
         if (currentMap) {
