@@ -28,14 +28,13 @@ export function findRecipe(id) {
 }
 
 const roundNameEl = document.getElementById("round-name")
-let allBeatmaps = [], currentMap
+letcurrentMap
 /**
  * Loads beatmaps into allBeatmaps variable
  */
 async function getBeatmaps() {
     const data = await loadBeatmaps()
     roundNameEl.textContent = data.roundName
-    allBeatmaps = beatmapDatas
 }
 
 // Player Names
@@ -78,6 +77,7 @@ let nowPlayingId, nowPlayingChecksum
 // Chat
 const chatDisplayEl = document.getElementById("chat-display")
 const chatDisplayContainerEl = document.getElementById("chat-display-container")
+let chatLen
 
 /**
  * Handles incoming websocket messages from Tosu.
@@ -173,7 +173,7 @@ socket.onmessage = async event => {
         } else if (scores.redWinValue === scores.blueWinValue) {
             leftScoreBarEl.style.width = "0px"
             rightScoreBarEl.style.width = "0px"
-        } else if (scores.redWinValue === scores.blueWinValue) {
+        } else if (scores.redWinValue < scores.blueWinValue) {
             leftScoreBarEl.style.width = "0px"
             rightScoreBarEl.style.width = `${scoreBarRectangleWidth}px`
         }
