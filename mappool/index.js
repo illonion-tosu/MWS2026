@@ -771,7 +771,9 @@ document.addEventListener("DOMContentLoaded", () => {
     applyChangesRecipeEl.addEventListener("click", applyChangesRecipe)
 })
 
+// 200ms
 setInterval(() => {
+    // Setting cookie information
     document.cookie = `redActiveRecipeId=${redPlayerManager.activeRecipe.id}; path=/`
     document.cookie = `blueActiveRecipeId=${bluePlayerManager.activeRecipe.id}; path=/`
     document.cookie = `redCraftedRecipeId=${redPlayerManager.craftedRecipeId}; path=/`
@@ -781,3 +783,14 @@ setInterval(() => {
     document.cookie = `redCopiedRecipeId=${redPlayerManager.copiedRecipeId}; path=/`
     document.cookie = `blueCopiedRecipeId=${bluePlayerManager.copiedRecipeId}; path=/`
 }, 200)
+
+// 5 seconds
+setInterval(async () => {
+    // API Integration
+    const response = await fetch(
+        "https://mws-ref-dashboard.pages.dev/api/public/match/67/snapshot",
+        { credentials: "omit" }
+    )
+    const match = await response.json()
+    console.log(match)
+}, 5000)
