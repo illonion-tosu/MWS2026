@@ -28,7 +28,7 @@ export function findRecipe(id) {
 }
 
 const roundNameEl = document.getElementById("round-name")
-letcurrentMap
+let currentMap
 /**
  * Loads beatmaps into allBeatmaps variable
  */
