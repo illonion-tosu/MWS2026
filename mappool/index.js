@@ -633,12 +633,16 @@ class PlayerManager {
 
 const redActiveRecipeEl = document.getElementById("red-active-recipe")
 const blueActiveRecipeEl = document.getElementById("blue-active-recipe")
+const redPreviousRecipeEl = document.getElementById("red-previous-recipe")
+const bluePreviousRecipeEl = document.getElementById("blue-previous-recipe")
 /**
  * Display Active Recipe
  */
 function displayActiveRecipe() {
     redActiveRecipeEl.textContent = describeActiveRecipe(redPlayerManager)
     blueActiveRecipeEl.textContent = describeActiveRecipe(bluePlayerManager)
+    redPreviousRecipeEl.textContent = describeLastCraftedRecipe(redPlayerManager)
+    bluePreviousRecipeEl.textContent = describeLastCraftedRecipe(bluePlayerManager)
 }
 
 /**
@@ -650,6 +654,18 @@ function displayActiveRecipe() {
 function describeActiveRecipe(pm) {
     if (!pm.activeRecipe || !pm.activeRecipe.id) return "None"
     const name = findRecipe(pm.activeRecipe.id)?.recipe ?? "None"
+    return pm.usedMagicCake ? `${name} (Magic Cake)` : name
+}
+
+/**
+ * Builds the display string for a player's last crafted recipe,
+ * annotating when the effect was copied via Magic Cake.
+ * @param {PlayerManager} pm
+ * @returns {string}
+ */
+function describeLastCraftedRecipe(pm) {
+    if (!pm.lastCraftedRecipe || !pm.lastCraftedRecipe.id) return "None"
+    const name = findRecipe(pm.lastCraftedRecipe.id)?.recipe ?? "None"
     return pm.usedMagicCake ? `${name} (Magic Cake)` : name
 }
 
@@ -709,14 +725,29 @@ function applyChangesRecipe() {
     const playerManager = whichTeamRecipeEl.value === "red" ? redPlayerManager : bluePlayerManager
 
     // Add Recipe
-    if (whichActionRecipeEl.value === "add-recipe" && !selectRecipeEl.value) return
-    else if (whichActionRecipeEl.value === "add-recipe") {
+    if (whichActionRecipeEl.value === "add-active-recipe" && !selectRecipeEl.value) return
+    else if (whichActionRecipeEl.value === "add-active-recipe") {
         // Set active recipe
         const currentRecipe = findRecipe(Number(selectRecipeEl.value))
         if (!currentRecipe) return
         playerManager.craftRecipe(currentRecipe, currentRecipe.duration === "Infinity" ? Infinity : currentRecipe.duration)
-    } else if (whichActionRecipeEl.value === "remove-recipe") {
+    } else if (whichActionRecipeEl.value === "remove-active-recipe") {
         playerManager.consumeRecipe()
+    }
+
+    // Add Previous Recipe
+    else if (whichActionRecipeEl.value === "add-previous-recipe" && !selectRecipeEl.value) return
+    else if (whichActionRecipeEl.value === "add-previous-recipe") {
+        const currentRecipe = findRecipe(Number(selectRecipeEl.value))
+        if (!currentRecipe) return
+        playerManager.lastCraftedRecipe = { ...currentRecipe }
+        displayActiveRecipe()
+    } 
+    
+    // Remove Previous Recipe
+    else if (whichActionRecipeEl.value === "remove-previous-recipe") {
+        playerManager.lastCraftedRecipe = { id: null }
+        displayActiveRecipe()
     }
 }
 

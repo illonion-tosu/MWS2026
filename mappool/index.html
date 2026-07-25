@@ -115,13 +115,13 @@
                 <div class="sidebar-title">Current Red<br>Ingredients</div>
                 <div class="sidebar-text" id="red-ingredients"></div>
             </div>
-        </section>
-        <div class="divider divider-1"></div>
-        <section class="column column-2">
             <div class="sidebar-section">
                 <div class="sidebar-title">Current Blue Ingredients</div>
                 <div class="sidebar-text" id="blue-ingredients"></div>
             </div>
+        </section>
+        <div class="divider divider-1"></div>
+        <section class="column column-2">
             <div class="sidebar-section">
                 <div class="sidebar-title">Add / Remove Ingredients</div>
                 <div class="sidebar-text">
@@ -149,9 +149,6 @@
                     <button class="full-length-button" id="apply-changes">APPLY CHANGES</button>
                 </div>
             </div>
-        </section>
-        <div class="divider divider-2"></div>
-        <section class="column column-3">
             <div class="sidebar-section">
                 <div class="sidebar-title">Active Recipes</div>
                 <div class="sidebar-text">
@@ -161,15 +158,29 @@
                 </div>
             </div>
             <div class="sidebar-section">
+                <div class="sidebar-title">Previous Recipes</div>
+                <div class="sidebar-text">
+                    Red: <span id="red-previous-recipe">None</span>
+                    <br>
+                    Blue: <span id="blue-previous-recipe">None</span>
+                </div>
+            </div>
+        </section>
+        <div class="divider divider-2"></div>
+        <section class="column column-3">
+            <div class="sidebar-section">
+                <div class="sidebar-title">Recipe Management</div>
                 <div class="sidebar-title">Which Team?</div>
                 <select class="sidebar-select" id="which-team-recipe" size="2">
                     <option value="red">Red</option>
                     <option value="blue">Blue</option>
                 </select>
                 <div class="sidebar-title">Select Action</div>
-                <select class="sidebar-select" id="which-action-recipe" size="2">
-                    <option value="add-recipe">Add Recipe</option>
-                    <option value="remove-recipe">Remove Recipe</option>
+                <select class="sidebar-select" id="which-action-recipe" size="4">
+                    <option value="add-active-recipe">Add Active Recipe</option>
+                    <option value="remove-active-recipe">Remove Active Recipe</option>
+                    <option value="add-previous-recipe">Add Previous Recipe</option>
+                    <option value="remove-previous-recipe">Remove Previous Recipe</option>
                 </select>
                 <div class="sidebar-title">Select Recipes</div>
                 <select class="sidebar-select" id="select-recipe" size="23">
