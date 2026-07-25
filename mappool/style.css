@@ -395,6 +395,7 @@
 .sidebar-button-container button.api-integration-off {
     background-color: darkred;
 }
+
 .sidebar-button-container button.api-integration-off:active {
     background-color: white;
     color: darkred;
@@ -403,6 +404,7 @@
 .sidebar-button-container button.api-integration-on {
     background-color: darkgreen;
 }
+
 .sidebar-button-container button.api-integration-on:active {
     background-color: white;
     color: darkgreen;
