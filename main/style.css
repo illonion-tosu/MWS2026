@@ -211,6 +211,8 @@
     right: 165px;
     width: 535px;
     height: 215px;
+    opacity: 0;
+    transition: 500ms ease-in-out;
 }
 
 /* Player Star Container */

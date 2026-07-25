@@ -1,5 +1,6 @@
 import { initialiseOsuApi, getOsuApi } from "../_shared/core/apis.js"
 import { loadBeatmaps, findBeatmap } from "../_shared/core/beatmaps.js"
+import { updateChat } from "../_shared/core/chat.js"
 import { calculateScore } from "../_shared/core/score-calculator.js"
 import { getCookie } from "../_shared/core/utils.js"
 import { createTosuWsSocket } from "../_shared/core/websocket.js"
@@ -74,6 +75,10 @@ const nowPlayingMapperEl = document.getElementById("now-playing-mapper")
 const nowPlayingDifficultyEl = document.getElementById("now-playing-difficulty")
 let nowPlayingId, nowPlayingChecksum
 
+// Chat
+const chatDisplayEl = document.getElementById("chat-display")
+const chatDisplayContainerEl = document.getElementById("chat-display-container")
+
 /**
  * Handles incoming websocket messages from Tosu.
  *
@@ -104,8 +109,9 @@ socket.onmessage = async event => {
     if (scoreVisible !== data.tourney.scoreVisible) {
         scoreVisible = data.tourney.scoreVisible
         if (scoreVisible) {
-
+            chatDisplayEl.style.opacity = 0
         } else {
+            chatDisplayEl.style.opacity = 1
             animation.scoreLeftScore.update(0)
             animation.scoreRightScore.update(0)
             animation.accLeftScore.update(1)
@@ -208,6 +214,12 @@ socket.onmessage = async event => {
             nowPlayingDottedLinesEl.style.display = "none"
             nowPlayingCustomEl.style.display = "none"
         }
+    }
+
+    // Chat Display
+    const chatData = data.tourney.chat
+    if (chatLen !== chatData.length) {
+        chatLen = updateChat(chatLen, chatData, chatDisplayContainerEl)
     }
 }
 
