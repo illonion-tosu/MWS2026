@@ -34,12 +34,12 @@
 }
 
 .left-profile-picture {
-    left: 112px;
+    left: var(--left-profile-picture-x);
     background-image: url("https://a.ppy.sh/9536345");
 }
 
 .right-profile-picture {
-    right: 1030px;
+    right: var(--right-profile-picture-x);
     background-image: url("https://a.ppy.sh/9574522");
 }
 
@@ -50,14 +50,8 @@
     line-height: 52px;
     color: var(--chocolate-colour);
 }
-
-.left-player-name {
-    left: calc(var(--left-profile-picture-x) + var(--player-name-x));
-}
-
-.right-player-name {
-    right: calc(var(--right-profile-picture-x) + var(--player-name-x));
-}
+.left-player-name { left: calc(var(--left-profile-picture-x) + var(--player-name-x)); }
+.right-player-name { right: calc(var(--right-profile-picture-x) + var(--player-name-x)); }
 
 /* Player Score */
 .player-score {
@@ -263,12 +257,12 @@
     line-height: var(--height);
     transition: 500ms ease-in-out;
 }
-.map-mod-nm { background-color: #4E6A7A; }
-.map-mod-ps { background-color: #957259; }
-.map-mod-hr { background-color: #8D3F38; }
-.map-mod-dt { background-color: #634E7A; }
-.map-mod-fm { background-color: #5F7F63; }
-.map-mod-tb { background-color: #454545; }
+.map-mod-nm { background-color: var(--nm-colour); }
+.map-mod-ps { background-color: var(--ps-colour); }
+.map-mod-hr { background-color: var(--hr-colour); }
+.map-mod-dt { background-color: var(--dt-colour); }
+.map-mod-fm { background-color: var(--fm-colour); }
+.map-mod-tb { background-color: var(--tb-colour); }
 
 /* Ingredient */
 .ingredient {
@@ -292,58 +286,12 @@
     -webkit-box-orient: vertical;
 }
 
-/* Chat Display */
-.chat-display {
-    position: relative;
-    grid-column: 2 / 5;
-    grid-row: 4 / 5;
-    width: 100%;
-    height: 205px;
-    background-color: var(--chocolate-colour);
-    border-radius: var(--common-border-radius);
-}
-
-/* Chat Display Container */
-.chat-display-container {
-    --margin: 12px;
-    --dimension: calc(100% - var(--margin) * 2);
-
-    position: absolute;
-    top: var(--margin);
-    left: var(--margin);
-    width: var(--dimension);
-    height: var(--dimension);
-    display: flex;
-    flex-direction: column;
-    justify-content: flex-end;
-    overflow-y: scroll;
-}
-.chat-display-container::-webkit-scrollbar { display: none; }
-
-/* Chat Display Message */
-.chat-display-message {
-    display: flex;
-    width: inherit;
-    color: var(--vanilla-colour);
-}
-
-.chat-display-name {
-    margin-right: 10px;
-    white-space: nowrap;
-}
-
-.chat-display-content { width: 100%; }
-.left { color: lightpink; }
-.right { color: lightblue;}
-.bot { color: lightyellow; }
-.unknown { color: lightgreen}
-
 /* Sidebar */
 .sidebar {
     position: absolute;
     left: 1920px;
     top: 0;
-    width: 750px;
+    width: 1000px;
     height: 1080px;
     background-color: var(--gondola-colour);
     display: flex;
@@ -425,6 +373,7 @@
 }
 .divider-1 { left: 249px; }
 .divider-2 { left: 499px; }
+.divider-3 { left: 749px; }
 
 /* Sidebar Select */
 .sidebar-select {
@@ -441,3 +390,22 @@
 
 .sidebar-select::-webkit-scrollbar { display: none; }
 .sidebar-select option {  line-height: 20px; }
+
+/* API Integration */
+.sidebar-button-container button.api-integration-off {
+    background-color: darkred;
+}
+
+.sidebar-button-container button.api-integration-off:active {
+    background-color: white;
+    color: darkred;
+}
+
+.sidebar-button-container button.api-integration-on {
+    background-color: darkgreen;
+}
+
+.sidebar-button-container button.api-integration-on:active {
+    background-color: white;
+    color: darkgreen;
+}

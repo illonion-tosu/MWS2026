@@ -2,14 +2,22 @@
     --bean-colour: #957259;
     --book-background-colour: #634832;
     --chocolate-colour: #312525;
+    --cream-colour: #FCF9F5;
     --expresso-colour-60: #16111199;
     --foam-colour: #DAC0AB;
     --gondola-colour: #201816;
     --love-fumes-colour: #FFD1D8;
+    --sage-colour: #A8C29F;
     --strawberry-colour: #C7886E;
     --vanilla-colour: #EBDFD0;
     --pick-green: #5F7F63; /* Matcha */
     --ban-red: #8D3F38; /* Cherry */
+    --nm-colour: #4E6A7A;
+    --ps-colour: #957259;
+    --hr-colour: #8D3F38;
+    --dt-colour: #634E7A;
+    --fm-colour: #5F7F63;
+    --tb-colour: #454545;
     --common-border-radius: 22px;
 }
 
@@ -23,4 +31,51 @@
     background-size: cover;
     background-position: center;
     font-family: Lexend, sans-serif;
+    overflow: hidden;
 }
+
+/* Chat Display */
+.chat-display {
+    position: relative;
+    grid-column: 2 / 5;
+    grid-row: 4 / 5;
+    width: 100%;
+    height: 205px;
+    background-color: var(--chocolate-colour);
+    border-radius: var(--common-border-radius);
+}
+
+/* Chat Display Container */
+.chat-display-container {
+    --margin: 12px;
+    --dimension: calc(100% - var(--margin) * 2);
+
+    position: absolute;
+    top: var(--margin);
+    left: var(--margin);
+    width: var(--dimension);
+    height: var(--dimension);
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    overflow-y: scroll;
+}
+.chat-display-container::-webkit-scrollbar { display: none; }
+
+/* Chat Display Message */
+.chat-display-message {
+    display: flex;
+    width: inherit;
+    color: var(--vanilla-colour);
+}
+
+.chat-display-name {
+    margin-right: 10px;
+    white-space: nowrap;
+}
+
+.chat-display-content { width: 100%; }
+.left { color: lightpink; }
+.right { color: lightblue;}
+.bot { color: lightyellow; }
+.unknown { color: lightgreen}

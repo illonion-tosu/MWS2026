@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gameplay</title>
+
+    <link rel="stylesheet" href="../_shared/css/common.css">
+    <link rel="stylesheet" href="style.css">
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Josefin+Sans:ital,wght@0,100..700;1,100..700&family=Lexend:wght@100..900&display=swap" rel="stylesheet">
+
+    <!-- Other scripts -->
+    <script src="../_shared/deps/reconnecting-websocket.min.js"></script>
+    <script src="../_shared/deps/countUp.js"></script>
+</head>
+<body>
+    <div class="main">
+        <img class="background" src="static/background.png" style="width: 1920px;">
+        <img class="logo" src="static/logo.png">
+        
+        <!-- Profile Pictures -->
+        <div class="profile-picture left-profile-picture" id="left-profile-picture"></div>
+        <div class="profile-picture right-profile-picture" id="right-profile-picture"></div>
+
+        <!-- Active Recipes -->
+        <div class="active-recipe left-active-recipe">Active: <span id="left-active-recipe">Cinnamon Rolls</span></div>
+        <div class="active-recipe right-active-recipe">Active: <span id="right-active-recipe">N/A</span></div>
+
+        <!-- Player Names -->
+        <div class="player-name left-player-name" id="left-player-name">thisisalongname</div>
+        <div class="player-name right-player-name" id="right-player-name">thisisalongname</div>
+
+        <!-- Player Star Containers -->
+        <div class="player-star-container left-player-star-container" id="left-player-star-container"></div> 
+        <div class="player-star-container right-player-star-container" id="right-player-star-container"></div> 
+    
+        <!-- Round Name -->
+        <div class="round-name" id="round-name">Grand Finals</div>
+
+        <!-- Gameplay Scenes -->
+        <div class="gameplay-scene left-gameplay-scene"></div>
+        <div class="gameplay-scene right-gameplay-scene"></div>
+
+        <!-- Texts -->
+        <img class="texts" src="static/texts.png">
+
+        <!-- Score Bar -->
+        <div class="score-bar left-score-bar" id="left-score-bar"></div>
+        <div class="score-bar right-score-bar" id="right-score-bar"></div>
+
+        <!-- Scores -->
+        <div class="score left-score" id="score-left-score">3,343,391</div>
+        <div class="score right-score" id="score-right-score">3,343,391</div>
+        <div class="score left-score" id="acc-left-score">99.99%</div>
+        <div class="score right-score" id="acc-right-score">99.99%</div>
+
+        <!-- Now Playing -->
+        <div class="now-playing-background" id="now-playing-background">
+            <div class="now-playing-banner" id="now-playing-banner">NM1</div>
+            <img class="now-playing-dotted-lines" id="now-playing-dotted-lines" src="static/dotted-lines.png">
+            <div class="now-playing-custom" id="now-playing-custom">MWS Custom</div>
+        </div>
+
+        <!-- Artist + Title -->
+        <div class="now-playing-artist-title-wrapper">
+            <div class="now-playing-artist-title" id="now-playing-artist-title">Billain feat. Malux - Extraction asdffsANDF NMASDFBN JKASDNFNMA SDF ASDF AS FASD FAS DF AWSDF AWEDF</div>
+        </div>
+
+        <!-- Mapper + Difficulty -->
+        <div class="now-playing-mapper-difficulty now-playing-mapper" id="now-playing-mapper">NeilPerry</div>
+        <div class="now-playing-mapper-difficulty now-playing-difficulty" id="now-playing-difficulty">Edge</div>
+
+        <div class="chat-display" id="chat-display">
+            <div class="chat-display-container" id="chat-display-container"></div>
+        </div>
+    </div>
+
+    <script type="module" src="index.js"></script>
+</body>
+</html>

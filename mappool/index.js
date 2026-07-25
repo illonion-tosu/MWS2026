@@ -3,7 +3,7 @@ import { loadBeatmaps, findBeatmap } from "../_shared/core/beatmaps.js"
 import { updateChat } from "../_shared/core/chat.js"
 import { calculateScore } from "../_shared/core/score-calculator.js"
 import { setDefaultStarCount, updateStarCount } from "../_shared/core/stars.js"
-import { delay, getModDetails } from "../_shared/core/utils.js"
+import { getModDetails } from "../_shared/core/utils.js"
 import { createTosuWsSocket } from "../_shared/core/websocket.js"
 
 initialiseOsuApi()
@@ -64,10 +64,10 @@ async function getBeatmaps() {
     // Set default star count
     let bestOf
     switch (data.roundName) {
-        case "RO64": case "RO32": case "RO16":
+        case "Round of 64": case "Round of 32": case "Round of 16":
             bestOf = 9
             break
-        case "QF": case "SF":
+        case "Quarterfinals": case "Semifinals":
             bestOf = 11
             break
         default:
@@ -84,7 +84,7 @@ async function getBeatmaps() {
  * @param {string} beatmapInfo.beatmapset_id - Beatmapset ID
  * @param {string} beatmapInfo.mod - The mod acronym
  * @param {number} beatmapInfo.order - The sequence number within the mod group
- * @param {string} beatmapInfo.artist - Name of song artyist
+ * @param {string} beatmapInfo.artist - Name of song artist
  * @param {string} beatmapInfo.title - Title of song
  * @param {string} beatmapInfo.version - Difficulty name
  * 
@@ -102,16 +102,7 @@ async function createTile(beatmapInfo) {
     mapBackground.classList.add("map-background")
 
     // Find image and set background image
-    const folderName = `${beatmapInfo.beatmapset_id} ${beatmapInfo.artist} - ${beatmapInfo.title}`;
-    const encodedFolder = encodeURIComponent(folderName);
-    const finalUrl = `http://127.0.0.1:24050/Songs/${encodedFolder}/`
-    const image = await findImage(finalUrl)
-
-    if (image) {
-        mapBackground.style.backgroundImage = `url("${image}")`
-    } else {
-        mapBackground.style.backgroundImage = `url("https://assets.ppy.sh/beatmaps/${beatmapInfo.beatmapset_id}/covers/cover.jpg")`
-    }
+    mapBackground.style.backgroundImage = `url("https://assets.ppy.sh/beatmaps/${beatmapInfo.beatmapset_id}/covers/cover.jpg")`
     
     // Image overlay
     const imageOverlay = document.createElement("div")
@@ -170,37 +161,6 @@ async function createTile(beatmapInfo) {
 }
 
 /**
- * Scans a single directory URL and stops after finding the first image.
- * @param {string} url - The URL of the directory to scan.
- */
-async function findImage(url) {
-    try {
-        const response = await fetch(url)
-        const text = await response.text()
-
-        const parser = new DOMParser()
-        const htmlDoc = parser.parseFromString(text, "text/html")
-        const links = Array.from(htmlDoc.querySelectorAll("a"))
-
-        // Find the image
-        for (const link of links) {
-            const href = link.getAttribute("href")
-            if (href === "../" || href.startsWith("?")) continue
-            const fullPath = new URL(href, url).href
-
-            if (href.match(/\.(jpg|jpeg|png|gif|webp)$/i)) {
-                console.log("First Image Found:", fullPath)
-                return fullPath
-            }
-        }
-        
-        console.log("No images found in this directory.")
-    } catch (err) {
-        console.error("Could not read directory:", url, err)
-    }
-}
-
-/**
  * Handles map selection logic based on mouse clicks and modifier keys.
  *
  * @param {MouseEvent} event - The mouse event triggered by the user.
@@ -231,7 +191,8 @@ let currentLeftPlayer, currentRightPlayer
 // Now Playing
 const nowPlayingBackgroundEl = document.getElementById("now-playing-background")
 let nowPlayingId, nowPlayingChecksum
-let updateStats
+let awaitingLiveStats = false
+let liveStatsReadyAt = 0
 
 // Now Playing Stats
 const nowPlayingStatNumberSrEl = document.getElementById("now-playing-stat-number-sr")
@@ -252,6 +213,7 @@ let ipcState, setWinner = false
  *
  * Updates player information when the left/right team names change
  * Updates now playing background when the beatmap changes.
+ * Handles Winner information
  *
  * @param {MessageEvent<string>} event - Websocket message event containing JSON data.
  * @returns {Promise<void>}
@@ -259,7 +221,6 @@ let ipcState, setWinner = false
 const socket = createTosuWsSocket()
 socket.onmessage = async event => {
     const data = JSON.parse(event.data)
-    // console.log(data)
 
     // Player information
     const teamInfo = data.tourney.team
@@ -274,11 +235,10 @@ socket.onmessage = async event => {
 
     // Now Playing Information
     const beatmapData = data.beatmap
-    if ((nowPlayingId !== beatmapData.id || nowPlayingChecksum !== beatmapData.checksum && allBeatmaps)) {
+    if (nowPlayingId !== beatmapData.id || nowPlayingChecksum !== beatmapData.checksum) {
         nowPlayingId = beatmapData.id
         nowPlayingChecksum = beatmapData.checksum
-        updateStats = true
- 
+
         const bg = data.directPath.beatmapBackground
             .replace(/\\/g, "/")
             // eslint-disable-next-line no-control-regex
@@ -286,12 +246,12 @@ socket.onmessage = async event => {
 
         nowPlayingBackgroundEl.style.backgroundImage = `url("http://127.0.0.1:24050/Songs/${bg}")`
 
-        // Current Map
+        // Current Map — use pool data if available, otherwise wait for fresh tosu stats
         currentMap = findBeatmap(nowPlayingId)
         if (currentMap) {
-            updateStats = false
-            const { cs, ar, od, bpm } = getModDetails(currentMap.diff_size, currentMap.diff_approach, currentMap.diff_overall, currentMap.bpm, currentMap.total_length, currentMap.mod === "PS"? currentMap.extra_mod : currentMap.mod)
-            
+            awaitingLiveStats = false
+            const { cs, ar, od, bpm } = getModDetails(currentMap.diff_size, currentMap.diff_approach, currentMap.diff_overall, currentMap.bpm, currentMap.total_length, currentMap.mod === "PS" ? currentMap.extra_mod : currentMap.mod)
+
             nowPlayingStatNumberSrEl.textContent = Number(currentMap.difficultyrating).toFixed(2)
             nowPlayingStatNumberBpmEl.textContent = bpm
             nowPlayingStatNumberCsEl.textContent = cs
@@ -301,26 +261,26 @@ socket.onmessage = async event => {
             // Click on map
             const mapElement = document.getElementById(nowPlayingId)
             if (mapElement && isAutopickOn) {
-                const event = new MouseEvent("mousedown", {
+                const clickEvent = new MouseEvent("mousedown", {
                     bubbles: true,
                     cancelable: true,
                     view: window,
                     button: 0
                 })
-                mapElement.dispatchEvent(event)
+                mapElement.dispatchEvent(clickEvent)
             }
-        }
-
-        // Update stats
-        if (updateStats) {
-            await delay(250)
+        } else {
+            // Not in the pool: tosu's converted stats aren't settled yet on map change.
+            // Defer reading them so a later message supplies fresher values.
+            awaitingLiveStats = true
+            liveStatsReadyAt = Date.now() + 250
         }
     }
 
-    // Update stats if not from mappool
-    if (updateStats) {
+    // Pick up fresh live stats from a later message once tosu has had time to recompute.
+    if (awaitingLiveStats && Date.now() >= liveStatsReadyAt) {
+        awaitingLiveStats = false
         const stats = data.beatmap.stats
-        updateStats = false
         nowPlayingStatNumberSrEl.textContent = stats.stars.total.toFixed(2)
         nowPlayingStatNumberBpmEl.textContent = Math.round(stats.bpm.common)
         nowPlayingStatNumberCsEl.textContent = stats.cs.converted.toFixed(2)
@@ -343,7 +303,6 @@ socket.onmessage = async event => {
         }
     }
 
-    console.log(currentMap, setWinner)
     // Check winner
     if (ipcState === 4 && (currentMap || redPlayerManager.activeRecipe.id === 21 || bluePlayerManager.activeRecipe.id === 21) && !setWinner) {
         console.log("do we set winner")
@@ -356,8 +315,6 @@ socket.onmessage = async event => {
         const accRecipeActive = redPlayerManager.activeRecipe.id === 12 || bluePlayerManager.activeRecipe.id === 12
         const scores = calculateScore(redPlayerManager.activeRecipe.id, bluePlayerManager.activeRecipe.id, data.tourney.clients[0].play, data.tourney.clients[1].play)
         
-        console.log(scores)
-
         // Determine if a winner is to be set
         let requiredToSetWinner = true
         if (isRecipe7Active && !accRecipeActive) {
@@ -381,15 +338,11 @@ socket.onmessage = async event => {
             if (Math.abs(scores.redFinalScore - scores.blueFinalScore) <= 10000) requiredToSetWinner = false
         } 
 
-        console.log(requiredToSetWinner)
-
         // For Active Recipe 7 only, set scores
         if (isRecipe7Active && bluePlayerManager.savedScore === 0 && redPlayerManager.savedScore === 0 && !accRecipeActive) {
             bluePlayerManager.savedScore = scores.blueFinalScore
             redPlayerManager.savedScore = scores.redFinalScore
         }
-
-        console.log(bluePlayerManager.savedScore)
 
         // Set winner
         if (requiredToSetWinner) {
@@ -401,12 +354,10 @@ socket.onmessage = async event => {
                 winner = scores.blueFinalScore > scores.redFinalScore ? "blue" : "red"
             }
 
-            console.log(winner)
             // Set the star count
             updateStarCount(winner, "plus", leftPlayerScoreEl, rightPlayerScoreEl)
 
             if (!isRecipe21Active) {
-                console.log("recipe 21 not active")
                 // RECIPE APPLICATION SECTION (determining which recipes to give to people)
                 // Give ingredients based on win
                 let winnerPlayerManager = winner === "red" ? redPlayerManager : bluePlayerManager
@@ -418,8 +369,8 @@ socket.onmessage = async event => {
                 }
 
                 // Give ingredients based on home base ingredient
-                handleHomeBaseCondition(redPlayerManager)
-                handleHomeBaseCondition(bluePlayerManager)
+                handleHomeBaseCondition(redPlayerManager, currentMap.mod)
+                handleHomeBaseCondition(bluePlayerManager, currentMap.mod)
 
                 // 23 Hot chocolate
                 handleHotChocolateCondition(redPlayerManager, currentMap.mod)
@@ -535,6 +486,11 @@ class PlayerManager {
             milk: 0
         }
         this.activeRecipe = { id: null }
+        this.lastCraftedRecipe = { id: null }
+        this.craftedRecipeId = null
+        this.usedMagicCake = false
+        this.copiedRecipeId = null
+        this.opponent = null
         this.savedScore = 0
         this.mod = mod
 
@@ -547,24 +503,61 @@ class PlayerManager {
      * @param {number|string} duration - A number (maps) or string (condition name)
      */
     craftRecipe(recipe, duration = 1) {
-        // Ingredients draining
+        // Pay the cost of the recipe you're actually crafting.
+        // (Crafting Magic Cake pays Magic Cake's cost, NOT the copied recipe's.)
         const costs = recipe.data_points
         for (const [ing, cost] of Object.entries(costs)) {
             this.ingredients[ing] = Math.max(0, this.ingredients[ing] - (cost || 0))
         }
-        console.log(costs)
 
-        this.activeRecipe = recipe
+        // Record what was literally crafted; reset Magic Cake tracking (set below if a copy happens).
+        this.craftedRecipeId = recipe.id
+        this.usedMagicCake = false
+        this.copiedRecipeId = null
 
-        if (typeof duration === 'number') {
-            this.mapsRemaining = duration
+        // Work out which effect actually gets applied.
+        let effectRecipe = recipe
+        let effectDuration = duration
+
+        // 18 - Magic Cake: apply the opponent's last crafted recipe effect instead.
+        if (recipe.id === 18) {
+            const copied = this.opponent && this.opponent.lastCraftedRecipe
+            if (!copied || !copied.id) {
+                console.log(`${this.color.toUpperCase()} crafted Magic Cake, but the opponent has no recipe to copy.`)
+                this.activeRecipe = { id: null }
+                this.craftedRecipeId = null
+                this.usedMagicCake = false
+                this.copiedRecipeId = null
+                this.mapsRemaining = 0
+                this.condition = null
+                this.displayIngredientList()
+                displayActiveRecipe()
+                return
+            }
+            // Clone so consumeRecipe nulling the id later can't corrupt the stored copy.
+            effectRecipe = { ...copied }
+            effectDuration = copied.duration === "Infinity" ? Infinity : copied.duration
+            this.usedMagicCake = true
+            this.copiedRecipeId = copied.id
+            console.log(`${this.color.toUpperCase()} used Magic Cake to copy ${effectRecipe.recipe} (id ${copied.id}).`)
+        }
+
+        // Apply the effect. Clone so consumeRecipe never mutates the shared recipes list.
+        this.activeRecipe = { ...effectRecipe }
+
+        if (typeof effectDuration === 'number') {
+            this.mapsRemaining = effectDuration
             this.condition = null
         } else {
             this.mapsRemaining = Infinity
-            this.condition = duration
+            this.condition = effectDuration
         }
 
-        console.log(`${this.color.toUpperCase()} crafted ${recipe.recipe}. Duration: ${duration}`)
+        // Remember the effect this player actually got, so Magic Cake can copy it later.
+        this.lastCraftedRecipe = { ...effectRecipe }
+
+        this.displayIngredientList()
+        console.log(`${this.color.toUpperCase()} crafted ${recipe.recipe}. Duration: ${effectDuration}`)
         displayActiveRecipe()
     }
 
@@ -573,7 +566,10 @@ class PlayerManager {
      */
     consumeRecipe() {
         const used = this.activeRecipe.id
-        this.activeRecipe.id = null
+        this.activeRecipe = { id: null }
+        this.craftedRecipeId = null
+        this.usedMagicCake = false
+        this.copiedRecipeId = null
         this.mapsRemaining = 0
         this.condition = null
         this.savedScore = 0
@@ -637,15 +633,40 @@ class PlayerManager {
 
 const redActiveRecipeEl = document.getElementById("red-active-recipe")
 const blueActiveRecipeEl = document.getElementById("blue-active-recipe")
+const redPreviousRecipeEl = document.getElementById("red-previous-recipe")
+const bluePreviousRecipeEl = document.getElementById("blue-previous-recipe")
 /**
  * Display Active Recipe
  */
 function displayActiveRecipe() {
-    const redRecipe = redPlayerManager.activeRecipe && redPlayerManager.activeRecipe.id ? findRecipe(redPlayerManager.activeRecipe.id).recipe : "None"
-    const blueRecipe = bluePlayerManager.activeRecipe && bluePlayerManager.activeRecipe.id ? findRecipe(bluePlayerManager.activeRecipe.id).recipe : "None"
+    redActiveRecipeEl.textContent = describeActiveRecipe(redPlayerManager)
+    blueActiveRecipeEl.textContent = describeActiveRecipe(bluePlayerManager)
+    redPreviousRecipeEl.textContent = describeLastCraftedRecipe(redPlayerManager)
+    bluePreviousRecipeEl.textContent = describeLastCraftedRecipe(bluePlayerManager)
+}
 
-    redActiveRecipeEl.textContent = redRecipe
-    blueActiveRecipeEl.textContent = blueRecipe
+/**
+ * Builds the display string for a player's active recipe,
+ * annotating when the effect was copied via Magic Cake.
+ * @param {PlayerManager} pm
+ * @returns {string}
+ */
+function describeActiveRecipe(pm) {
+    if (!pm.activeRecipe || !pm.activeRecipe.id) return "None"
+    const name = findRecipe(pm.activeRecipe.id)?.recipe ?? "None"
+    return pm.usedMagicCake ? `${name} (Magic Cake)` : name
+}
+
+/**
+ * Builds the display string for a player's last crafted recipe,
+ * annotating when the effect was copied via Magic Cake.
+ * @param {PlayerManager} pm
+ * @returns {string}
+ */
+function describeLastCraftedRecipe(pm) {
+    if (!pm.lastCraftedRecipe || !pm.lastCraftedRecipe.id) return "None"
+    const name = findRecipe(pm.lastCraftedRecipe.id)?.recipe ?? "None"
+    return pm.usedMagicCake ? `${name} (Magic Cake)` : name
 }
 
 // Ingredient Lists
@@ -656,8 +677,10 @@ const leftIngredientsDisplayEl = document.getElementById("left-ingredients-displ
 const rightIngredientsDisplayEl = document.getElementById("right-ingredients-display")
 
 // Player Managers
-const redPlayerManager = new PlayerManager("red", redIngredientsEl, leftIngredientsDisplayEl, "HD")
+const redPlayerManager = new PlayerManager("red", redIngredientsEl, leftIngredientsDisplayEl, "DT")
 const bluePlayerManager = new PlayerManager("blue", blueIngredientsEl, rightIngredientsDisplayEl, "HR")
+redPlayerManager.opponent = bluePlayerManager
+bluePlayerManager.opponent = redPlayerManager
 redPlayerManager.displayIngredientList()
 bluePlayerManager.displayIngredientList()
 
@@ -670,10 +693,6 @@ const whichIngredientEl = document.getElementById("which-ingredient")
  * Adds and Subtracts Recipes
  */
 function applyChanges() {
-    whichActionEl.value
-    whichTeamEl.value
-    whichIngredientEl.value
-
     // Set Team
     let team
     if (whichTeamEl.value === "red") {
@@ -706,13 +725,29 @@ function applyChangesRecipe() {
     const playerManager = whichTeamRecipeEl.value === "red" ? redPlayerManager : bluePlayerManager
 
     // Add Recipe
-    if (whichActionRecipeEl.value === "add-recipe" && !selectRecipeEl.value) return
-    else if (whichActionRecipeEl.value === "add-recipe") {
+    if (whichActionRecipeEl.value === "add-active-recipe" && !selectRecipeEl.value) return
+    else if (whichActionRecipeEl.value === "add-active-recipe") {
         // Set active recipe
         const currentRecipe = findRecipe(Number(selectRecipeEl.value))
+        if (!currentRecipe) return
         playerManager.craftRecipe(currentRecipe, currentRecipe.duration === "Infinity" ? Infinity : currentRecipe.duration)
-    } else if (whichActionRecipeEl.value === "remove-recipe") {
+    } else if (whichActionRecipeEl.value === "remove-active-recipe") {
         playerManager.consumeRecipe()
+    }
+
+    // Add Previous Recipe
+    else if (whichActionRecipeEl.value === "add-previous-recipe" && !selectRecipeEl.value) return
+    else if (whichActionRecipeEl.value === "add-previous-recipe") {
+        const currentRecipe = findRecipe(Number(selectRecipeEl.value))
+        if (!currentRecipe) return
+        playerManager.lastCraftedRecipe = { ...currentRecipe }
+        displayActiveRecipe()
+    } 
+    
+    // Remove Previous Recipe
+    else if (whichActionRecipeEl.value === "remove-previous-recipe") {
+        playerManager.lastCraftedRecipe = { id: null }
+        displayActiveRecipe()
     }
 }
 
@@ -735,3 +770,27 @@ document.addEventListener("DOMContentLoaded", () => {
     applyChangesEl.addEventListener("click", applyChanges)
     applyChangesRecipeEl.addEventListener("click", applyChangesRecipe)
 })
+
+// 200ms
+setInterval(() => {
+    // Setting cookie information
+    document.cookie = `redActiveRecipeId=${redPlayerManager.activeRecipe.id}; path=/`
+    document.cookie = `blueActiveRecipeId=${bluePlayerManager.activeRecipe.id}; path=/`
+    document.cookie = `redCraftedRecipeId=${redPlayerManager.craftedRecipeId}; path=/`
+    document.cookie = `blueCraftedRecipeId=${bluePlayerManager.craftedRecipeId}; path=/`
+    document.cookie = `redUsedMagicCake=${redPlayerManager.usedMagicCake}; path=/`
+    document.cookie = `blueUsedMagicCake=${bluePlayerManager.usedMagicCake}; path=/`
+    document.cookie = `redCopiedRecipeId=${redPlayerManager.copiedRecipeId}; path=/`
+    document.cookie = `blueCopiedRecipeId=${bluePlayerManager.copiedRecipeId}; path=/`
+}, 200)
+
+// 5 seconds
+setInterval(async () => {
+    // API Integration
+    const response = await fetch(
+        "https://mws-ref-dashboard.pages.dev/api/public/match/67/snapshot",
+        { credentials: "omit" }
+    )
+    const match = await response.json()
+    console.log(match)
+}, 5000)

@@ -1,0 +1,230 @@
+:root {
+    --profile-picture-x: 71px;
+    --player-details-x: 218px;
+    --gameplay-scene-x: 58px;
+    --score-x: 975px;
+}
+
+/* Logo */
+.logo {
+    position: absolute;
+    left: 50%;
+    top: 0;
+    transform: translateX(-50%);
+    width: 240px;
+}
+
+/* Profile Picture */
+.profile-picture {
+    --dimension: 131px;
+
+    position: absolute;
+    top: 13px;
+    width: var(--dimension);
+    height: var(--dimension);
+    background: center / cover;
+    border-radius: 23px;
+    z-index: 1;
+    background-image: url("https://a.ppy.sh/9536345");
+}
+.left-profile-picture { left: var(--profile-picture-x); }
+.right-profile-picture { right: var(--profile-picture-x); }
+
+/* Player Names */
+.active-recipe {
+    position: absolute;
+    top: 48px;
+    font-size: 19px;
+    color: var(--vanilla-colour);
+}
+.left-active-recipe { left: var(--player-details-x); }
+.right-active-recipe { right: var(--player-details-x); }
+
+/* Player Names */
+.player-name {
+    position: absolute;
+    top: 76px;
+    line-height: 52px;
+    font-size: 25px;
+    color: var(--chocolate-colour);
+}
+.left-player-name { left: var(--player-details-x); }
+.right-player-name { right: var(--player-details-x); }
+
+/* Round Name */
+.round-name {
+    position: absolute;
+    top: 136px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-family: Lexend, sans-serif;
+    font-size: 3rem;
+    font-weight: 700;
+    color: var(--chocolate-colour);
+}
+
+/* Gameplay Scene */
+.gameplay-scene {
+    position: absolute;
+    top: 204px;
+    width: 744px;
+    height: 558px;
+    background-color: var(--chocolate-colour);
+}
+.left-gameplay-scene { left: var(--gameplay-scene-x); }
+.right-gameplay-scene { right: var(--gameplay-scene-x); }
+
+/* Texts */
+.texts {
+    position: absolute;
+    top: 740px;
+    left: 133px;
+    width: 1753px;
+}
+
+/* Score Bar */
+.score-bar {
+    position: absolute;
+    top: 741px;
+    width: 800px;
+    height: 37px;
+}
+
+.left-score-bar {
+    right: 50%;
+    background-color: var(--strawberry-colour);
+}
+
+.right-score-bar {
+    left: 50%;
+    background-color: var(--sage-colour);
+}
+
+/* Score */
+.score {
+    position: absolute;
+    top: 794px;
+    font-family: Lexend, sans-serif;
+    font-size: 3rem;
+    font-weight: 400;
+    color: var(--chocolate-colour);
+    font-variant-numeric: tabular-nums;
+}
+.left-score { right: var(--score-x); }
+.right-score { left: var(--score-x); }
+
+/* Now Playing Background */
+.now-playing-background {
+    position: absolute;
+    left: 228px;
+    top: 911px;
+    width: 472px;
+    height: 104px;
+    background: center / cover;
+    background-image: url("https://assets.ppy.sh/beatmaps/2462810/covers/cover.jpg");
+}
+
+.now-playing-banner {
+    position: absolute;
+    left: 17px;
+    width: 68px;
+    height: 78px;
+    line-height: 69px;
+    text-align: center;
+    clip-path: polygon(0% 0%, 100% 0%, 100% 100%, 50% 71.5%, 0% 100%);
+    color: var(--cream-colour);
+    background-color: var(--nm-colour);
+    font-family: "Josefin Sans", sans-serif;
+    font-size: 1.25rem;
+}
+
+.now-playing-dotted-lines {
+    position: absolute;
+    left: 19px;
+    top: 3px;
+    height: 71px;
+}
+
+.now-playing-custom {
+    --height: 29px;
+
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    width: 141.5px;
+    height: var(--height);
+    line-height: var(--height);
+    text-align: center;
+    color: var(--cream-colour);
+    font-family: Lexend, sans-serif;
+    background-color: var(--nm-colour);
+}
+
+/* Artist + Title */
+.now-playing-artist-title-wrapper {
+    position: absolute;
+    top: 911px;
+    left: 726px;
+    width: 472px;
+    height: 104px;
+    color: var(--chocolate-colour);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.now-playing-artist-title {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
+    font-family: Lexend, sans-serif;
+    font-weight: 400;
+    font-size: 1.5rem;
+    color: var(--chocolate-colour);
+    text-align: center;
+    line-clamp: 3;
+    overflow: hidden;
+}
+
+/* Now Playing Mapper + Difficulty */
+.now-playing-mapper-difficulty {
+    --height: 35px;
+
+    position: absolute;
+    top: 955px;
+    font-family: Lexend, sans-serif;
+    font-weight: 400;
+    font-size: 1.25rem;
+    width: 275px;
+    height: var(--height);
+    line-height: var(--height);
+    text-align: center;
+    color: var(--chocolate-colour);
+}
+.now-playing-mapper { left: 1202px; }
+.now-playing-difficulty { left: 1480px; }
+
+/* Chat Display */
+.chat-display {
+    position: absolute;
+    bottom: 70px;
+    right: 165px;
+    width: 535px;
+    height: 215px;
+    opacity: 0;
+    transition: 500ms ease-in-out;
+}
+
+/* Player Star Container */
+.player-star-container {
+    position: absolute;
+    top: 85px;
+    display: flex;
+}
+.player-star-container img { width: 52px; }
+
+.right-player-star-container {
+    right: 500px;
+    flex-direction: row-reverse;
+}
+.left-player-star-container { left: 500px; }
