@@ -304,8 +304,7 @@ socket.onmessage = async event => {
     }
 
     // Check winner
-    if (ipcState === 4 && (currentMap || redPlayerManager.activeRecipe.id === 21 || bluePlayerManager.activeRecipe.id === 21) && !setWinner) {
-        console.log("do we set winner")
+    if ((ipcState === 4 && (currentMap || redPlayerManager.activeRecipe.id === 21 || bluePlayerManager.activeRecipe.id === 21) && !setWinner) && !apiIntegration) {
         setWinner = true
 
         // Get scores
@@ -816,6 +815,7 @@ setInterval(() => {
 let currentApiIntegrationBestOf, previousApiIntegrationBestOf
 let currentApiIntegrationStars, previousApiIntegrationStars
 let currentApiIntegrationIngredients, preivousApiIntegrationIngredients
+let currentApiIntegrationMaps, previousApiIntegrationMaps
 // 5 seconds
 setInterval(async () => {
     if (!apiIntegration) return
@@ -840,6 +840,7 @@ setInterval(async () => {
         apiIntegrationUpdateStars(currentApiIntegrationStars, leftPlayerScoreEl, rightPlayerScoreEl)
     }
 
+    // Ingredients
     currentApiIntegrationIngredients = match.ingredients
     if (preivousApiIntegrationIngredients !== currentApiIntegrationIngredients) {
         preivousApiIntegrationIngredients = currentApiIntegrationIngredients
