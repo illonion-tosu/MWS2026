@@ -2,7 +2,7 @@ import { initialiseOsuApi, getOsuApi } from "../_shared/core/apis.js"
 import { loadBeatmaps, findBeatmap } from "../_shared/core/beatmaps.js"
 import { updateChat } from "../_shared/core/chat.js"
 import { calculateScore } from "../_shared/core/score-calculator.js"
-import { setDefaultStarCount, updateStarCount } from "../_shared/core/stars.js"
+import { apiIntegrationSetBestOf, apiIntegrationUpdateStars, setDefaultStarCount, updateStarCount } from "../_shared/core/stars.js"
 import { getModDetails } from "../_shared/core/utils.js"
 import { createTosuWsSocket } from "../_shared/core/websocket.js"
 
@@ -804,8 +804,14 @@ setInterval(() => {
     document.cookie = `blueCopiedRecipeId=${bluePlayerManager.copiedRecipeId}; path=/`
 }, 200)
 
+
+let currentApiIntegrationBestOf, previousApiIntegrationBestOf
+let currentApiIntegrationStars, previousApiIntegrationStars
+let currentApiIntegrationIngredients, preivousApiIntegrationIngredients
 // 5 seconds
 setInterval(async () => {
+    if (!apiIntegration) return
+    
     // API Integration
     const response = await fetch(
         "https://mws-ref-dashboard.pages.dev/api/public/match/67/snapshot",
@@ -813,4 +819,21 @@ setInterval(async () => {
     )
     const match = await response.json()
     console.log(match)
-}, 5000)
+
+    // Stars
+    currentApiIntegrationBestOf = match.bestOf
+    if (previousApiIntegrationBestOf !== currentApiIntegrationBestOf) {
+        previousApiIntegrationBestOf = currentApiIntegrationBestOf
+        apiIntegrationSetBestOf(currentApiIntegrationBestOf)
+    }
+    currentApiIntegrationStars = match.stars
+    if (previousApiIntegrationStars !== currentApiIntegrationStars) {
+        previousApiIntegrationStars = currentApiIntegrationStars
+        apiIntegrationUpdateStars(currentApiIntegrationStars, leftPlayerScoreEl, rightPlayerScoreEl)
+    }
+
+    currentApiIntegrationIngredients = match.ingredients
+    if (preivousApiIntegrationIngredients !== currentApiIntegrationIngredients) {
+        preivousApiIntegrationIngredients = currentApiIntegrationIngredients
+    }
+}, 7000)
