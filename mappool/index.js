@@ -499,6 +499,14 @@ class PlayerManager {
     }
 
     /**
+     * API Integration set Ingredients
+     */
+    apiIntegrationSetIngredients(ingredients) {
+        this.ingredients = ingredients
+        this.displayIngredientList()
+    }
+
+    /**
      * @param {Object} recipe - The recipe JSON
      * @param {number|string} duration - A number (maps) or string (condition name)
      */
@@ -811,7 +819,7 @@ let currentApiIntegrationIngredients, preivousApiIntegrationIngredients
 // 5 seconds
 setInterval(async () => {
     if (!apiIntegration) return
-    
+
     // API Integration
     const response = await fetch(
         "https://mws-ref-dashboard.pages.dev/api/public/match/67/snapshot",
@@ -835,5 +843,7 @@ setInterval(async () => {
     currentApiIntegrationIngredients = match.ingredients
     if (preivousApiIntegrationIngredients !== currentApiIntegrationIngredients) {
         preivousApiIntegrationIngredients = currentApiIntegrationIngredients
+        redPlayerManager.apiIntegrationSetIngredients(match.ingredients.red)
+        bluePlayerManager.apiIntegrationSetIngredients(match.ingredients.blue)
     }
 }, 7000)
