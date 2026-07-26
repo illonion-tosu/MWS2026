@@ -440,7 +440,7 @@ async function setPlayerDetails(currentPlayer, playerNameEl, profilePictureEl) {
     }
 
     try {
-        const response = await fetch(`https://fairybread-cloud-vps.chickenkiller.com/api/get_user?k=${getOsuApi()}&u=${currentPlayer}`);
+        const response = await fetch(`https://osu.ppy.sh/api/get_user?k=${getOsuApi()}&u=${currentPlayer}`);
         if (!response.ok) { throw new Error(`Response status: ${response.status}`); }
         const result = await response.json();
 
