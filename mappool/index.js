@@ -751,6 +751,25 @@ function applyChangesRecipe() {
     }
 }
 
+// API Integration Toggle
+const sidebarEl = document.getElementById("sidebar")
+const apiIntegrationToggleEl = document.getElementById("api-integration-toggle")
+let apiIntegration = false
+function apiIntegrationToggle() {
+    apiIntegration = !apiIntegration
+    if (apiIntegration) {
+        apiIntegrationToggleEl.textContent = "ON"
+        apiIntegrationToggleEl.classList.remove("api-integration-off")
+        apiIntegrationToggleEl.classList.add("api-integration-on")
+        sidebarEl.style.width = "250px"
+    } else {
+        apiIntegrationToggleEl.textContent = "OFF"
+        apiIntegrationToggleEl.classList.add("api-integration-off")
+        apiIntegrationToggleEl.classList.remove("api-integration-on")
+        sidebarEl.style.width = "1000px"
+    }
+}
+
 // Buttons
 const updateStarRedMinusEl = document.getElementById("update-star-red-minus")
 const updateStarRedPlusEl = document.getElementById("update-star-red-plus")
@@ -760,6 +779,7 @@ const updateStarBluePlusEl = document.getElementById("update-star-blue-plus")
 // const updateNextAutopickerBlueEl = document.getElementById("update-next-autopicker-blue")
 const applyChangesEl = document.getElementById("apply-changes")
 document.addEventListener("DOMContentLoaded", () => {
+    apiIntegrationToggleEl.addEventListener("click", () => apiIntegrationToggle())
     updateStarRedMinusEl.addEventListener("click", () => updateStarCount("red", "minus", leftPlayerScoreEl, rightPlayerScoreEl))
     updateStarRedPlusEl.addEventListener("click", () => updateStarCount("red", "plus", leftPlayerScoreEl, rightPlayerScoreEl))
     updateStarBlueMinusEl.addEventListener("click", () => updateStarCount("blue", "minus", leftPlayerScoreEl, rightPlayerScoreEl))
