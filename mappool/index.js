@@ -815,7 +815,9 @@ setInterval(() => {
 let currentApiIntegrationBestOf, previousApiIntegrationBestOf
 let currentApiIntegrationStars, previousApiIntegrationStars
 let currentApiIntegrationIngredients, preivousApiIntegrationIngredients
-let currentApiIntegrationMaps, previousApiIntegrationMaps
+let currentApiIntegrationMapsBanned, previousApiIntegrationMapsBanned
+let currentApiIntegrationMapsPicked, previousApiIntegrationMapsPicked
+let resetMapsRequired
 // 5 seconds
 setInterval(async () => {
     if (!apiIntegration) return
@@ -846,5 +848,47 @@ setInterval(async () => {
         preivousApiIntegrationIngredients = currentApiIntegrationIngredients
         redPlayerManager.apiIntegrationSetIngredients(match.ingredients.red)
         bluePlayerManager.apiIntegrationSetIngredients(match.ingredients.blue)
+    }
+
+    // Maps
+    resetMapsRequired = false
+    currentApiIntegrationMapsBanned = match.maps.banned
+    if (previousApiIntegrationMapsBanned !== currentApiIntegrationMapsBanned) {
+        previousApiIntegrationMapsBanned = currentApiIntegrationMapsBanned
+        resetMapsRequired = true
+    }
+
+    currentApiIntegrationMapsPicked = match.maps.picked
+    if (previousApiIntegrationMapsPicked !== currentApiIntegrationMapsPicked) {
+        previousApiIntegrationMapsPicked = currentApiIntegrationMapsPicked
+        resetMapsRequired = true
+    }
+    
+    if (resetMapsRequired) {
+        const mapTiles = document.getElementsByClassName("map-tile")
+        
+        for (let i = 0; i < mapTiles.length; i++) {
+            // Reset maps
+            mapTiles[i].classList.remove("pick-border")
+            mapTiles[i].classList.remove("ban-border")
+
+            // Banned beatmap Ids
+            const bannedBeatmapIds = new Set(currentApiIntegrationMapsBanned.map(map => map.beatmapId))
+            const pickedBeatmapIds = new Set(currentApiIntegrationMapsPicked.map(map => map.beatmapId))
+
+            // Pick Maps
+            if (bannedBeatmapIds.has(mapTiles[i].getAttribute("id"))) {
+                console.log("test")
+                mapTiles[i].classList.add("ban-border")
+            }
+
+            // Ban Maps
+            if (pickedBeatmapIds.has(mapTiles[i].getAttribute("id"))) {
+                console.log("test")
+                mapTiles[i].classList.add("pick-border")
+            }
+
+            console.log("hello")
+        }
     }
 }, 7000)
