@@ -167,6 +167,8 @@ async function createTile(beatmapInfo) {
  * @this {HTMLElement} - The map element that received the click.
  */
 function mapClickEvent(event) {
+    if (apiIntegration) return
+
     // Action
     let action = "pick"
     if (event.ctrlKey) action = "ban"
@@ -508,6 +510,68 @@ class PlayerManager {
     }
 
     /**
+     * API Integration set active recipe without consuming ingredients.
+     *
+     * @param {Object} recipe - The recipe JSON
+     * @param {number|string} duration - A number (maps) or string (condition name)
+     */
+    apiIntegrationSetRecipe(recipe, duration = 1) {
+        // Record what was "crafted"
+        this.craftedRecipeId = recipe.id
+        this.usedMagicCake = false
+        this.copiedRecipeId = null
+
+        let effectRecipe = recipe
+        let effectDuration = duration
+
+        // 18 - Magic Cake: copy opponent's last crafted recipe
+        if (recipe.id === 18) {
+            const copied = this.opponent && this.opponent.lastCraftedRecipe
+
+            if (!copied || !copied.id) {
+                console.log(`${this.color.toUpperCase()} received Magic Cake, but the opponent has no recipe to copy.`)
+
+                this.activeRecipe = { id: null }
+                this.craftedRecipeId = null
+                this.usedMagicCake = false
+                this.copiedRecipeId = null
+                this.mapsRemaining = 0
+                this.condition = null
+
+                this.displayIngredientList()
+                displayActiveRecipe()
+                return
+            }
+
+            // Clone so later mutations don't affect the stored recipe
+            effectRecipe = { ...copied }
+            effectDuration = copied.duration === "Infinity" ? Infinity : copied.duration
+
+            this.usedMagicCake = true
+            this.copiedRecipeId = copied.id
+
+            console.log(`${this.color.toUpperCase()} used Magic Cake to copy ${effectRecipe.recipe} (id ${copied.id}).`)
+        }
+
+        // Apply the effect
+        this.activeRecipe = { ...effectRecipe }
+
+        if (typeof effectDuration === "number") {
+            this.mapsRemaining = effectDuration
+            this.condition = null
+        } else {
+            this.mapsRemaining = Infinity
+            this.condition = effectDuration
+        }
+
+        // Remember the actual applied recipe for future Magic Cakes
+        this.lastCraftedRecipe = { ...effectRecipe }
+
+        this.displayIngredientList()
+        displayActiveRecipe()
+    }
+
+    /**
      * @param {Object} recipe - The recipe JSON
      * @param {number|string} duration - A number (maps) or string (condition name)
      */
@@ -566,7 +630,6 @@ class PlayerManager {
         this.lastCraftedRecipe = { ...effectRecipe }
 
         this.displayIngredientList()
-        console.log(`${this.color.toUpperCase()} crafted ${recipe.recipe}. Duration: ${effectDuration}`)
         displayActiveRecipe()
     }
 
@@ -821,6 +884,7 @@ let currentApiIntegrationMapsBanned, previousApiIntegrationMapsBanned
 let currentApiIntegrationMapsPicked, previousApiIntegrationMapsPicked
 let currentApiIntegrationPlayers, previousApiIntegrationPlayers
 let resetMapsRequired
+let currentApiIntegrationCurrentRecipes, previousApiIntegrationCurrentRecipes
 // 5 seconds
 setInterval(async () => {
     if (!apiIntegration) return
@@ -856,13 +920,13 @@ setInterval(async () => {
     // Maps
     resetMapsRequired = false
     currentApiIntegrationMapsBanned = match.maps.banned
-    if (!deepEqual(previousApiIntegrationMapsBanned, currentApiIntegrationMapsBanned)) {
+    if (!deepEqualArray(previousApiIntegrationMapsBanned, currentApiIntegrationMapsBanned)) {
         previousApiIntegrationMapsBanned = currentApiIntegrationMapsBanned
         resetMapsRequired = true
     }
 
     currentApiIntegrationMapsPicked = match.maps.picked
-    if (!deepEqual(previousApiIntegrationMapsPicked, currentApiIntegrationMapsPicked)) {
+    if (!deepEqualArray(previousApiIntegrationMapsPicked, currentApiIntegrationMapsPicked)) {
         previousApiIntegrationMapsPicked = currentApiIntegrationMapsPicked
         resetMapsRequired = true
     }
@@ -892,16 +956,30 @@ setInterval(async () => {
     }
 
     // Players
-    if (!deepEqual(previousApiIntegrationPlayers, currentApiIntegrationPlayers)) {
+    currentApiIntegrationPlayers = match.players
+    if (!deepEqualArray(previousApiIntegrationPlayers, currentApiIntegrationPlayers)) {
         previousApiIntegrationPlayers = currentApiIntegrationPlayers
-        leftPlayerNameEl.textContent = currentApiIntegrationPlayers.red.osuId
-        leftProfilePictureEl.style.backgroundImage = `url("https://a.ppy.sh/${currentApiIntegrationPlayers.red.name}")`
-        rightPlayerNameEl.textContent = currentApiIntegrationPlayers.blue.osuId
-        rightProfilePictureEl.style.backgroundImage = `url("https://a.ppy.sh/${currentApiIntegrationPlayers.blue.name}")`
+        leftPlayerNameEl.textContent = currentApiIntegrationPlayers.red.name
+        leftProfilePictureEl.style.backgroundImage = `url("https://a.ppy.sh/${currentApiIntegrationPlayers.red.osuId}")`
+        rightPlayerNameEl.textContent = currentApiIntegrationPlayers.blue.name
+        rightProfilePictureEl.style.backgroundImage = `url("https://a.ppy.sh/${currentApiIntegrationPlayers.blue.osuId}")`
     }
+
+    // Recipes
+    currentApiIntegrationCurrentRecipes = match.recipes
+    if (!deepEqualObject(previousApiIntegrationCurrentRecipes, currentApiIntegrationCurrentRecipes)) {
+        previousApiIntegrationCurrentRecipes = currentApiIntegrationCurrentRecipes
+        if (currentApiIntegrationCurrentRecipes.red && currentApiIntegrationCurrentRecipes.red.recipeId) {
+            redPlayerManager.apiIntegrationSetRecipe(currentApiIntegrationCurrentRecipes.red.recipeId)
+        }
+        if (currentApiIntegrationCurrentRecipes.blue && currentApiIntegrationCurrentRecipes.blue.recipeId) {
+            bluePlayerManager.apiIntegrationSetRecipe(currentApiIntegrationCurrentRecipes.blue.recipeId)
+        }
+    }
+        
 }, 7000)
 
-function deepEqual(arr1, arr2) {
+function deepEqualArray(arr1, arr2) {
     // Check if references are identical
     if (arr1 === arr2) return true
 
@@ -920,7 +998,31 @@ function deepEqual(arr1, arr2) {
 
     // Recursively check values
     for (let key of keys1) {
-        if (!keys2.includes(key) || !deepEqual(arr1[key], arr2[key])) {
+        if (!keys2.includes(key) || !deepEqualArray(arr1[key], arr2[key])) {
+            return false
+        }
+    }
+
+    return true
+}
+
+function deepEqualObject(obj1, obj2) {
+    if (obj1 === obj2) return true
+
+    if (typeof obj1 === 'number' && typeof obj2 === 'number' && isNaN(obj1) && isNaN(obj2)) {
+        return true
+    }
+
+    if (typeof obj1 !== 'object' || obj1 === null || typeof obj2 !== 'object' || obj2 === null) {
+        return false
+    }
+
+    const keys1 = Object.keys(obj1)
+    const keys2 = Object.keys(obj2)
+    if (keys1.length !== keys2.length) return false
+
+    for (const key of keys1) {
+        if (!Object.prototype.hasOwnProperty.call(obj2, key) || !deepEqualObject(obj1[key], obj2[key])) {
             return false
         }
     }
