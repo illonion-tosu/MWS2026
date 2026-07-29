@@ -223,14 +223,16 @@ socket.onmessage = async event => {
     const data = JSON.parse(event.data)
 
     // Player information
-    const teamInfo = data.tourney.team
-    if (currentLeftPlayer !== teamInfo.left) {
-        currentLeftPlayer = teamInfo.left
-        setPlayerDetails(currentLeftPlayer, leftPlayerNameEl, leftProfilePictureEl)
-    }
-    if (currentRightPlayer !== teamInfo.right) {
-        currentRightPlayer = teamInfo.right
-        setPlayerDetails(currentRightPlayer, rightPlayerNameEl, rightProfilePictureEl)
+    if (!apiIntegration) {
+        const teamInfo = data.tourney.team
+        if (currentLeftPlayer !== teamInfo.left) {
+            currentLeftPlayer = teamInfo.left
+            setPlayerDetails(currentLeftPlayer, leftPlayerNameEl, leftProfilePictureEl)
+        }
+        if (currentRightPlayer !== teamInfo.right) {
+            currentRightPlayer = teamInfo.right
+            setPlayerDetails(currentRightPlayer, rightPlayerNameEl, rightProfilePictureEl)
+        }
     }
 
     // Now Playing Information
@@ -260,7 +262,7 @@ socket.onmessage = async event => {
 
             // Click on map
             const mapElement = document.getElementById(nowPlayingId)
-            if (mapElement && isAutopickOn) {
+            if (mapElement && isAutopickOn && !apiIntegration) {
                 const clickEvent = new MouseEvent("mousedown", {
                     bubbles: true,
                     cancelable: true,
@@ -817,6 +819,7 @@ let currentApiIntegrationStars, previousApiIntegrationStars
 let currentApiIntegrationIngredients, preivousApiIntegrationIngredients
 let currentApiIntegrationMapsBanned, previousApiIntegrationMapsBanned
 let currentApiIntegrationMapsPicked, previousApiIntegrationMapsPicked
+let currentApiIntegrationPlayers, previousApiIntegrationPlayers
 let resetMapsRequired
 // 5 seconds
 setInterval(async () => {
@@ -886,6 +889,15 @@ setInterval(async () => {
                 mapTiles[i].classList.add("pick-border")
             }
         }
+    }
+
+    // Players
+    if (!deepEqual(previousApiIntegrationPlayers, currentApiIntegrationPlayers)) {
+        previousApiIntegrationPlayers = currentApiIntegrationPlayers
+        leftPlayerNameEl.textContent = currentApiIntegrationPlayers.red.osuId
+        leftProfilePictureEl.style.backgroundImage = `url("https://a.ppy.sh/${currentApiIntegrationPlayers.red.name}")`
+        rightPlayerNameEl.textContent = currentApiIntegrationPlayers.blue.osuId
+        rightProfilePictureEl.style.backgroundImage = `url("https://a.ppy.sh/${currentApiIntegrationPlayers.blue.name}")`
     }
 }, 7000)
 
