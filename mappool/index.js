@@ -853,13 +853,13 @@ setInterval(async () => {
     // Maps
     resetMapsRequired = false
     currentApiIntegrationMapsBanned = match.maps.banned
-    if (previousApiIntegrationMapsBanned !== currentApiIntegrationMapsBanned) {
+    if (!deepEqual(previousApiIntegrationMapsBanned, currentApiIntegrationMapsBanned)) {
         previousApiIntegrationMapsBanned = currentApiIntegrationMapsBanned
         resetMapsRequired = true
     }
 
     currentApiIntegrationMapsPicked = match.maps.picked
-    if (previousApiIntegrationMapsPicked !== currentApiIntegrationMapsPicked) {
+    if (!deepEqual(previousApiIntegrationMapsPicked, currentApiIntegrationMapsPicked)) {
         previousApiIntegrationMapsPicked = currentApiIntegrationMapsPicked
         resetMapsRequired = true
     }
@@ -878,17 +878,40 @@ setInterval(async () => {
 
             // Pick Maps
             if (bannedBeatmapIds.has(mapTiles[i].getAttribute("id"))) {
-                console.log("test")
                 mapTiles[i].classList.add("ban-border")
             }
 
             // Ban Maps
             if (pickedBeatmapIds.has(mapTiles[i].getAttribute("id"))) {
-                console.log("test")
                 mapTiles[i].classList.add("pick-border")
             }
-
-            console.log("hello")
         }
     }
 }, 7000)
+
+function deepEqual(arr1, arr2) {
+    // Check if references are identical
+    if (arr1 === arr2) return true
+
+    // Handle null or non-object types
+    if (typeof arr1 !== 'object' || arr1 === null || typeof arr2 !== 'object' || arr2 === null) {
+        return false
+    }
+
+    // Ensure both are arrays
+    if (Array.isArray(arr1) !== Array.isArray(arr2)) return false
+
+    // Check key/property length
+    const keys1 = Object.keys(arr1)
+    const keys2 = Object.keys(arr2)
+    if (keys1.length !== keys2.length) return false
+
+    // Recursively check values
+    for (let key of keys1) {
+        if (!keys2.includes(key) || !deepEqual(arr1[key], arr2[key])) {
+            return false
+        }
+    }
+
+    return true
+}
