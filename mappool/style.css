@@ -296,6 +296,7 @@
     background-color: var(--gondola-colour);
     display: flex;
     font-family: Lexend, sans-serif;
+    overflow: hidden;
 }
 
 /* Sidebar Section */
@@ -432,4 +433,11 @@ input::-webkit-outer-spin-button,
 input::-webkit-inner-spin-button {
     -webkit-appearance: none;
     margin: 0;
+}
+
+.error-text {
+    color: lightcoral;
+    width: 200px;
+    margin-bottom: 0;
+    display: none;
 }

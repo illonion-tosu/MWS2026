@@ -861,6 +861,7 @@ document.addEventListener("DOMContentLoaded", () => {
     toggleAutopickEl.addEventListener("click", toggleAutopick)
     applyChangesEl.addEventListener("click", applyChanges)
     applyChangesRecipeEl.addEventListener("click", applyChangesRecipe)
+    saveMatchIdButtonEl.addEventListener("click", saveMatchId)
 })
 
 // 200ms
@@ -877,7 +878,25 @@ setInterval(() => {
     document.cookie = `blueCopiedRecipeId=${bluePlayerManager.copiedRecipeId}; path=/`
 }, 200)
 
+// Save Match ID
+const matchIdEl = document.getElementById("match-id")
+const saveMatchIdButtonEl = document.getElementById("save-match-id-button")
+let matchId
+function saveMatchId() {
+    if (matchIdEl.value == null || matchIdEl.value == undefined) {
+        errorTextEl.textContent = "No or Invalid Match ID"
+        errorTextEl.style.display = "block"
+        errorTextEl.style.color = "lightcoral"
+        return
+    } else {
+        matchId = Number(matchIdEl.value)
+        errorTextEl.textContent = "Saved Match ID"
+        errorTextEl.style.display = "block"
+        errorTextEl.style.color = "lightgreen"
+    }
+}
 
+const errorTextEl = document.getElementById("error-text")
 let currentApiIntegrationBestOf, previousApiIntegrationBestOf
 let currentApiIntegrationStars, previousApiIntegrationStars
 let currentApiIntegrationIngredients, preivousApiIntegrationIngredients
@@ -890,13 +909,28 @@ let currentApiIntegrationCurrentRecipes, previousApiIntegrationCurrentRecipes
 setInterval(async () => {
     if (!apiIntegration) return
 
+    // Ensure there is a match id
+    if (matchId === undefined) {
+        errorTextEl.textContent = "No or Invalid Match ID"
+        errorTextEl.style.display = "block"
+        errorTextEl.style.color = "lightcoral"
+        return
+    }
+
     // API Integration
     const response = await fetch(
-        "https://mws-ref-dashboard.pages.dev/api/public/match/67/snapshot",
+        `https://mws-ref-dashboard.pages.dev/api/public/match/${matchId}/snapshot`,
         { credentials: "omit" }
     )
     const match = await response.json()
     console.log(match)
+
+    if (match.error) {
+        errorTextEl.textContent = match.error
+        errorTextEl.style.display = "block"
+        errorTextEl.style.color = "lightcoral"
+        return
+    }
 
     // Stars
     currentApiIntegrationBestOf = match.bestOf

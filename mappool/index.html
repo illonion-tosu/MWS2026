@@ -85,15 +85,17 @@
         <section class="column column-1">
             <div class="sidebar-section api-ref-sheet-integration">
                 <div class="sidebar-title">API / Ref Sheet Integration</div>
+                <div class="sidebar-text">API requests happen every 6 seconds because of Google Sheets Rate Limit - so please wait for up to 6 seconds for stuff to appear correctly.</div>
                 <div class="sidebar-button-container">
                     <button class="full-length-button api-integration-off" id="api-integration-toggle">OFF</button>
                 </div>
                 <div class="match-input-container">
                     <label for="match-id" class="sidebar-text label">Ref Website Match ID</label>
                     <input type="number" id="match-id" class="sidebar-text match-id">
+                    <div class="sidebar-text error-text" id="error-text">BIG ASS ERROR MESSAGE</div>
                 </div>
                 <div class="sidebar-button-container">
-                    <button class="full-length-button">Save Match</button>
+                    <button class="full-length-button" id="save-match-id-button">Save Match ID</button>
                 </div>
             </div>
         </section>
