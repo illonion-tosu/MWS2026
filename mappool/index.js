@@ -921,13 +921,13 @@ setInterval(async () => {
     // Maps
     resetMapsRequired = false
     currentApiIntegrationMapsBanned = match.maps.banned
-    if (!deepEqualArray(previousApiIntegrationMapsBanned, currentApiIntegrationMapsBanned)) {
+    if (!deepEqual(previousApiIntegrationMapsBanned, currentApiIntegrationMapsBanned)) {
         previousApiIntegrationMapsBanned = currentApiIntegrationMapsBanned
         resetMapsRequired = true
     }
 
     currentApiIntegrationMapsPicked = match.maps.picked
-    if (!deepEqualArray(previousApiIntegrationMapsPicked, currentApiIntegrationMapsPicked)) {
+    if (!deepEqual(previousApiIntegrationMapsPicked, currentApiIntegrationMapsPicked)) {
         previousApiIntegrationMapsPicked = currentApiIntegrationMapsPicked
         resetMapsRequired = true
     }
@@ -958,7 +958,7 @@ setInterval(async () => {
 
     // Players
     currentApiIntegrationPlayers = match.players
-    if (!deepEqualArray(previousApiIntegrationPlayers, currentApiIntegrationPlayers)) {
+    if (!deepEqual(previousApiIntegrationPlayers, currentApiIntegrationPlayers)) {
         previousApiIntegrationPlayers = currentApiIntegrationPlayers
 
         const leftPlayerName = currentApiIntegrationPlayers.red.name
@@ -979,7 +979,7 @@ setInterval(async () => {
 
     // Recipes
     currentApiIntegrationCurrentRecipes = match.recipes
-    if (!deepEqualObject(previousApiIntegrationCurrentRecipes, currentApiIntegrationCurrentRecipes)) {
+    if (!deepEqual(previousApiIntegrationCurrentRecipes, currentApiIntegrationCurrentRecipes)) {
         previousApiIntegrationCurrentRecipes = currentApiIntegrationCurrentRecipes
         if (currentApiIntegrationCurrentRecipes.red && currentApiIntegrationCurrentRecipes.red.recipeId) {
             redPlayerManager.apiIntegrationSetRecipe(currentApiIntegrationCurrentRecipes.red.recipeId)
@@ -991,50 +991,46 @@ setInterval(async () => {
         
 }, 6000)
 
-function deepEqualArray(arr1, arr2) {
-    // Check if references are identical
-    if (arr1 === arr2) return true
+// Deep Equal
+function deepEqual(value1, value2) {
+    // Check if references/primitive values are identical
+    if (value1 === value2) return true
 
-    // Handle null or non-object types
-    if (typeof arr1 !== 'object' || arr1 === null || typeof arr2 !== 'object' || arr2 === null) {
-        return false
-    }
-
-    // Ensure both are arrays
-    if (Array.isArray(arr1) !== Array.isArray(arr2)) return false
-
-    // Check key/property length
-    const keys1 = Object.keys(arr1)
-    const keys2 = Object.keys(arr2)
-    if (keys1.length !== keys2.length) return false
-
-    // Recursively check values
-    for (let key of keys1) {
-        if (!keys2.includes(key) || !deepEqualArray(arr1[key], arr2[key])) {
-            return false
-        }
-    }
-
-    return true
-}
-
-function deepEqualObject(obj1, obj2) {
-    if (obj1 === obj2) return true
-
-    if (typeof obj1 === 'number' && typeof obj2 === 'number' && isNaN(obj1) && isNaN(obj2)) {
+    // Handle NaN
+    if (
+        typeof value1 === 'number' &&
+        typeof value2 === 'number' &&
+        isNaN(value1) &&
+        isNaN(value2)
+    ) {
         return true
     }
 
-    if (typeof obj1 !== 'object' || obj1 === null || typeof obj2 !== 'object' || obj2 === null) {
+    // Handle null or non-object types
+    if (
+        typeof value1 !== 'object' ||
+        value1 === null ||
+        typeof value2 !== 'object' ||
+        value2 === null
+    ) {
         return false
     }
 
-    const keys1 = Object.keys(obj1)
-    const keys2 = Object.keys(obj2)
+    // Ensure both are the same type of object (array vs object)
+    if (Array.isArray(value1) !== Array.isArray(value2)) return false
+
+    // Check key/property length
+    const keys1 = Object.keys(value1)
+    const keys2 = Object.keys(value2)
+
     if (keys1.length !== keys2.length) return false
 
+    // Recursively check values
     for (const key of keys1) {
-        if (!Object.prototype.hasOwnProperty.call(obj2, key) || !deepEqualObject(obj1[key], obj2[key])) {
+        if (
+            !Object.prototype.hasOwnProperty.call(value2, key) ||
+            !deepEqual(value1[key], value2[key])
+        ) {
             return false
         }
     }
