@@ -2,7 +2,7 @@ import { initialiseOsuApi, getOsuApi } from "../_shared/core/apis.js"
 import { loadBeatmaps, findBeatmap } from "../_shared/core/beatmaps.js"
 import { updateChat } from "../_shared/core/chat.js"
 import { calculateScore } from "../_shared/core/score-calculator.js"
-import { setDefaultStarCount, updateStarCount } from "../_shared/core/stars.js"
+import { apiIntegrationSetBestOf, apiIntegrationUpdateStars, setDefaultStarCount, updateStarCount } from "../_shared/core/stars.js"
 import { getModDetails } from "../_shared/core/utils.js"
 import { createTosuWsSocket } from "../_shared/core/websocket.js"
 
@@ -167,6 +167,8 @@ async function createTile(beatmapInfo) {
  * @this {HTMLElement} - The map element that received the click.
  */
 function mapClickEvent(event) {
+    if (apiIntegration) return
+
     // Action
     let action = "pick"
     if (event.ctrlKey) action = "ban"
@@ -223,14 +225,16 @@ socket.onmessage = async event => {
     const data = JSON.parse(event.data)
 
     // Player information
-    const teamInfo = data.tourney.team
-    if (currentLeftPlayer !== teamInfo.left) {
-        currentLeftPlayer = teamInfo.left
-        setPlayerDetails(currentLeftPlayer, leftPlayerNameEl, leftProfilePictureEl)
-    }
-    if (currentRightPlayer !== teamInfo.right) {
-        currentRightPlayer = teamInfo.right
-        setPlayerDetails(currentRightPlayer, rightPlayerNameEl, rightProfilePictureEl)
+    if (!apiIntegration) {
+        const teamInfo = data.tourney.team
+        if (currentLeftPlayer !== teamInfo.left) {
+            currentLeftPlayer = teamInfo.left
+            setPlayerDetails(currentLeftPlayer, leftPlayerNameEl, leftProfilePictureEl)
+        }
+        if (currentRightPlayer !== teamInfo.right) {
+            currentRightPlayer = teamInfo.right
+            setPlayerDetails(currentRightPlayer, rightPlayerNameEl, rightProfilePictureEl)
+        }
     }
 
     // Now Playing Information
@@ -260,7 +264,7 @@ socket.onmessage = async event => {
 
             // Click on map
             const mapElement = document.getElementById(nowPlayingId)
-            if (mapElement && isAutopickOn) {
+            if (mapElement && isAutopickOn && !apiIntegration) {
                 const clickEvent = new MouseEvent("mousedown", {
                     bubbles: true,
                     cancelable: true,
@@ -304,8 +308,7 @@ socket.onmessage = async event => {
     }
 
     // Check winner
-    if (ipcState === 4 && (currentMap || redPlayerManager.activeRecipe.id === 21 || bluePlayerManager.activeRecipe.id === 21) && !setWinner) {
-        console.log("do we set winner")
+    if ((ipcState === 4 && (currentMap || redPlayerManager.activeRecipe.id === 21 || bluePlayerManager.activeRecipe.id === 21) && !setWinner) && !apiIntegration) {
         setWinner = true
 
         // Get scores
@@ -440,7 +443,7 @@ async function setPlayerDetails(currentPlayer, playerNameEl, profilePictureEl) {
     }
 
     try {
-        const response = await fetch(`https://fairybread-cloud-vps.chickenkiller.com/api/get_user?k=${getOsuApi()}&u=${currentPlayer}`);
+        const response = await fetch(`https://osu.ppy.sh/api/get_user?k=${getOsuApi()}&u=${currentPlayer}`);
         if (!response.ok) { throw new Error(`Response status: ${response.status}`); }
         const result = await response.json();
 
@@ -496,6 +499,76 @@ class PlayerManager {
 
         this.mapsRemaining = 0
         this.condition = null
+    }
+
+    /**
+     * API Integration set Ingredients
+     */
+    apiIntegrationSetIngredients(ingredients) {
+        this.ingredients = ingredients
+        this.displayIngredientList()
+    }
+
+    /**
+     * API Integration set active recipe without consuming ingredients.
+     *
+     * @param {Object} recipe - The recipe JSON
+     * @param {number|string} duration - A number (maps) or string (condition name)
+     */
+    apiIntegrationSetRecipe(recipe, duration = 1) {
+        // Record what was "crafted"
+        this.craftedRecipeId = recipe.id
+        this.usedMagicCake = false
+        this.copiedRecipeId = null
+
+        let effectRecipe = recipe
+        let effectDuration = duration
+
+        // 18 - Magic Cake: copy opponent's last crafted recipe
+        if (recipe.id === 18) {
+            const copied = this.opponent && this.opponent.lastCraftedRecipe
+
+            if (!copied || !copied.id) {
+                console.log(`${this.color.toUpperCase()} received Magic Cake, but the opponent has no recipe to copy.`)
+
+                this.activeRecipe = { id: null }
+                this.craftedRecipeId = null
+                this.usedMagicCake = false
+                this.copiedRecipeId = null
+                this.mapsRemaining = 0
+                this.condition = null
+
+                this.displayIngredientList()
+                displayActiveRecipe()
+                return
+            }
+
+            // Clone so later mutations don't affect the stored recipe
+            effectRecipe = { ...copied }
+            effectDuration = copied.duration === "Infinity" ? Infinity : copied.duration
+
+            this.usedMagicCake = true
+            this.copiedRecipeId = copied.id
+
+            console.log(`${this.color.toUpperCase()} used Magic Cake to copy ${effectRecipe.recipe} (id ${copied.id}).`)
+        }
+
+        // Apply the effect
+        this.activeRecipe = { ...effectRecipe }
+
+        if (typeof effectDuration === "number") {
+            this.mapsRemaining = effectDuration
+            this.condition = null
+        } else {
+            this.mapsRemaining = Infinity
+            this.condition = effectDuration
+        }
+
+        // Remember the actual applied recipe for future Magic Cakes
+        this.lastCraftedRecipe = { ...effectRecipe }
+
+        this.displayIngredientList()
+        displayActiveRecipe()
     }
 
     /**
@@ -557,7 +630,6 @@ class PlayerManager {
         this.lastCraftedRecipe = { ...effectRecipe }
 
         this.displayIngredientList()
-        console.log(`${this.color.toUpperCase()} crafted ${recipe.recipe}. Duration: ${effectDuration}`)
         displayActiveRecipe()
     }
 
@@ -751,6 +823,25 @@ function applyChangesRecipe() {
     }
 }
 
+// API Integration Toggle
+const sidebarEl = document.getElementById("sidebar")
+const apiIntegrationToggleEl = document.getElementById("api-integration-toggle")
+let apiIntegration = false
+function apiIntegrationToggle() {
+    apiIntegration = !apiIntegration
+    if (apiIntegration) {
+        apiIntegrationToggleEl.textContent = "ON"
+        apiIntegrationToggleEl.classList.remove("api-integration-off")
+        apiIntegrationToggleEl.classList.add("api-integration-on")
+        sidebarEl.style.width = "250px"
+    } else {
+        apiIntegrationToggleEl.textContent = "OFF"
+        apiIntegrationToggleEl.classList.add("api-integration-off")
+        apiIntegrationToggleEl.classList.remove("api-integration-on")
+        sidebarEl.style.width = "1000px"
+    }
+}
+
 // Buttons
 const updateStarRedMinusEl = document.getElementById("update-star-red-minus")
 const updateStarRedPlusEl = document.getElementById("update-star-red-plus")
@@ -760,6 +851,7 @@ const updateStarBluePlusEl = document.getElementById("update-star-blue-plus")
 // const updateNextAutopickerBlueEl = document.getElementById("update-next-autopicker-blue")
 const applyChangesEl = document.getElementById("apply-changes")
 document.addEventListener("DOMContentLoaded", () => {
+    apiIntegrationToggleEl.addEventListener("click", () => apiIntegrationToggle())
     updateStarRedMinusEl.addEventListener("click", () => updateStarCount("red", "minus", leftPlayerScoreEl, rightPlayerScoreEl))
     updateStarRedPlusEl.addEventListener("click", () => updateStarCount("red", "plus", leftPlayerScoreEl, rightPlayerScoreEl))
     updateStarBlueMinusEl.addEventListener("click", () => updateStarCount("blue", "minus", leftPlayerScoreEl, rightPlayerScoreEl))
@@ -769,11 +861,13 @@ document.addEventListener("DOMContentLoaded", () => {
     toggleAutopickEl.addEventListener("click", toggleAutopick)
     applyChangesEl.addEventListener("click", applyChanges)
     applyChangesRecipeEl.addEventListener("click", applyChangesRecipe)
+    saveMatchIdButtonEl.addEventListener("click", saveMatchId)
 })
 
 // 200ms
 setInterval(() => {
     // Setting cookie information
+    document.cookie = `apiIntegration=${apiIntegration}; path=/`
     document.cookie = `redActiveRecipeId=${redPlayerManager.activeRecipe.id}; path=/`
     document.cookie = `blueActiveRecipeId=${bluePlayerManager.activeRecipe.id}; path=/`
     document.cookie = `redCraftedRecipeId=${redPlayerManager.craftedRecipeId}; path=/`
@@ -784,13 +878,199 @@ setInterval(() => {
     document.cookie = `blueCopiedRecipeId=${bluePlayerManager.copiedRecipeId}; path=/`
 }, 200)
 
+// Save Match ID
+const matchIdEl = document.getElementById("match-id")
+const saveMatchIdButtonEl = document.getElementById("save-match-id-button")
+let matchId
+function saveMatchId() {
+    if (matchIdEl.value == null || matchIdEl.value == undefined) {
+        errorTextEl.textContent = "No or Invalid Match ID"
+        errorTextEl.style.display = "block"
+        errorTextEl.style.color = "lightcoral"
+        return
+    } else {
+        matchId = Number(matchIdEl.value)
+        errorTextEl.textContent = "Saved Match ID"
+        errorTextEl.style.display = "block"
+        errorTextEl.style.color = "lightgreen"
+    }
+}
+
+const errorTextEl = document.getElementById("error-text")
+let currentApiIntegrationBestOf, previousApiIntegrationBestOf
+let currentApiIntegrationStars, previousApiIntegrationStars
+let currentApiIntegrationIngredients, preivousApiIntegrationIngredients
+let currentApiIntegrationMapsBanned, previousApiIntegrationMapsBanned
+let currentApiIntegrationMapsPicked, previousApiIntegrationMapsPicked
+let currentApiIntegrationPlayers, previousApiIntegrationPlayers
+let resetMapsRequired
+let currentApiIntegrationCurrentRecipes, previousApiIntegrationCurrentRecipes
 // 5 seconds
 setInterval(async () => {
+    if (!apiIntegration) return
+
+    // Ensure there is a match id
+    if (matchId === undefined) {
+        errorTextEl.textContent = "No or Invalid Match ID"
+        errorTextEl.style.display = "block"
+        errorTextEl.style.color = "lightcoral"
+        return
+    }
+
     // API Integration
     const response = await fetch(
-        "https://mws-ref-dashboard.pages.dev/api/public/match/67/snapshot",
+        `https://mws-ref-dashboard.pages.dev/api/public/match/${matchId}/snapshot`,
         { credentials: "omit" }
     )
     const match = await response.json()
     console.log(match)
-}, 5000)
+
+    if (match.error) {
+        errorTextEl.textContent = match.error
+        errorTextEl.style.display = "block"
+        errorTextEl.style.color = "lightcoral"
+        return
+    }
+
+    // Stars
+    currentApiIntegrationBestOf = match.bestOf
+    if (previousApiIntegrationBestOf !== currentApiIntegrationBestOf) {
+        previousApiIntegrationBestOf = currentApiIntegrationBestOf
+        apiIntegrationSetBestOf(currentApiIntegrationBestOf)
+    }
+    currentApiIntegrationStars = match.stars
+    if (previousApiIntegrationStars !== currentApiIntegrationStars) {
+        previousApiIntegrationStars = currentApiIntegrationStars
+        apiIntegrationUpdateStars(currentApiIntegrationStars, leftPlayerScoreEl, rightPlayerScoreEl)
+    }
+
+    // Ingredients
+    currentApiIntegrationIngredients = match.ingredients
+    if (preivousApiIntegrationIngredients !== currentApiIntegrationIngredients) {
+        preivousApiIntegrationIngredients = currentApiIntegrationIngredients
+        redPlayerManager.apiIntegrationSetIngredients(match.ingredients.red)
+        bluePlayerManager.apiIntegrationSetIngredients(match.ingredients.blue)
+    }
+
+    // Maps
+    resetMapsRequired = false
+    currentApiIntegrationMapsBanned = match.maps.banned
+    if (!deepEqual(previousApiIntegrationMapsBanned, currentApiIntegrationMapsBanned)) {
+        previousApiIntegrationMapsBanned = currentApiIntegrationMapsBanned
+        resetMapsRequired = true
+    }
+
+    currentApiIntegrationMapsPicked = match.maps.picked
+    if (!deepEqual(previousApiIntegrationMapsPicked, currentApiIntegrationMapsPicked)) {
+        previousApiIntegrationMapsPicked = currentApiIntegrationMapsPicked
+        resetMapsRequired = true
+    }
+    
+    if (resetMapsRequired) {
+        const mapTiles = document.getElementsByClassName("map-tile")
+        
+        for (let i = 0; i < mapTiles.length; i++) {
+            // Reset maps
+            mapTiles[i].classList.remove("pick-border")
+            mapTiles[i].classList.remove("ban-border")
+
+            // Banned beatmap Ids
+            const bannedBeatmapIds = new Set(currentApiIntegrationMapsBanned.map(map => map.beatmapId))
+            const pickedBeatmapIds = new Set(currentApiIntegrationMapsPicked.map(map => map.beatmapId))
+
+            // Pick Maps
+            if (bannedBeatmapIds.has(mapTiles[i].getAttribute("id"))) {
+                mapTiles[i].classList.add("ban-border")
+            }
+
+            // Ban Maps
+            if (pickedBeatmapIds.has(mapTiles[i].getAttribute("id"))) {
+                mapTiles[i].classList.add("pick-border")
+            }
+        }
+    }
+
+    // Players
+    currentApiIntegrationPlayers = match.players
+    if (!deepEqual(previousApiIntegrationPlayers, currentApiIntegrationPlayers)) {
+        previousApiIntegrationPlayers = currentApiIntegrationPlayers
+
+        const leftPlayerName = currentApiIntegrationPlayers.red.name
+        const leftPlayerOsuId = currentApiIntegrationPlayers.red.osuId
+        const rightPlayerName = currentApiIntegrationPlayers.blue.name
+        const rightPlayerOsuId = currentApiIntegrationPlayers.blue.osuId
+
+        leftPlayerNameEl.textContent = leftPlayerName
+        leftProfilePictureEl.style.backgroundImage = `url("https://a.ppy.sh/${leftPlayerOsuId}")`
+        rightPlayerNameEl.textContent = rightPlayerName
+        rightProfilePictureEl.style.backgroundImage = `url("https://a.ppy.sh/${rightPlayerOsuId}")`
+
+        document.cookie = `apiIntegrationLeftPlayerName=${leftPlayerName}`
+        document.cookie = `apiIntegrationLeftPlayerOsuId=${leftPlayerOsuId}`
+        document.cookie = `apiIntegrationRightPlayerName=${rightPlayerName}`
+        document.cookie = `apiIntegrationRightPlayerOsuId=${rightPlayerOsuId}`
+    }
+
+    // Recipes
+    currentApiIntegrationCurrentRecipes = match.recipes
+    if (!deepEqual(previousApiIntegrationCurrentRecipes, currentApiIntegrationCurrentRecipes)) {
+        previousApiIntegrationCurrentRecipes = currentApiIntegrationCurrentRecipes
+        if (currentApiIntegrationCurrentRecipes.red && currentApiIntegrationCurrentRecipes.red.recipeId) {
+            redPlayerManager.apiIntegrationSetRecipe(currentApiIntegrationCurrentRecipes.red.recipeId)
+        }
+        if (currentApiIntegrationCurrentRecipes.blue && currentApiIntegrationCurrentRecipes.blue.recipeId) {
+            bluePlayerManager.apiIntegrationSetRecipe(currentApiIntegrationCurrentRecipes.blue.recipeId)
+        }
+    }
+        
+}, 6000)
+
+// Input Match
+
+
+// Deep Equal
+function deepEqual(value1, value2) {
+    // Check if references/primitive values are identical
+    if (value1 === value2) return true
+
+    // Handle NaN
+    if (
+        typeof value1 === 'number' &&
+        typeof value2 === 'number' &&
+        isNaN(value1) &&
+        isNaN(value2)
+    ) {
+        return true
+    }
+
+    // Handle null or non-object types
+    if (
+        typeof value1 !== 'object' ||
+        value1 === null ||
+        typeof value2 !== 'object' ||
+        value2 === null
+    ) {
+        return false
+    }
+
+    // Ensure both are the same type of object (array vs object)
+    if (Array.isArray(value1) !== Array.isArray(value2)) return false
+
+    // Check key/property length
+    const keys1 = Object.keys(value1)
+    const keys2 = Object.keys(value2)
+
+    if (keys1.length !== keys2.length) return false
+
+    // Recursively check values
+    for (const key of keys1) {
+        if (
+            !Object.prototype.hasOwnProperty.call(value2, key) ||
+            !deepEqual(value1[key], value2[key])
+        ) {
+            return false
+        }
+    }
+
+    return true
+}

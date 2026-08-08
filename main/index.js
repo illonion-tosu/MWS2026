@@ -279,6 +279,15 @@ let currentBlueStarCount, previousBlueStarCount
 let currentTotalBestOf, previousTotalBestOf
 let currentFirstTo, previousFirstTo
 
+// API Integration
+let currentApiIntegration, previousApiIntegration
+
+// Player Details
+let currentApiIntegrationLeftPlayerName, previousApiIntegrationLeftPlayerName
+let currentApiIntegrationLeftPlayerOsuId, previousApiIntegrationLeftPlayerOsuId
+let currentApiIntegrationRightPlayerName, previousApiIntegrationRightPlayerName
+let currentApiIntegrationRightPlayerOsuId, previousApiIntegrationRightPlayerOsuId
+
 setInterval(() => {
     currentRedActiveRecipe = getCookie("redActiveRecipeId")
     currentBlueActiveRecipe = getCookie("blueActiveRecipeId")
@@ -347,6 +356,37 @@ setInterval(() => {
             image.setAttribute("src", `static/stars/star-${status}.png`)
             return image
         }
+    }
+
+    // API Integration
+    currentApiIntegration = getCookie("apiIntegration")
+    if (currentApiIntegration !== previousApiIntegration) {
+        previousApiIntegration = currentApiIntegration
+        currentApiIntegration = currentApiIntegration === "true" ? true : false
+    }
+
+    currentApiIntegrationLeftPlayerName = getCookie("apiIntegrationLeftPlayerName")
+    currentApiIntegrationLeftPlayerOsuId = getCookie("apiIntegrationLeftPlayerOsuId")
+    currentApiIntegrationRightPlayerName = getCookie("apiIntegrationRightPlayerName")
+    currentApiIntegrationRightPlayerOsuId = getCookie("apiIntegrationRightPlayerOsuId")
+
+    // Player Changed
+    const playerDetailsChanged = 
+        previousApiIntegrationLeftPlayerName !== currentApiIntegrationLeftPlayerName ||
+        previousApiIntegrationLeftPlayerOsuId !== currentApiIntegrationLeftPlayerOsuId ||
+        previousApiIntegrationRightPlayerName !== currentApiIntegrationRightPlayerName ||
+        previousApiIntegrationRightPlayerOsuId !== currentApiIntegrationRightPlayerOsuId
+
+    if (playerDetailsChanged && currentApiIntegration === "true") {
+        previousApiIntegrationLeftPlayerName = currentApiIntegrationLeftPlayerName
+        previousApiIntegrationLeftPlayerOsuId = currentApiIntegrationLeftPlayerOsuId
+        previousApiIntegrationRightPlayerName = currentApiIntegrationRightPlayerName
+        previousApiIntegrationRightPlayerOsuId = currentApiIntegrationRightPlayerOsuId
+
+        leftPlayerNameEl.textContent = previousApiIntegrationLeftPlayerName
+        leftProfilePictureEl.style.backgroundImage = `url("https://a.ppy.sh/${previousApiIntegrationLeftPlayerOsuId}")`
+        rightPlayerNameEl.textContent = previousApiIntegrationRightPlayerName
+        rightProfilePictureEl.style.backgroundImage = `url("https://a.ppy.sh/${previousApiIntegrationRightPlayerOsuId}")`
     }
 }, 200)
 

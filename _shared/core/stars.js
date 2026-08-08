@@ -87,7 +87,7 @@ export function isStarOn() {
     return getCookie("toggleStarContainers") === "true"
 }
 
-// 
+// Render Stars Mappool
 export function renderStarsMappool(redTeamStarContainerEl, blueTeamStarContainerEl) {
     redTeamStarContainerEl.textContent = getStarCount().redStarCount
     blueTeamStarContainerEl.textContent = getStarCount().blueStarCount
@@ -118,4 +118,17 @@ function createStarImage(status) {
     image.setAttribute("src", `../_shared/assets/stars/star-${status}.png`)
     starWrapper.append(image)
     return starWrapper
+}
+
+/* ----- API Integration Specific Functions ----- */
+export function apiIntegrationSetBestOf(bestOf) {
+    totalBestOf = bestOf
+    saveStarCount()
+}
+
+export function apiIntegrationUpdateStars(stars, redTeamStarContainerEl, blueTeamStarContainerEl) {
+    redStarCount = stars.red
+    blueStarCount = stars.blue
+    saveStarCount()
+    renderStarsMappool(redTeamStarContainerEl, blueTeamStarContainerEl)
 }

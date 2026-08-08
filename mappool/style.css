@@ -296,6 +296,7 @@
     background-color: var(--gondola-colour);
     display: flex;
     font-family: Lexend, sans-serif;
+    overflow: hidden;
 }
 
 /* Sidebar Section */
@@ -408,4 +409,35 @@
 .sidebar-button-container button.api-integration-on:active {
     background-color: white;
     color: darkgreen;
+}
+
+/* Match Input Container */
+.match-input-container {
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+    padding: 20px 0;
+}
+
+.label { margin-bottom: 10px; }
+
+.match-id {
+    background-color: transparent;
+    color: white;
+    width: 200px;
+    border: none;
+    border-bottom: 2px solid white;
+}
+
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+    appearance: none;
+    margin: 0;
+}
+
+.error-text {
+    color: lightcoral;
+    width: 200px;
+    margin-bottom: 0;
+    display: none;
 }
