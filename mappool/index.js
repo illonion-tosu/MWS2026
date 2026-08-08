@@ -866,6 +866,7 @@ document.addEventListener("DOMContentLoaded", () => {
 // 200ms
 setInterval(() => {
     // Setting cookie information
+    document.cookie = `apiIntegration=${apiIntegration}; path=/`
     document.cookie = `redActiveRecipeId=${redPlayerManager.activeRecipe.id}; path=/`
     document.cookie = `blueActiveRecipeId=${bluePlayerManager.activeRecipe.id}; path=/`
     document.cookie = `redCraftedRecipeId=${redPlayerManager.craftedRecipeId}; path=/`
@@ -959,10 +960,21 @@ setInterval(async () => {
     currentApiIntegrationPlayers = match.players
     if (!deepEqualArray(previousApiIntegrationPlayers, currentApiIntegrationPlayers)) {
         previousApiIntegrationPlayers = currentApiIntegrationPlayers
-        leftPlayerNameEl.textContent = currentApiIntegrationPlayers.red.name
-        leftProfilePictureEl.style.backgroundImage = `url("https://a.ppy.sh/${currentApiIntegrationPlayers.red.osuId}")`
-        rightPlayerNameEl.textContent = currentApiIntegrationPlayers.blue.name
-        rightProfilePictureEl.style.backgroundImage = `url("https://a.ppy.sh/${currentApiIntegrationPlayers.blue.osuId}")`
+
+        const leftPlayerName = currentApiIntegrationPlayers.red.name
+        const leftPlayerOsuId = currentApiIntegrationPlayers.red.osuId
+        const rightPlayerName = currentApiIntegrationPlayers.blue.name
+        const rightPlayerOsuId = currentApiIntegrationPlayers.blue.osuId
+
+        leftPlayerNameEl.textContent = leftPlayerName
+        leftProfilePictureEl.style.backgroundImage = `url("https://a.ppy.sh/${leftPlayerOsuId}")`
+        rightPlayerNameEl.textContent = rightPlayerName
+        rightProfilePictureEl.style.backgroundImage = `url("https://a.ppy.sh/${rightPlayerOsuId}")`
+
+        document.cookie = `apiIntegrationLeftPlayerName=${leftPlayerName}`
+        document.cookie = `apiIntegrationLeftPlayerOsuId=${leftPlayerOsuId}`
+        document.cookie = `apiIntegrationRightPlayerName=${rightPlayerName}`
+        document.cookie = `apiIntegrationRightPlayerOsuId=${rightPlayerOsuId}`
     }
 
     // Recipes
@@ -977,7 +989,7 @@ setInterval(async () => {
         }
     }
         
-}, 7000)
+}, 6000)
 
 function deepEqualArray(arr1, arr2) {
     // Check if references are identical
