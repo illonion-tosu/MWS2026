@@ -25,7 +25,28 @@ async function getRecipes() {
  * @returns {Object} - Recipe
  */
 export function findRecipe(id) {
-    return allRecipes.find(r => Number(r.id) === id)
+    return allRecipes.find(r => Number(r.id) === Number(id))
+}
+
+/**
+ * Finds the most recent entry in a player's crafted-recipe history whose
+ * status does NOT contain the word "reject" (case-insensitive).
+ * Used by Magic Cake to find a valid effect to copy.
+ *
+ * @param {PlayerManager} playerManager - Player Manager whose history to search
+ * @returns {Object|null} - The matching history entry, or null if none found
+ */
+function getLastNonRejectedCraftedRecipe(playerManager) {
+    if (!playerManager || !Array.isArray(playerManager.lastCraftedRecipes)) return null
+
+    const history = playerManager.lastCraftedRecipes
+    for (let i = history.length - 1; i >= 0; i--) {
+        const entry = history[i]
+        if (entry && entry.status && !String(entry.status).toLowerCase().includes("reject")) {
+            return entry
+        }
+    }
+    return null
 }
 
 // Player Scores
@@ -488,8 +509,16 @@ class PlayerManager {
             flour: 0,
             milk: 0
         }
-        this.activeRecipe = { id: null }
-        this.lastCraftedRecipe = { id: null }
+        this.activeRecipe = { id: null, craftTime: null }
+        // History of every craft. Each entry has status "active" (currently in
+        // play), "resolved" (map/round finished), or "rejected" (Magic Cake
+        // couldn't find a valid, non-Magic-Cake target). Entries are created
+        // the moment a recipe is crafted and carry UTC timestamps for both
+        // when they were crafted and when they were resolved.
+        this.lastCraftedRecipes = []
+        // Index into lastCraftedRecipes of this player's currently "active"
+        // entry, so consumeRecipe can flip it to "resolved" in place.
+        this.activeCraftIndex = null
         this.craftedRecipeId = null
         this.usedMagicCake = false
         this.copiedRecipeId = null
@@ -512,10 +541,18 @@ class PlayerManager {
     /**
      * API Integration set active recipe without consuming ingredients.
      *
-     * @param {Object} recipe - The recipe JSON
+     * @param {Object|number|string} recipe - The recipe JSON or Recipe ID
      * @param {number|string} duration - A number (maps) or string (condition name)
+     * @param {*} craftTime - The time the recipe was crafted
      */
-    apiIntegrationSetRecipe(recipe, duration = 1) {
+    apiIntegrationSetRecipe(recipe, duration = 1, craftTime = null) {
+        // Find the full recipe if only an ID was provided
+        if (typeof recipe !== "object") {
+            recipe = findRecipe(recipe)
+        }
+
+        if (!recipe) return
+
         // Record what was "crafted"
         this.craftedRecipeId = recipe.id
         this.usedMagicCake = false
@@ -523,29 +560,50 @@ class PlayerManager {
 
         let effectRecipe = recipe
         let effectDuration = duration
+        let effectCraftTime = craftTime ?? new Date().toISOString()
 
-        // 18 - Magic Cake: copy opponent's last crafted recipe
+        // 18 - Magic Cake: copy the opponent's last CRAFTED recipe whose status
+        // does not contain "reject". Magic Cake may never copy another Magic Cake.
         if (recipe.id === 18) {
-            const copied = this.opponent && this.opponent.lastCraftedRecipe
+            const copied = this.opponent && getLastNonRejectedCraftedRecipe(this.opponent)
+            const noValidTarget = !copied || !copied.id
+            const targetIsMagicCake = !noValidTarget && Number(copied.id) === 18
 
-            if (!copied || !copied.id) {
-                console.log(`${this.color.toUpperCase()} received Magic Cake, but the opponent has no recipe to copy.`)
+            if (noValidTarget || targetIsMagicCake) {
+                if (noValidTarget) {
+                    console.log(`${this.color.toUpperCase()} received Magic Cake, but the opponent has no valid recipe to copy.`)
+                } else {
+                    console.log(`${this.color.toUpperCase()} received Magic Cake, but the opponent's last recipe was also Magic Cake — rejected.`)
+                }
 
-                this.activeRecipe = { id: null }
-                this.craftedRecipeId = null
+                this.activeRecipe = { id: null, craftTime: null }
                 this.usedMagicCake = false
-                this.copiedRecipeId = null
+                this.copiedRecipeId = targetIsMagicCake ? copied.id : null
                 this.mapsRemaining = 0
                 this.condition = null
 
+                this.lastCraftedRecipes.push({
+                    id: recipe.id,
+                    craftedId: this.craftedRecipeId,
+                    usedMagicCake: false,
+                    copiedRecipeId: this.copiedRecipeId,
+                    duration: null,
+                    craftTime: effectCraftTime,
+                    resolutionTime: new Date().toISOString(),
+                    status: "rejected"
+                })
+                this.activeCraftIndex = null
+
+                this.craftedRecipeId = null
                 this.displayIngredientList()
                 displayActiveRecipe()
                 return
             }
 
             // Clone so later mutations don't affect the stored recipe
-            effectRecipe = { ...copied }
+            effectRecipe = findRecipe(copied.id) ? { ...findRecipe(copied.id) } : { id: copied.id }
             effectDuration = copied.duration === "Infinity" ? Infinity : copied.duration
+            effectCraftTime = copied.craftTime ?? new Date().toISOString()
 
             this.usedMagicCake = true
             this.copiedRecipeId = copied.id
@@ -554,9 +612,12 @@ class PlayerManager {
         }
 
         // Apply the effect
-        this.activeRecipe = { ...effectRecipe }
+        this.activeRecipe = {
+            ...effectRecipe,
+            craftTime: effectCraftTime
+        }
 
-        if (typeof effectDuration === "number") {
+        if (typeof effectDuration === 'number') {
             this.mapsRemaining = effectDuration
             this.condition = null
         } else {
@@ -564,8 +625,18 @@ class PlayerManager {
             this.condition = effectDuration
         }
 
-        // Remember the actual applied recipe for future Magic Cakes
-        this.lastCraftedRecipe = { ...effectRecipe }
+        // Record this craft as "active" until consumeRecipe resolves it
+        this.lastCraftedRecipes.push({
+            id: this.activeRecipe.id,
+            craftedId: this.craftedRecipeId,
+            usedMagicCake: this.usedMagicCake,
+            copiedRecipeId: this.copiedRecipeId,
+            duration: this.condition ?? this.mapsRemaining,
+            craftTime: effectCraftTime,
+            resolutionTime: null,
+            status: "active"
+        })
+        this.activeCraftIndex = this.lastCraftedRecipes.length - 1
 
         this.displayIngredientList()
         displayActiveRecipe()
@@ -574,8 +645,9 @@ class PlayerManager {
     /**
      * @param {Object} recipe - The recipe JSON
      * @param {number|string} duration - A number (maps) or string (condition name)
+     * @param {*} craftTime - The time the recipe was crafted
      */
-    craftRecipe(recipe, duration = 1) {
+    craftRecipe(recipe, duration = 1, craftTime = null) {
         // Pay the cost of the recipe you're actually crafting.
         // (Crafting Magic Cake pays Magic Cake's cost, NOT the copied recipe's.)
         const costs = recipe.data_points
@@ -591,32 +663,63 @@ class PlayerManager {
         // Work out which effect actually gets applied.
         let effectRecipe = recipe
         let effectDuration = duration
+        let effectCraftTime = craftTime ?? new Date().toISOString()
 
-        // 18 - Magic Cake: apply the opponent's last crafted recipe effect instead.
+        // 18 - Magic Cake: apply the effect of the opponent's last CRAFTED recipe
+        // whose status does not contain "reject". Magic Cake may never copy
+        // another Magic Cake — that craft is rejected instead.
         if (recipe.id === 18) {
-            const copied = this.opponent && this.opponent.lastCraftedRecipe
-            if (!copied || !copied.id) {
-                console.log(`${this.color.toUpperCase()} crafted Magic Cake, but the opponent has no recipe to copy.`)
-                this.activeRecipe = { id: null }
-                this.craftedRecipeId = null
+            const copied = this.opponent && getLastNonRejectedCraftedRecipe(this.opponent)
+            const noValidTarget = !copied || !copied.id
+            const targetIsMagicCake = !noValidTarget && Number(copied.id) === 18
+
+            if (noValidTarget || targetIsMagicCake) {
+                if (noValidTarget) {
+                    console.log(`${this.color.toUpperCase()} crafted Magic Cake, but the opponent has no valid recipe to copy.`)
+                } else {
+                    console.log(`${this.color.toUpperCase()} crafted Magic Cake, but the opponent's last recipe was also Magic Cake — rejected.`)
+                }
+
+                this.activeRecipe = { id: null, craftTime: null }
                 this.usedMagicCake = false
-                this.copiedRecipeId = null
+                this.copiedRecipeId = targetIsMagicCake ? copied.id : null
                 this.mapsRemaining = 0
                 this.condition = null
+
+                this.lastCraftedRecipes.push({
+                    id: recipe.id,
+                    craftedId: this.craftedRecipeId,
+                    usedMagicCake: false,
+                    copiedRecipeId: this.copiedRecipeId,
+                    duration: null,
+                    craftTime: effectCraftTime,
+                    resolutionTime: new Date().toISOString(),
+                    status: "rejected"
+                })
+                this.activeCraftIndex = null
+
+                this.craftedRecipeId = null
                 this.displayIngredientList()
                 displayActiveRecipe()
                 return
             }
-            // Clone so consumeRecipe nulling the id later can't corrupt the stored copy.
-            effectRecipe = { ...copied }
+
+            // Clone so the copied recipe keeps the original craftTime.
+            effectRecipe = findRecipe(copied.id) ? { ...findRecipe(copied.id) } : { id: copied.id }
             effectDuration = copied.duration === "Infinity" ? Infinity : copied.duration
+            effectCraftTime = copied.craftTime ?? new Date().toISOString()
+
             this.usedMagicCake = true
             this.copiedRecipeId = copied.id
+
             console.log(`${this.color.toUpperCase()} used Magic Cake to copy ${effectRecipe.recipe} (id ${copied.id}).`)
         }
 
         // Apply the effect. Clone so consumeRecipe never mutates the shared recipes list.
-        this.activeRecipe = { ...effectRecipe }
+        this.activeRecipe = {
+            ...effectRecipe,
+            craftTime: effectCraftTime
+        }
 
         if (typeof effectDuration === 'number') {
             this.mapsRemaining = effectDuration
@@ -626,25 +729,48 @@ class PlayerManager {
             this.condition = effectDuration
         }
 
-        // Remember the effect this player actually got, so Magic Cake can copy it later.
-        this.lastCraftedRecipe = { ...effectRecipe }
+        // Record this craft as "active" until consumeRecipe resolves it
+        this.lastCraftedRecipes.push({
+            id: this.activeRecipe.id,
+            craftedId: this.craftedRecipeId,
+            usedMagicCake: this.usedMagicCake,
+            copiedRecipeId: this.copiedRecipeId,
+            duration: this.condition ?? this.mapsRemaining,
+            craftTime: effectCraftTime,
+            resolutionTime: null,
+            status: "active"
+        })
+        this.activeCraftIndex = this.lastCraftedRecipes.length - 1
 
         this.displayIngredientList()
         displayActiveRecipe()
     }
 
     /**
-     * Clears the active recipe after it has been used in a map
+     * Clears the active recipe after it has been used in a map. If this
+     * player has an "active" entry in lastCraftedRecipes (from craftRecipe /
+     * apiIntegrationSetRecipe), it's flipped to "resolved" in place, stamped
+     * with the current UTC time as its resolutionTime.
      */
     consumeRecipe() {
         const used = this.activeRecipe.id
-        this.activeRecipe = { id: null }
+
+        if (this.activeCraftIndex !== null && this.lastCraftedRecipes[this.activeCraftIndex]) {
+            const entry = this.lastCraftedRecipes[this.activeCraftIndex]
+            if (entry.status === "active") {
+                entry.status = "resolved"
+                entry.resolutionTime = new Date().toISOString()
+            }
+        }
+
+        this.activeRecipe = { id: null, craftTime: null }
         this.craftedRecipeId = null
         this.usedMagicCake = false
         this.copiedRecipeId = null
         this.mapsRemaining = 0
         this.condition = null
         this.savedScore = 0
+        this.activeCraftIndex = null
         displayActiveRecipe()
         return used
     }
@@ -730,15 +856,27 @@ function describeActiveRecipe(pm) {
 }
 
 /**
- * Builds the display string for a player's last crafted recipe,
- * annotating when the effect was copied via Magic Cake.
+ * Builds the display string for a player's most recently finished recipe
+ * (skipping the current in-progress "active" entry, which is already shown
+ * by describeActiveRecipe), annotating Magic Cake copies and rejections.
  * @param {PlayerManager} pm
  * @returns {string}
  */
 function describeLastCraftedRecipe(pm) {
-    if (!pm.lastCraftedRecipe || !pm.lastCraftedRecipe.id) return "None"
-    const name = findRecipe(pm.lastCraftedRecipe.id)?.recipe ?? "None"
-    return pm.usedMagicCake ? `${name} (Magic Cake)` : name
+    const history = pm.lastCraftedRecipes
+    if (!Array.isArray(history) || history.length === 0) return "None"
+
+    for (let i = history.length - 1; i >= 0; i--) {
+        const entry = history[i]
+        if (!entry || entry.status === "active") continue
+        if (!entry.id) return "None"
+
+        const name = findRecipe(entry.id)?.recipe ?? "None"
+        if (entry.status === "rejected") return `${name} (Rejected)`
+        return entry.usedMagicCake ? `${name} (Magic Cake)` : name
+    }
+
+    return "None"
 }
 
 // Ingredient Lists
@@ -802,7 +940,7 @@ function applyChangesRecipe() {
         // Set active recipe
         const currentRecipe = findRecipe(Number(selectRecipeEl.value))
         if (!currentRecipe) return
-        playerManager.craftRecipe(currentRecipe, currentRecipe.duration === "Infinity" ? Infinity : currentRecipe.duration)
+        playerManager.craftRecipe(currentRecipe, currentRecipe.duration === "Infinity" ? Infinity : currentRecipe.duration, currentRecipe.craftTime ?? null)
     } else if (whichActionRecipeEl.value === "remove-active-recipe") {
         playerManager.consumeRecipe()
     }
@@ -812,13 +950,23 @@ function applyChangesRecipe() {
     else if (whichActionRecipeEl.value === "add-previous-recipe") {
         const currentRecipe = findRecipe(Number(selectRecipeEl.value))
         if (!currentRecipe) return
-        playerManager.lastCraftedRecipe = { ...currentRecipe }
+        const now = new Date().toISOString()
+        playerManager.lastCraftedRecipes.push({
+            id: currentRecipe.id,
+            craftedId: currentRecipe.id,
+            usedMagicCake: false,
+            copiedRecipeId: null,
+            duration: currentRecipe.duration === "Infinity" ? Infinity : currentRecipe.duration,
+            craftTime: currentRecipe.craftTime ?? now,
+            resolutionTime: now,
+            status: "resolved"
+        })
         displayActiveRecipe()
     } 
     
     // Remove Previous Recipe
     else if (whichActionRecipeEl.value === "remove-previous-recipe") {
-        playerManager.lastCraftedRecipe = { id: null }
+        playerManager.lastCraftedRecipes.pop()
         displayActiveRecipe()
     }
 }
@@ -1015,11 +1163,21 @@ setInterval(async () => {
     currentApiIntegrationCurrentRecipes = match.recipes
     if (!deepEqual(previousApiIntegrationCurrentRecipes, currentApiIntegrationCurrentRecipes)) {
         previousApiIntegrationCurrentRecipes = currentApiIntegrationCurrentRecipes
+
         if (currentApiIntegrationCurrentRecipes.red && currentApiIntegrationCurrentRecipes.red.recipeId) {
-            redPlayerManager.apiIntegrationSetRecipe(currentApiIntegrationCurrentRecipes.red.recipeId)
+            redPlayerManager.apiIntegrationSetRecipe(
+                currentApiIntegrationCurrentRecipes.red.recipeId,
+                currentApiIntegrationCurrentRecipes.red.duration ?? 1,
+                currentApiIntegrationCurrentRecipes.red.craftTime ?? null
+            )
         }
+
         if (currentApiIntegrationCurrentRecipes.blue && currentApiIntegrationCurrentRecipes.blue.recipeId) {
-            bluePlayerManager.apiIntegrationSetRecipe(currentApiIntegrationCurrentRecipes.blue.recipeId)
+            bluePlayerManager.apiIntegrationSetRecipe(
+                currentApiIntegrationCurrentRecipes.blue.recipeId,
+                currentApiIntegrationCurrentRecipes.blue.duration ?? 1,
+                currentApiIntegrationCurrentRecipes.blue.craftTime ?? null
+            )
         }
     }
         
