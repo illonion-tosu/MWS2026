@@ -92,7 +92,6 @@ let chatLen
 const socket = createTosuWsSocket()
 socket.onmessage = async event => {
     const data = JSON.parse(event.data)
-    console.log(data)
 
     // Player information
     const teamInfo = data.tourney.team
@@ -253,7 +252,6 @@ async function setPlayerDetails(currentPlayer, playerNameEl, profilePictureEl) {
 }
 
 const redActiveRecipeEl = document.getElementById("left-active-recipe")
-console.log("redActiveRecipeEl:", redActiveRecipeEl)
 const blueActiveRecipeEl = document.getElementById("right-active-recipe")
 // What is currently active
 let currentRedActiveRecipe, previousRedActiveRecipe
@@ -288,18 +286,44 @@ let currentApiIntegrationLeftPlayerOsuId, previousApiIntegrationLeftPlayerOsuId
 let currentApiIntegrationRightPlayerName, previousApiIntegrationRightPlayerName
 let currentApiIntegrationRightPlayerOsuId, previousApiIntegrationRightPlayerOsuId
 
+/**
+ * Reads a recipe-id cookie written by the mappool page (e.g. `${recipe.id}`
+ * or the literal string "null") and converts it back into the same shape
+ * the mappool page works with: a number, or null.
+ *
+ * @param {string} name - Cookie name
+ * @returns {number|null}
+ */
+function getRecipeIdCookie(name) {
+    const value = getCookie(name)
+    if (value === undefined || value === null || value === "null" || value === "") return null
+    const num = Number(value)
+    return Number.isNaN(num) ? null : num
+}
+
+/**
+ * Reads a boolean cookie written by the mappool page (the stringified
+ * "true"/"false") back into an actual boolean.
+ *
+ * @param {string} name - Cookie name
+ * @returns {boolean}
+ */
+function getBooleanCookie(name) {
+    return getCookie(name) === "true"
+}
+
 setInterval(() => {
-    currentRedActiveRecipe = getCookie("redActiveRecipeId")
-    currentBlueActiveRecipe = getCookie("blueActiveRecipeId")
+    currentRedActiveRecipe = getRecipeIdCookie("redActiveRecipeId")
+    currentBlueActiveRecipe = getRecipeIdCookie("blueActiveRecipeId")
 
-    currentRedCraftedRecipe = getCookie("redCraftedRecipeId")
-    currentBlueCraftedRecipe = getCookie("blueCraftedRecipeId")
+    currentRedCraftedRecipe = getRecipeIdCookie("redCraftedRecipeId")
+    currentBlueCraftedRecipe = getRecipeIdCookie("blueCraftedRecipeId")
 
-    currentRedUsedMagicCake = getCookie("redUsedMagicCake")
-    currentBlueUsedMagicCake = getCookie("blueUsedMagicCake")
+    currentRedUsedMagicCake = getBooleanCookie("redUsedMagicCake")
+    currentBlueUsedMagicCake = getBooleanCookie("blueUsedMagicCake")
 
-    currentRedCopiedRecipe = getCookie("redCopiedRecipeId")
-    currentBlueCopiedRecipe = getCookie("blueCopiedRecipeId")
+    currentRedCopiedRecipe = getRecipeIdCookie("redCopiedRecipeId")
+    currentBlueCopiedRecipe = getRecipeIdCookie("blueCopiedRecipeId")
 
     const recipeChanged =
         previousRedActiveRecipe !== currentRedActiveRecipe ||
@@ -359,10 +383,9 @@ setInterval(() => {
     }
 
     // API Integration
-    currentApiIntegration = getCookie("apiIntegration")
+    currentApiIntegration = getBooleanCookie("apiIntegration")
     if (currentApiIntegration !== previousApiIntegration) {
         previousApiIntegration = currentApiIntegration
-        currentApiIntegration = currentApiIntegration === "true" ? true : false
     }
 
     currentApiIntegrationLeftPlayerName = getCookie("apiIntegrationLeftPlayerName")
@@ -377,7 +400,7 @@ setInterval(() => {
         previousApiIntegrationRightPlayerName !== currentApiIntegrationRightPlayerName ||
         previousApiIntegrationRightPlayerOsuId !== currentApiIntegrationRightPlayerOsuId
 
-    if (playerDetailsChanged && currentApiIntegration === "true") {
+    if (playerDetailsChanged && currentApiIntegration) {
         previousApiIntegrationLeftPlayerName = currentApiIntegrationLeftPlayerName
         previousApiIntegrationLeftPlayerOsuId = currentApiIntegrationLeftPlayerOsuId
         previousApiIntegrationRightPlayerName = currentApiIntegrationRightPlayerName
@@ -391,16 +414,16 @@ setInterval(() => {
 }, 200)
 
 /**
- * Builds the display string for an active recipe cookie value.
- * @param {string} activeRecipeId - cookie value (may be "null" or an id string)
- * @param {string} usedMagicCake - cookie value, the string "true" or "false"
+ * Builds the display string for an active recipe.
+ * @param {number|null} activeRecipeId - recipe id, or null when nothing's active
+ * @param {boolean} usedMagicCake - whether the effect was copied via Magic Cake
  * @returns {string}
  */
 function formatActiveRecipe(activeRecipeId, usedMagicCake) {
-    if (!activeRecipeId || activeRecipeId === "null") return "None"
+    if (activeRecipeId === null) return "None"
 
     const recipe = findRecipe(activeRecipeId)
     if (!recipe) return "None"
 
-    return usedMagicCake === "true" ? `${recipe.recipe} (Magic Cake)` : recipe.recipe
+    return usedMagicCake ? `${recipe.recipe} (Magic Cake)` : recipe.recipe
 }

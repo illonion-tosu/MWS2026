@@ -29,6 +29,19 @@ export function findRecipe(id) {
 }
 
 /**
+ * Normalizes a recipe definition's `duration` field (a number of maps, or
+ * the literal string "Infinity") into the value craftRecipe /
+ * apiIntegrationSetRecipe expect. Falls back to 1 map if unknown.
+ *
+ * @param {Object|undefined} recipeData - Result of findRecipe()
+ * @returns {number}
+ */
+function normalizeRecipeDuration(recipeData) {
+    if (!recipeData) return 1
+    return recipeData.duration === "Infinity" ? Infinity : (recipeData.duration ?? 1)
+}
+
+/**
  * Finds the most recent entry in a player's crafted-recipe history whose
  * status does NOT contain the word "reject" (case-insensitive).
  * Used by Magic Cake to find a valid effect to copy.
@@ -47,6 +60,38 @@ function getLastNonRejectedCraftedRecipe(playerManager) {
         }
     }
     return null
+}
+
+/**
+ * Seeds local craft history from the API's `recipes.<team>.previous` data.
+ * Needed because a recipe can already be resolved (`current: null`,
+ * `previous: {...}`) the moment this page starts polling — in that case the
+ * page never locally observed it going through an "active" state, so
+ * lastCraftedRecipes stays empty and describeLastCraftedRecipe has nothing
+ * to show once API integration is switched off. Called when toggling API
+ * integration off, using whatever match.recipes was most recently fetched.
+ *
+ * @param {PlayerManager} playerManager
+ * @param {Object|null|undefined} apiPrevious - match.recipes.<team>.previous
+ */
+function seedLocalPreviousFromApi(playerManager, apiPrevious) {
+    if (!playerManager || !apiPrevious || !apiPrevious.recipeId) return
+
+    const last = playerManager.lastCraftedRecipes[playerManager.lastCraftedRecipes.length - 1]
+    // Already have this exact event recorded (or a fresher local craft on top) — don't duplicate it.
+    if (last && last.apiEventId === apiPrevious.eventId) return
+
+    playerManager.lastCraftedRecipes.push({
+        id: apiPrevious.recipeId,
+        craftedId: apiPrevious.recipeId,
+        usedMagicCake: false,
+        copiedRecipeId: null,
+        duration: null,
+        craftTime: apiPrevious.createdAt ?? null,
+        resolutionTime: apiPrevious.resolvedAt ?? apiPrevious.createdAt ?? null,
+        status: "resolved",
+        apiEventId: apiPrevious.eventId
+    })
 }
 
 // Player Scores
@@ -227,6 +272,11 @@ const nowPlayingStatNumberOdEl = document.getElementById("now-playing-stat-numbe
 // Chat Display
 const chatDisplayContainerEl = document.getElementById("chat-display-container")
 let chatLen
+
+// API Integration flag — declared early (rather than down by the toggle
+// button) so it can be safely read inside displayActiveRecipe, which runs
+// synchronously as soon as the PlayerManagers are constructed below.
+let apiIntegration = false
 
 // IPC State
 let ipcState, setWinner = false
@@ -539,6 +589,43 @@ class PlayerManager {
     }
 
     /**
+     * If this player still has an unresolved "active" entry in
+     * lastCraftedRecipes — most commonly because a new recipe was
+     * crafted/assigned (e.g. via API integration) before consumeRecipe ever
+     * ran for the previous one — flip it to "resolved" now, stamped with the
+     * current UTC time. Without this, superseded recipes stay stuck as
+     * "active" forever and describeLastCraftedRecipe has nothing to show.
+     */
+    resolveDanglingActiveEntry() {
+        if (this.activeCraftIndex !== null && this.lastCraftedRecipes[this.activeCraftIndex]) {
+            const entry = this.lastCraftedRecipes[this.activeCraftIndex]
+            if (entry.status === "active") {
+                entry.status = "resolved"
+                entry.resolutionTime = new Date().toISOString()
+            }
+        }
+        this.activeCraftIndex = null
+    }
+
+    /**
+     * Clears the active recipe when the API reports no current recipe for
+     * this side — i.e. the previous one has resolved and nothing new has
+     * been crafted yet. Resolves any dangling history entry the same way
+     * consumeRecipe does, but doesn't touch ingredients (the API snapshot
+     * owns those directly via apiIntegrationSetIngredients).
+     */
+    apiIntegrationClearActiveRecipe() {
+        this.resolveDanglingActiveEntry()
+        this.activeRecipe = { id: null, craftTime: null }
+        this.craftedRecipeId = null
+        this.usedMagicCake = false
+        this.copiedRecipeId = null
+        this.mapsRemaining = 0
+        this.condition = null
+        displayActiveRecipe()
+    }
+
+    /**
      * API Integration set active recipe without consuming ingredients.
      *
      * @param {Object|number|string} recipe - The recipe JSON or Recipe ID
@@ -552,6 +639,12 @@ class PlayerManager {
         }
 
         if (!recipe) return
+
+        // Close out whatever was previously active — a new recipe being
+        // assigned means the old one's round is over, even though the local
+        // winner-detection logic (which normally calls consumeRecipe) is
+        // skipped while API integration is driving state.
+        this.resolveDanglingActiveEntry()
 
         // Record what was "crafted"
         this.craftedRecipeId = recipe.id
@@ -648,6 +741,10 @@ class PlayerManager {
      * @param {*} craftTime - The time the recipe was crafted
      */
     craftRecipe(recipe, duration = 1, craftTime = null) {
+        // Close out whatever was previously active, in case this craft is
+        // superseding one that never went through consumeRecipe.
+        this.resolveDanglingActiveEntry()
+
         // Pay the cost of the recipe you're actually crafting.
         // (Crafting Magic Cake pays Magic Cake's cost, NOT the copied recipe's.)
         const costs = recipe.data_points
@@ -839,8 +936,14 @@ const bluePreviousRecipeEl = document.getElementById("blue-previous-recipe")
 function displayActiveRecipe() {
     redActiveRecipeEl.textContent = describeActiveRecipe(redPlayerManager)
     blueActiveRecipeEl.textContent = describeActiveRecipe(bluePlayerManager)
-    redPreviousRecipeEl.textContent = describeLastCraftedRecipe(redPlayerManager)
-    bluePreviousRecipeEl.textContent = describeLastCraftedRecipe(bluePlayerManager)
+
+    // While API integration is driving state, Previous Recipe is set directly
+    // from the match snapshot's `recipes.<team>.previous.name` (see the 6s
+    // poll below) rather than derived from local craft history.
+    if (!apiIntegration) {
+        redPreviousRecipeEl.textContent = describeLastCraftedRecipe(redPlayerManager)
+        bluePreviousRecipeEl.textContent = describeLastCraftedRecipe(bluePlayerManager)
+    }
 }
 
 /**
@@ -856,9 +959,11 @@ function describeActiveRecipe(pm) {
 }
 
 /**
- * Builds the display string for a player's most recently finished recipe
- * (skipping the current in-progress "active" entry, which is already shown
- * by describeActiveRecipe), annotating Magic Cake copies and rejections.
+ * Builds the display string for a player's most recently *resolved*,
+ * non-Magic-Cake recipe. Skips the current in-progress "active" entry
+ * (already shown by describeActiveRecipe), skips "rejected" attempts, and
+ * skips any resolved entry that was itself a Magic Cake copy — Previous
+ * Recipe should only ever reflect a genuinely crafted recipe.
  * @param {PlayerManager} pm
  * @returns {string}
  */
@@ -868,12 +973,10 @@ function describeLastCraftedRecipe(pm) {
 
     for (let i = history.length - 1; i >= 0; i--) {
         const entry = history[i]
-        if (!entry || entry.status === "active") continue
-        if (!entry.id) return "None"
+        if (!entry || entry.status !== "resolved" || entry.usedMagicCake) continue
+        if (!entry.id) continue
 
-        const name = findRecipe(entry.id)?.recipe ?? "None"
-        if (entry.status === "rejected") return `${name} (Rejected)`
-        return entry.usedMagicCake ? `${name} (Magic Cake)` : name
+        return findRecipe(entry.id)?.recipe ?? "None"
     }
 
     return "None"
@@ -974,7 +1077,6 @@ function applyChangesRecipe() {
 // API Integration Toggle
 const sidebarEl = document.getElementById("sidebar")
 const apiIntegrationToggleEl = document.getElementById("api-integration-toggle")
-let apiIntegration = false
 function apiIntegrationToggle() {
     apiIntegration = !apiIntegration
     if (apiIntegration) {
@@ -987,7 +1089,28 @@ function apiIntegrationToggle() {
         apiIntegrationToggleEl.classList.add("api-integration-off")
         apiIntegrationToggleEl.classList.remove("api-integration-on")
         sidebarEl.style.width = "1000px"
+
+        // About to hand Previous Recipe's display back to local craft
+        // history — seed it from whatever the API last reported, in case
+        // this page never locally observed that recipe being crafted
+        // (e.g. it had already resolved before polling started).
+        seedLocalPreviousFromApi(redPlayerManager, previousApiIntegrationCurrentRecipes?.red?.previous)
+        seedLocalPreviousFromApi(bluePlayerManager, previousApiIntegrationCurrentRecipes?.blue?.previous)
+
+        // The local winner-detection block is entirely dormant while API
+        // integration drives state, so if Tosu's ipcState is already sitting
+        // at the results screen (4) from earlier, flipping apiIntegration to
+        // false can make it fire on the very next socket message — re-running
+        // calculateScore locally and double-crediting ingredients/stars for
+        // a map the API already resolved. Forcing setWinner true here means
+        // it'll only fire again once a genuinely new ipcState transition
+        // happens going forward, which is what manual mode should do anyway.
+        setWinner = true
     }
+    // Previous Recipe's source (API snapshot vs local craft history) depends
+    // on this flag — re-render immediately so it doesn't wait for the next
+    // craft/poll to catch up.
+    displayActiveRecipe()
 }
 
 // Buttons
@@ -1053,6 +1176,7 @@ let currentApiIntegrationMapsPicked, previousApiIntegrationMapsPicked
 let currentApiIntegrationPlayers, previousApiIntegrationPlayers
 let resetMapsRequired
 let currentApiIntegrationCurrentRecipes, previousApiIntegrationCurrentRecipes
+let previousRedRecipeEventId, previousBlueRecipeEventId
 // 5 seconds
 setInterval(async () => {
     if (!apiIntegration) return
@@ -1153,31 +1277,54 @@ setInterval(async () => {
         rightPlayerNameEl.textContent = rightPlayerName
         rightProfilePictureEl.style.backgroundImage = `url("https://a.ppy.sh/${rightPlayerOsuId}")`
 
-        document.cookie = `apiIntegrationLeftPlayerName=${leftPlayerName}`
-        document.cookie = `apiIntegrationLeftPlayerOsuId=${leftPlayerOsuId}`
-        document.cookie = `apiIntegrationRightPlayerName=${rightPlayerName}`
-        document.cookie = `apiIntegrationRightPlayerOsuId=${rightPlayerOsuId}`
+        document.cookie = `apiIntegrationLeftPlayerName=${leftPlayerName}; path=/`
+        document.cookie = `apiIntegrationLeftPlayerOsuId=${leftPlayerOsuId}; path=/`
+        document.cookie = `apiIntegrationRightPlayerName=${rightPlayerName}; path=/`
+        document.cookie = `apiIntegrationRightPlayerOsuId=${rightPlayerOsuId}; path=/`
     }
 
     // Recipes
     currentApiIntegrationCurrentRecipes = match.recipes
+
+    // Previous Recipe always mirrors the match snapshot directly, every poll,
+    // independent of the change-detection gate below — a display-only mirror
+    // like this should never be able to get stuck out of date.
+    redPreviousRecipeEl.textContent = currentApiIntegrationCurrentRecipes.red?.previous?.name ?? "None"
+    bluePreviousRecipeEl.textContent = currentApiIntegrationCurrentRecipes.blue?.previous?.name ?? "None"
+
     if (!deepEqual(previousApiIntegrationCurrentRecipes, currentApiIntegrationCurrentRecipes)) {
         previousApiIntegrationCurrentRecipes = currentApiIntegrationCurrentRecipes
 
-        if (currentApiIntegrationCurrentRecipes.red && currentApiIntegrationCurrentRecipes.red.recipeId) {
+        const redCurrent = currentApiIntegrationCurrentRecipes.red?.current ?? null
+        const blueCurrent = currentApiIntegrationCurrentRecipes.blue?.current ?? null
+
+        // Red: only re-craft on a genuinely new event (a different eventId),
+        // not on every snapshot change (e.g. just .previous updating).
+        if (redCurrent && redCurrent.recipeId && redCurrent.eventId !== previousRedRecipeEventId) {
+            previousRedRecipeEventId = redCurrent.eventId
             redPlayerManager.apiIntegrationSetRecipe(
-                currentApiIntegrationCurrentRecipes.red.recipeId,
-                currentApiIntegrationCurrentRecipes.red.duration ?? 1,
-                currentApiIntegrationCurrentRecipes.red.craftTime ?? null
+                redCurrent.recipeId,
+                normalizeRecipeDuration(findRecipe(redCurrent.recipeId)),
+                redCurrent.createdAt ?? null
             )
+        } else if (!redCurrent) {
+            // No current recipe: the previous one has resolved and nothing
+            // new has been crafted yet — clear the active display for it.
+            previousRedRecipeEventId = null
+            redPlayerManager.apiIntegrationClearActiveRecipe()
         }
 
-        if (currentApiIntegrationCurrentRecipes.blue && currentApiIntegrationCurrentRecipes.blue.recipeId) {
+        // Blue: same handling as red.
+        if (blueCurrent && blueCurrent.recipeId && blueCurrent.eventId !== previousBlueRecipeEventId) {
+            previousBlueRecipeEventId = blueCurrent.eventId
             bluePlayerManager.apiIntegrationSetRecipe(
-                currentApiIntegrationCurrentRecipes.blue.recipeId,
-                currentApiIntegrationCurrentRecipes.blue.duration ?? 1,
-                currentApiIntegrationCurrentRecipes.blue.craftTime ?? null
+                blueCurrent.recipeId,
+                normalizeRecipeDuration(findRecipe(blueCurrent.recipeId)),
+                blueCurrent.createdAt ?? null
             )
+        } else if (!blueCurrent) {
+            previousBlueRecipeEventId = null
+            bluePlayerManager.apiIntegrationClearActiveRecipe()
         }
     }
         
