@@ -581,6 +581,15 @@ class PlayerManager {
     }
 
     /**
+     * Set Home Base Mod
+     * @param {*} mod 
+     */
+    setHomeBaseMod(mod) {
+        this.mod = mod
+        displayHomeBaseMod()
+    }
+
+    /**
      * API Integration set Ingredients
      */
     apiIntegrationSetIngredients(ingredients) {
@@ -926,6 +935,17 @@ class PlayerManager {
     }
 }
 
+const redHomeBaseModEl = document.getElementById("red-home-base-mod")
+const blueHomeBaseModEl = document.getElementById("blue-home-base-mod")
+
+/**
+ * Display Home Base Mod
+ */
+function displayHomeBaseMod() {
+    redHomeBaseModEl.textContent = redPlayerManager.mod
+    blueHomeBaseModEl.textContent = bluePlayerManager.mod
+}
+
 const redActiveRecipeEl = document.getElementById("red-active-recipe")
 const blueActiveRecipeEl = document.getElementById("blue-active-recipe")
 const redPreviousRecipeEl = document.getElementById("red-previous-recipe")
@@ -990,12 +1010,28 @@ const leftIngredientsDisplayEl = document.getElementById("left-ingredients-displ
 const rightIngredientsDisplayEl = document.getElementById("right-ingredients-display")
 
 // Player Managers
-const redPlayerManager = new PlayerManager("red", redIngredientsEl, leftIngredientsDisplayEl, "DT")
-const bluePlayerManager = new PlayerManager("blue", blueIngredientsEl, rightIngredientsDisplayEl, "HR")
+const redPlayerManager = new PlayerManager("red", redIngredientsEl, leftIngredientsDisplayEl, "NM")
+const bluePlayerManager = new PlayerManager("blue", blueIngredientsEl, rightIngredientsDisplayEl, "NM")
 redPlayerManager.opponent = bluePlayerManager
 bluePlayerManager.opponent = redPlayerManager
 redPlayerManager.displayIngredientList()
 bluePlayerManager.displayIngredientList()
+displayHomeBaseMod()
+
+// Select Elements Home Base
+const whichTeamHomeBaseEl = document.getElementById("which-team-home-base")
+const whichModHomeBaseEl = document.getElementById("which-mod-home-base")
+const applyChangesHomeBaseEl = document.getElementById("apply-changes-home-base")
+
+/**
+ * Applies a new home base mod to the selected team via PlayerManager
+ */
+function applyChangesHomeBase() {
+    if (!whichTeamHomeBaseEl.value || !whichModHomeBaseEl.value) return
+
+    const playerManager = whichTeamHomeBaseEl.value === "red" ? redPlayerManager : bluePlayerManager
+    playerManager.setHomeBaseMod(whichModHomeBaseEl.value)
+}
 
 // Select elements
 const whichActionEl = document.getElementById("which-action")
@@ -1088,7 +1124,7 @@ function apiIntegrationToggle() {
         apiIntegrationToggleEl.textContent = "OFF"
         apiIntegrationToggleEl.classList.add("api-integration-off")
         apiIntegrationToggleEl.classList.remove("api-integration-on")
-        sidebarEl.style.width = "1000px"
+        sidebarEl.style.width = "1250px"
 
         // About to hand Previous Recipe's display back to local craft
         // history — seed it from whatever the API last reported, in case
@@ -1133,6 +1169,9 @@ document.addEventListener("DOMContentLoaded", () => {
     applyChangesEl.addEventListener("click", applyChanges)
     applyChangesRecipeEl.addEventListener("click", applyChangesRecipe)
     saveMatchIdButtonEl.addEventListener("click", saveMatchId)
+    applyChangesRecipeEl.addEventListener("click", applyChangesRecipe)
+    applyChangesHomeBaseEl.addEventListener("click", applyChangesHomeBase)
+    saveMatchIdButtonEl.addEventListener("click", saveMatchId)
 })
 
 // 200ms
@@ -1147,6 +1186,8 @@ setInterval(() => {
     document.cookie = `blueUsedMagicCake=${bluePlayerManager.usedMagicCake}; path=/`
     document.cookie = `redCopiedRecipeId=${redPlayerManager.copiedRecipeId}; path=/`
     document.cookie = `blueCopiedRecipeId=${bluePlayerManager.copiedRecipeId}; path=/`
+    document.cookie = `redHomeBaseMod=${redPlayerManager.mod}; path=/`
+    document.cookie = `blueHomeBaseMod=${bluePlayerManager.mod}; path=/`
 }, 200)
 
 // Save Match ID

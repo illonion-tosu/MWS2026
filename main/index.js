@@ -109,12 +109,20 @@ socket.onmessage = async event => {
         scoreVisible = data.tourney.scoreVisible
         if (scoreVisible) {
             chatDisplayEl.style.opacity = 0
+            scoreLeftScoreEl.style.opacity = 1
+            scoreRightScoreEl.style.opacity = 1
+            accLeftScoreEl.style.opacity = 1
+            accRightScoreEl.style.opacity = 1
         } else {
             chatDisplayEl.style.opacity = 1
             animation.scoreLeftScore.update(0)
             animation.scoreRightScore.update(0)
-            animation.accLeftScore.update(1)
-            animation.accRightScore.update(1)
+            animation.accLeftScore.update(0)
+            animation.accRightScore.update(0)
+            scoreLeftScoreEl.style.opacity = 0
+            scoreRightScoreEl.style.opacity = 0
+            accLeftScoreEl.style.opacity = 0
+            accRightScoreEl.style.opacity = 0
             leftScoreBarEl.style.width = "0px"
             rightScoreBarEl.style.width = "0px"
         }
@@ -130,6 +138,7 @@ socket.onmessage = async event => {
         const leftPlay = data.tourney.clients[0].play
         const rightPlay = data.tourney.clients[1].play
         const scores = calculateScore(previousRedActiveRecipe, previousBlueActiveRecipe, leftPlay, rightPlay)
+        console.log(scores)
 
         // Display correct stuff
         if (scores.comparisonMethod === "acc") {
