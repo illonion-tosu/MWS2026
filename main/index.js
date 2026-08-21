@@ -206,7 +206,7 @@ socket.onmessage = async event => {
 
         // Metadata
         nowPlayingArtistTitleEl.textContent = `${beatmapData.artist} - ${beatmapData.title}`
-        nowPlayingMapperEl.textContent = beatmapData.creator
+        nowPlayingMapperEl.textContent = beatmapData.mapper
         nowPlayingDifficultyEl.textContent = beatmapData.version
 
         currentMap = findBeatmap(nowPlayingId)
@@ -215,8 +215,8 @@ socket.onmessage = async event => {
             nowPlayingDottedLinesEl.style.display = "block"
             nowPlayingCustomEl.style.display = currentMap.MWSCustom ? "block" : "none"
 
-            nowPlayingBannerEl.style.backgroundColor = `var(--${currentMap.mod}-colour)`
-            nowPlayingCustomEl.style.backgroundColor = `var(--${currentMap.mod}-colour)`
+            nowPlayingBannerEl.style.backgroundColor = `var(--${currentMap.mod.toLowerCase()}-colour)`
+            nowPlayingCustomEl.style.backgroundColor = `var(--${currentMap.mod.toLowerCase()}-colour)`
         } else {
             nowPlayingBannerEl.style.display = "none"
             nowPlayingDottedLinesEl.style.display = "none"
