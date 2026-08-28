@@ -1,9 +1,9 @@
 const recipeLogic = {
-    2: (p) => ({ ...p, score: p.score + 50000 }),
-    5: (p) => ({ ...p, score: p.score + 100000 }),
-    10: (p) => ({ ...p, score: p.score + 200000 }),
+    2: (p) => ({ ...p, winValue: p.score + 50000 }),
+    5: (p) => ({ ...p, winValue: p.score + 100000 }),
+    10: (p) => ({ ...p, winValue: p.score + 200000 }),
     12: (p) => ({ ...p, winValue: p.accuracy, isAccWin: true }),
-    13: (p) => ({ ...p, score: Math.round(p.score * 1.1) }),
+    13: (p) => ({ ...p, winValue: Math.round(p.score * 1.1) }),
     "default": (p) => ({ ...p, winValue: p.score })
 }
 

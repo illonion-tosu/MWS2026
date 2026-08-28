@@ -138,7 +138,6 @@ socket.onmessage = async event => {
         const leftPlay = data.tourney.clients[0].play
         const rightPlay = data.tourney.clients[1].play
         const scores = calculateScore(previousRedActiveRecipe, previousBlueActiveRecipe, leftPlay, rightPlay)
-        console.log(scores)
 
         // Display correct stuff
         if (scores.comparisonMethod === "acc") {

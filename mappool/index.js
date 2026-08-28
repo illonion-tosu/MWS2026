@@ -42,22 +42,30 @@ function normalizeRecipeDuration(recipeData) {
 }
 
 /**
- * Finds the most recent entry in a player's crafted-recipe history whose
- * status does NOT contain the word "reject" (case-insensitive).
- * Used by Magic Cake to find a valid effect to copy.
+ * Finds the entry a player's "Previous Recipe" display currently shows: the
+ * most recent RESOLVED, non-Magic-Cake craft with a real recipe id. This is
+ * intentionally the exact same rule describeLastCraftedRecipe uses, so
+ * Magic Cake always copies whatever is visibly shown as Previous Recipe —
+ * never something still "active" (in progress), never another Magic Cake
+ * copy (usedMagicCake), and never Magic Cake itself (id 18) — e.g. if it
+ * was manually entered as a "previous recipe" via the admin panel. Any
+ * entry failing these checks is skipped, not just the most recent one, so
+ * the search keeps walking back through history until it finds a
+ * genuinely craftable recipe (or runs out).
  *
  * @param {PlayerManager} playerManager - Player Manager whose history to search
  * @returns {Object|null} - The matching history entry, or null if none found
  */
-function getLastNonRejectedCraftedRecipe(playerManager) {
+function getPreviousRecipeEntry(playerManager) {
     if (!playerManager || !Array.isArray(playerManager.lastCraftedRecipes)) return null
 
     const history = playerManager.lastCraftedRecipes
     for (let i = history.length - 1; i >= 0; i--) {
         const entry = history[i]
-        if (entry && entry.status && !String(entry.status).toLowerCase().includes("reject")) {
-            return entry
-        }
+        if (!entry || entry.status !== "resolved" || entry.usedMagicCake) continue
+        if (!entry.id) continue
+        if (Number(entry.id) === 18) continue // Magic Cake itself is never a valid "previous recipe"
+        return entry
     }
     return null
 }
@@ -396,36 +404,36 @@ socket.onmessage = async event => {
                 redPlayerManager.mapsRemaining--
                 if (redPlayerManager.mapsRemaining > 0) {
                     requiredToSetWinner = false
-                    redPlayerManager.savedScore = scores.redFinalScore
-                    bluePlayerManager.savedScore = scores.blueFinalScore
+                    redPlayerManager.savedScore = scores.redWinValue
+                    bluePlayerManager.savedScore = scores.blueWinValue
                 }
             }
             else if (bluePlayerManager.activeRecipe.id === 7) {
                 bluePlayerManager.mapsRemaining--
                 if (bluePlayerManager.mapsRemaining > 0) {
                     requiredToSetWinner = false
-                    redPlayerManager.savedScore = scores.redFinalScore
-                    bluePlayerManager.savedScore = scores.blueFinalScore
+                    redPlayerManager.savedScore = scores.redWinValue
+                    bluePlayerManager.savedScore = scores.blueWinValue
                 }
             }
         } else if (isRecipe16Active && !accRecipeActive) {
-            if (Math.abs(scores.redFinalScore - scores.blueFinalScore) <= 10000) requiredToSetWinner = false
+            if (Math.abs(scores.redWinValue - scores.blueWinValue) <= 10000) requiredToSetWinner = false
         } 
 
         // For Active Recipe 7 only, set scores
         if (isRecipe7Active && bluePlayerManager.savedScore === 0 && redPlayerManager.savedScore === 0 && !accRecipeActive) {
-            bluePlayerManager.savedScore = scores.blueFinalScore
-            redPlayerManager.savedScore = scores.redFinalScore
+            bluePlayerManager.savedScore = scores.blueWinValue
+            redPlayerManager.savedScore = scores.redWinValue
         }
 
         // Set winner
         if (requiredToSetWinner) {
             let winner
             if (isRecipe7Active && !accRecipeActive) {
-                const maxScore = Math.max(bluePlayerManager.savedScore, redPlayerManager.savedScore, scores.redFinalScore, scores.blueFinalScore)
-                winner = (bluePlayerManager.savedScore === maxScore || scores.blueFinalScore === maxScore) ? "blue" : "red"
+                const maxScore = Math.max(bluePlayerManager.savedScore, redPlayerManager.savedScore, scores.redWinValue, scores.blueWinValue)
+                winner = (bluePlayerManager.savedScore === maxScore || scores.blueWinValue === maxScore) ? "blue" : "red"
             } else {
-                winner = scores.blueFinalScore > scores.redFinalScore ? "blue" : "red"
+                winner = scores.blueWinValue > scores.redWinValue ? "blue" : "red"
             }
 
             // Set the star count
@@ -561,10 +569,12 @@ class PlayerManager {
         }
         this.activeRecipe = { id: null, craftTime: null }
         // History of every craft. Each entry has status "active" (currently in
-        // play), "resolved" (map/round finished), or "rejected" (Magic Cake
-        // couldn't find a valid, non-Magic-Cake target). Entries are created
-        // the moment a recipe is crafted and carry UTC timestamps for both
-        // when they were crafted and when they were resolved.
+        // play, API integration only — see apiIntegrationSetRecipe), "resolved"
+        // (map/round finished), or "rejected" (Magic Cake couldn't find a valid,
+        // non-Magic-Cake target). For manual (non-API) crafts, an entry isn't
+        // added until the map is actually over (consumeRecipe), so it goes
+        // straight to "resolved" and never spends time as "active". Entries
+        // carry UTC timestamps for both when they were crafted and resolved.
         this.lastCraftedRecipes = []
         // Index into lastCraftedRecipes of this player's currently "active"
         // entry, so consumeRecipe can flip it to "resolved" in place.
@@ -664,10 +674,10 @@ class PlayerManager {
         let effectDuration = duration
         let effectCraftTime = craftTime ?? new Date().toISOString()
 
-        // 18 - Magic Cake: copy the opponent's last CRAFTED recipe whose status
-        // does not contain "reject". Magic Cake may never copy another Magic Cake.
+        // 18 - Magic Cake: copy whatever the opponent's Previous Recipe display
+        // currently shows. Magic Cake may never copy another Magic Cake.
         if (recipe.id === 18) {
-            const copied = this.opponent && getLastNonRejectedCraftedRecipe(this.opponent)
+            const copied = this.opponent && getPreviousRecipeEntry(this.opponent)
             const noValidTarget = !copied || !copied.id
             const targetIsMagicCake = !noValidTarget && Number(copied.id) === 18
 
@@ -771,11 +781,11 @@ class PlayerManager {
         let effectDuration = duration
         let effectCraftTime = craftTime ?? new Date().toISOString()
 
-        // 18 - Magic Cake: apply the effect of the opponent's last CRAFTED recipe
-        // whose status does not contain "reject". Magic Cake may never copy
-        // another Magic Cake — that craft is rejected instead.
+        // 18 - Magic Cake: apply the effect of whatever the opponent's Previous
+        // Recipe display currently shows. Magic Cake may never copy another
+        // Magic Cake — that craft is rejected instead.
         if (recipe.id === 18) {
-            const copied = this.opponent && getLastNonRejectedCraftedRecipe(this.opponent)
+            const copied = this.opponent && getPreviousRecipeEntry(this.opponent)
             const noValidTarget = !copied || !copied.id
             const targetIsMagicCake = !noValidTarget && Number(copied.id) === 18
 
@@ -835,18 +845,12 @@ class PlayerManager {
             this.condition = effectDuration
         }
 
-        // Record this craft as "active" until consumeRecipe resolves it
-        this.lastCraftedRecipes.push({
-            id: this.activeRecipe.id,
-            craftedId: this.craftedRecipeId,
-            usedMagicCake: this.usedMagicCake,
-            copiedRecipeId: this.copiedRecipeId,
-            duration: this.condition ?? this.mapsRemaining,
-            craftTime: effectCraftTime,
-            resolutionTime: null,
-            status: "active"
-        })
-        this.activeCraftIndex = this.lastCraftedRecipes.length - 1
+        // Manual (non-API) craft: deliberately NOT added to lastCraftedRecipes
+        // yet. It only gets recorded once the map is actually over
+        // (consumeRecipe pushes it as "resolved"), so an in-progress recipe
+        // can never be picked up early — e.g. by the opponent's Magic Cake —
+        // before it has actually resolved.
+        this.activeCraftIndex = null
 
         this.displayIngredientList()
         displayActiveRecipe()
@@ -862,11 +866,27 @@ class PlayerManager {
         const used = this.activeRecipe.id
 
         if (this.activeCraftIndex !== null && this.lastCraftedRecipes[this.activeCraftIndex]) {
+            // API-driven craft: it was already recorded as "active" at craft
+            // time, so just flip it to "resolved" in place.
             const entry = this.lastCraftedRecipes[this.activeCraftIndex]
             if (entry.status === "active") {
                 entry.status = "resolved"
                 entry.resolutionTime = new Date().toISOString()
             }
+        } else if (used) {
+            // Manual (non-API) craft: this is the first time it's being
+            // recorded — craftRecipe intentionally didn't add it until now,
+            // so it only ever enters history once the map is over.
+            this.lastCraftedRecipes.push({
+                id: used,
+                craftedId: this.craftedRecipeId,
+                usedMagicCake: this.usedMagicCake,
+                copiedRecipeId: this.copiedRecipeId,
+                duration: this.condition ?? this.mapsRemaining,
+                craftTime: this.activeRecipe.craftTime ?? null,
+                resolutionTime: new Date().toISOString(),
+                status: "resolved"
+            })
         }
 
         this.activeRecipe = { id: null, craftTime: null }
@@ -988,18 +1008,9 @@ function describeActiveRecipe(pm) {
  * @returns {string}
  */
 function describeLastCraftedRecipe(pm) {
-    const history = pm.lastCraftedRecipes
-    if (!Array.isArray(history) || history.length === 0) return "None"
-
-    for (let i = history.length - 1; i >= 0; i--) {
-        const entry = history[i]
-        if (!entry || entry.status !== "resolved" || entry.usedMagicCake) continue
-        if (!entry.id) continue
-
-        return findRecipe(entry.id)?.recipe ?? "None"
-    }
-
-    return "None"
+    const entry = getPreviousRecipeEntry(pm)
+    if (!entry) return "None"
+    return findRecipe(entry.id)?.recipe ?? "None"
 }
 
 // Ingredient Lists
@@ -1312,16 +1323,26 @@ setInterval(async () => {
         const leftPlayerOsuId = currentApiIntegrationPlayers.red.osuId
         const rightPlayerName = currentApiIntegrationPlayers.blue.name
         const rightPlayerOsuId = currentApiIntegrationPlayers.blue.osuId
+        const leftPlayerHomeMod = currentApiIntegrationPlayers.red.homeMod
+        const rightPlayerHomeMod = currentApiIntegrationPlayers.blue.homeMod
 
         leftPlayerNameEl.textContent = leftPlayerName
         leftProfilePictureEl.style.backgroundImage = `url("https://a.ppy.sh/${leftPlayerOsuId}")`
         rightPlayerNameEl.textContent = rightPlayerName
         rightProfilePictureEl.style.backgroundImage = `url("https://a.ppy.sh/${rightPlayerOsuId}")`
 
+        // Home base mod — routed through setHomeBaseMod so it updates
+        // PlayerManager.mod, re-renders the on-page display, and flows into
+        // the existing redHomeBaseMod/blueHomeBaseMod cookies automatically.
+        if (leftPlayerHomeMod) redPlayerManager.setHomeBaseMod(leftPlayerHomeMod)
+        if (rightPlayerHomeMod) bluePlayerManager.setHomeBaseMod(rightPlayerHomeMod)
+
         document.cookie = `apiIntegrationLeftPlayerName=${leftPlayerName}; path=/`
         document.cookie = `apiIntegrationLeftPlayerOsuId=${leftPlayerOsuId}; path=/`
         document.cookie = `apiIntegrationRightPlayerName=${rightPlayerName}; path=/`
         document.cookie = `apiIntegrationRightPlayerOsuId=${rightPlayerOsuId}; path=/`
+
+        setHomeBaseMod()
     }
 
     // Recipes
