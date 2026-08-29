@@ -1,3 +1,10 @@
+/* Helper Classes */
+.player-details-positioning {
+    position: absolute;
+    left: 507.5px;
+    transform: translateX(-50%);
+}
+
 /* Main Scene */
 .main {
     background: center / cover;
@@ -6,8 +13,6 @@
 
 /* Player PFPs */
 .player-pfp {
-    position: absolute;
-    left: 341px;
     top: 298px;
     width: 333px;
     border-radius: 50px;
@@ -15,11 +20,8 @@
 
 /* Player Container */
 .player-container {
-    position: absolute;
     top: 682px;
-    left: 507.5px;
     display: flex;
-    transform: translateX(-50%);
     gap: 27px;
 }
 
@@ -43,11 +45,31 @@
 }
 
 .player-rank {
-    position: absolute;
-    left: 507.5px;
     top: 775px;
-    transform: translateX(-50%);
     font-family: "Lexend";
     font-weight: 500;
     font-size: 49.23px;
 }
+
+/* Mod Rank */
+.mod-rank {
+    --height: 34px;
+
+    position: absolute;
+    top: 280px;
+    left: 1053px;
+    width: 107px;
+    height: var(--height);
+    line-height: var(--height);
+    border-radius: calc(var(--height) / 2);
+    background-color: var(--nm-colour);
+    color: var(--vanilla-colour);
+    text-align: center;
+    background-color: red;
+    font-family: "Lexend";
+    font-weight: 800;
+    font-size: 18px;
+}
+.nm-rank { background-color: var(--nm-colour); }
+.hr-rank { background-color: var(--hr-colour); }
+.dt-rank { background-color: var(--dt-colour); }
