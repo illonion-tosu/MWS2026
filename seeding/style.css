@@ -54,9 +54,9 @@
 /* Player Seed */
 .player-seed {
     position: absolute;
-    right: 106px;
+    right: 186px;
     top: 118px;
-    transform: translateX(-50%);
+    transform: translateX(50%);
     font-family: "Josefin Sans", sans-serif;
     font-weight: 400;
     font-size: 49px;
