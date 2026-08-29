@@ -35,7 +35,8 @@ function displayStats() {
     const currentPlayer = players[playerCounter]
 
     playerPfpEl.setAttribute("src", `https://a.ppy.sh/${currentPlayer.player_id}`)
-    playerFlagEl.style.backgroundImage = `https://osuflags.omkserver.nl/${currentPlayer.player_flag}-200.png`
+    console.log(currentPlayer.player_flag)
+    playerFlagEl.style.backgroundImage = `url("https://osuflags.omkserver.nl/${currentPlayer.player_flag}-200.png")`
     playerNameEl.textContent = currentPlayer.player_name
     playerRankEl.textContent = `#${currentPlayer.player_rank.toLocaleString()}`
     playerSeedEl.textContent = `#${currentPlayer.player_seed.toLocaleString()}`
@@ -48,7 +49,25 @@ function displayStats() {
 
         for (let j = 0; j < currentMod.count; j++) {
             document.getElementById(`${modName}${j + 1}`).children[1].textContent = currentPlayer[`${modName}${j + 1}_score`].toLocaleString()
-            document.getElementById(`${modName}${j + 1}`).children[2].textContent = currentPlayer[`#${modName}${j + 1}_rank`].toLocaleString()
+            document.getElementById(`${modName}${j + 1}`).children[2].textContent = `#${currentPlayer[`${modName}${j + 1}_rank`].toLocaleString()}`
         }
     }
 }
+
+function iteratePlayerCounter(action) {
+    if (action === "plus") playerCounter++
+    else playerCounter--
+
+    if (playerCounter >= players.length) playerCounter = 0
+    else if (playerCounter < 0) playerCounter = players.length - 1
+
+    displayStats()
+}
+
+// Buttons
+const previousPageEl = document.getElementById("previous-page")
+const nextPageEl = document.getElementById("next-page")
+document.addEventListener("DOMContentLoaded", () => {
+    previousPageEl.addEventListener("click", () => iteratePlayerCounter("minus"))
+    nextPageEl.addEventListener("click", () => iteratePlayerCounter("plus"))
+})

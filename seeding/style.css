@@ -135,3 +135,15 @@
     width: 115px;
     text-align: center;
 }
+
+/* Previous and Next Page Buttons */
+button {
+    position: absolute;
+    width: 870px;
+    height: 125px;
+    bottom: 77px;
+    border: none;
+    background-color: transparent;
+}
+.previous-page { left: 62px; }
+.next-page { right: 62px; }
