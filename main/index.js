@@ -216,6 +216,7 @@ socket.onmessage = async event => {
 
             nowPlayingBannerEl.style.backgroundColor = `var(--${currentMap.mod.toLowerCase()}-colour)`
             nowPlayingCustomEl.style.backgroundColor = `var(--${currentMap.mod.toLowerCase()}-colour)`
+            nowPlayingBannerEl.textContent = `${currentMap.mod}${currentMap.order}`
         } else {
             nowPlayingBannerEl.style.display = "none"
             nowPlayingDottedLinesEl.style.display = "none"
