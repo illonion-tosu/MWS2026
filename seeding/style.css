@@ -1,0 +1,13 @@
+/* Main Scene */
+.main {
+    background-image: url("static/background.png");
+}
+
+/* Player PFPs */
+.player-pfp {
+    position: absolute;
+    left: 341px;
+    top: 298px;
+    width: 333px;
+    border-radius: 50px;
+}
