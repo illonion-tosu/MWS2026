@@ -5,7 +5,15 @@ async function loadPlayers() {
     const response = await fetch("../_data/players.json")
     players = await response.json()
 
+    // Sort and get right images
     players.sort((a, b) => b.player_seed - a.player_seed)
+    players = players.slice(-33)
+
+    // Preload images
+    for (let i = 0; i < players.length; i++) {
+        const img = new Image()
+        img.src = `https://osuflags.omkserver.nl/${players[i].player_flag}-200.png`
+    }
     displayStats()
 }
 
@@ -35,7 +43,6 @@ function displayStats() {
     const currentPlayer = players[playerCounter]
 
     playerPfpEl.setAttribute("src", `https://a.ppy.sh/${currentPlayer.player_id}`)
-    console.log(currentPlayer.player_flag)
     playerFlagEl.style.backgroundImage = `url("https://osuflags.omkserver.nl/${currentPlayer.player_flag}-200.png")`
     playerNameEl.textContent = currentPlayer.player_name
     playerRankEl.textContent = `#${currentPlayer.player_rank.toLocaleString()}`
