@@ -1,5 +1,6 @@
 /* Main Scene */
 .main {
+    background: center / cover;
     background-image: url("static/background.png");
 }
 
@@ -10,4 +11,43 @@
     top: 298px;
     width: 333px;
     border-radius: 50px;
+}
+
+/* Player Container */
+.player-container {
+    position: absolute;
+    top: 682px;
+    left: 507.5px;
+    display: flex;
+    transform: translateX(-50%);
+    gap: 27px;
+}
+
+.player-flag {
+    width: 124px;
+    height: 72px;
+    background: center / cover;
+    background-image: url("https://osuflags.omkserver.nl/AU-200.png");
+}
+
+.player-name {
+    font-size: 65.6px;
+    font-family: "Lexend";
+    font-weight: 800;
+    color: var(--chocolate-colour);
+    line-height: 72px;
+    white-space: nowrap;
+    overflow: hidden;
+    max-width: 650px;
+    text-overflow: ellipsis;
+}
+
+.player-rank {
+    position: absolute;
+    left: 507.5px;
+    top: 775px;
+    transform: translateX(-50%);
+    font-family: "Lexend";
+    font-weight: 500;
+    font-size: 49.23px;
 }
