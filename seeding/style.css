@@ -70,6 +70,56 @@
     font-weight: 800;
     font-size: 18px;
 }
-.nm-rank { background-color: var(--nm-colour); }
-.hr-rank { background-color: var(--hr-colour); }
-.dt-rank { background-color: var(--dt-colour); }
+.nm-rank {
+    background-color: var(--nm-colour);
+    top: 280px;
+}
+.hr-rank {
+    background-color: var(--hr-colour);
+    top: 521px;
+}
+.dt-rank {
+    background-color: var(--dt-colour);
+    top: 704px;
+}
+
+/* Mod Map Rank */
+.mod-map-container {
+    position: absolute;
+    left: 1053px;
+    font-family: "Lexend";
+    font-weight: 500;
+    font-size: 18px;
+    display: flex;
+    gap: 14px;
+    flex-direction: column;
+}
+.nm-mod-map-container { top: 329px; }
+.hr-mod-map-container { top: 576px; }
+.dt-mod-map-container { top: 753px; }
+
+.mod-map-wrapper {
+    display: flex;
+    gap: 10px;
+}
+
+.mod-map-name {
+    width: 547px;
+    display: flex;
+    font-weight: 800;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.mod-map-score {
+    text-align: center;
+    width: 90px;
+    margin-right: 5px;
+}
+
+.mod-map-rank {
+    text-align: center;
+    width: 115px;
+    text-align: center;
+}
