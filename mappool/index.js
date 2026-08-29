@@ -397,7 +397,7 @@ socket.onmessage = async event => {
         const accRecipeActive = redPlayerManager.activeRecipe.id === 12 || bluePlayerManager.activeRecipe.id === 12
         const scores = calculateScore(redPlayerManager.activeRecipe.id, bluePlayerManager.activeRecipe.id, data.tourney.clients[0].play, data.tourney.clients[1].play)
         
-        // Determine if a winner is to be set
+        // Determine if a winner is to be setf
         let requiredToSetWinner = true
         if (isRecipe7Active && !accRecipeActive) {
             if (redPlayerManager.activeRecipe.id === 7) {
@@ -1341,8 +1341,6 @@ setInterval(async () => {
         document.cookie = `apiIntegrationLeftPlayerOsuId=${leftPlayerOsuId}; path=/`
         document.cookie = `apiIntegrationRightPlayerName=${rightPlayerName}; path=/`
         document.cookie = `apiIntegrationRightPlayerOsuId=${rightPlayerOsuId}; path=/`
-
-        setHomeBaseMod()
     }
 
     // Recipes

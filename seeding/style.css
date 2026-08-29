@@ -47,7 +47,7 @@
 
 .player-name {
     font-size: 65.6px;
-    font-family: Lexend;
+    font-family: Lexend, sans-serif;
     font-weight: 800;
     color: var(--chocolate-colour);
     line-height: 72px;
@@ -59,7 +59,7 @@
 
 .player-rank {
     top: 775px;
-    font-family: Lexend;
+    font-family: Lexend, sans-serif;
     font-weight: 500;
     font-size: 49.23px;
 }
@@ -90,7 +90,7 @@
     color: var(--vanilla-colour);
     text-align: center;
     background-color: red;
-    font-family: Lexend;
+    font-family: Lexend, sans-serif;
     font-weight: 800;
     font-size: 18px;
 }
@@ -114,7 +114,7 @@
 .mod-map-container {
     position: absolute;
     left: 1053px;
-    font-family: Lexend;
+    font-family: Lexend, sans-serif;
     font-weight: 500;
     font-size: 18px;
     display: flex;
