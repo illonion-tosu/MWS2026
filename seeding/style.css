@@ -1,3 +1,7 @@
+:root {
+    --button-x: 62px;
+}
+
 /* Helper Classes */
 .player-details-positioning {
     position: absolute;
@@ -9,6 +13,15 @@
 .main {
     background: center / cover;
     background-image: url("static/background.png");
+}
+
+/* You Did It */
+.you-did-it {
+    position: absolute;
+    top: 264px;
+    left: 204px;
+    width: 121px;
+    height: 84px;
 }
 
 /* Player PFPs */
@@ -82,14 +95,17 @@
     font-weight: 800;
     font-size: 18px;
 }
+
 .nm-rank {
     background-color: var(--nm-colour);
     top: 280px;
 }
+
 .hr-rank {
     background-color: var(--hr-colour);
     top: 521px;
 }
+
 .dt-rank {
     background-color: var(--dt-colour);
     top: 704px;
@@ -145,5 +161,5 @@ button {
     border: none;
     background-color: transparent;
 }
-.previous-page { left: 62px; }
-.next-page { right: 62px; }
+.previous-page { left: var(--button-x); }
+.next-page { right: var(--button-x); }

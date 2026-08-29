@@ -38,8 +38,10 @@ const mods = [
         count: 3
     }
 ]
+const youDidItEl = document.getElementById("you-did-it")
 
 function displayStats() {
+    youDidItEl.style.display = playerCounter === 0 ? "none" : "block"
     const currentPlayer = players[playerCounter]
 
     playerPfpEl.setAttribute("src", `https://a.ppy.sh/${currentPlayer.player_id}`)
