@@ -291,7 +291,7 @@
     position: absolute;
     left: 1920px;
     top: 0;
-    width: 1000px;
+    width: 1250px;
     height: 1080px;
     background-color: var(--gondola-colour);
     display: flex;
@@ -375,6 +375,7 @@
 .divider-1 { left: 249px; }
 .divider-2 { left: 499px; }
 .divider-3 { left: 749px; }
+.divider-4 { left: 999px; }
 
 /* Sidebar Select */
 .sidebar-select {

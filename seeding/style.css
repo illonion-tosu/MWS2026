@@ -1,0 +1,163 @@
+:root {
+    --button-x: 62px;
+}
+
+/* Helper Classes */
+.player-details-positioning {
+    position: absolute;
+    left: 507.5px;
+    transform: translateX(-50%);
+}
+
+/* Main Scene */
+.main {
+    background: center / cover;
+    background-image: url("static/background.png");
+}
+
+/* You Did It */
+.you-did-it {
+    position: absolute;
+    top: 264px;
+    left: 204px;
+    width: 121px;
+    height: 84px;
+}
+
+/* Player PFPs */
+.player-pfp {
+    top: 298px;
+    width: 333px;
+    border-radius: 50px;
+}
+
+/* Player Container */
+.player-container {
+    top: 682px;
+    display: flex;
+    gap: 27px;
+}
+
+.player-flag {
+    width: 124px;
+    height: 72px;
+    background: center / cover;
+    background-image: url("https://osuflags.omkserver.nl/AU-200.png");
+}
+
+.player-name {
+    font-size: 65.6px;
+    font-family: Lexend, sans-serif;
+    font-weight: 800;
+    color: var(--chocolate-colour);
+    line-height: 72px;
+    white-space: nowrap;
+    overflow: hidden;
+    max-width: 650px;
+    text-overflow: ellipsis;
+}
+
+.player-rank {
+    top: 775px;
+    font-family: Lexend, sans-serif;
+    font-weight: 500;
+    font-size: 49.23px;
+}
+
+/* Player Seed */
+.player-seed {
+    position: absolute;
+    right: 186px;
+    top: 118px;
+    transform: translateX(50%);
+    font-family: "Josefin Sans", sans-serif;
+    font-weight: 400;
+    font-size: 49px;
+    color: var(--cream-colour);
+}
+
+/* Mod Rank */
+.mod-rank {
+    --height: 34px;
+
+    position: absolute;
+    top: 280px;
+    left: 1053px;
+    width: 107px;
+    height: var(--height);
+    line-height: var(--height);
+    border-radius: calc(var(--height) / 2);
+    color: var(--vanilla-colour);
+    text-align: center;
+    background-color: red;
+    font-family: Lexend, sans-serif;
+    font-weight: 800;
+    font-size: 18px;
+}
+
+.nm-rank {
+    background-color: var(--nm-colour);
+    top: 280px;
+}
+
+.hr-rank {
+    background-color: var(--hr-colour);
+    top: 521px;
+}
+
+.dt-rank {
+    background-color: var(--dt-colour);
+    top: 704px;
+}
+
+/* Mod Map Rank */
+.mod-map-container {
+    position: absolute;
+    left: 1053px;
+    font-family: Lexend, sans-serif;
+    font-weight: 500;
+    font-size: 18px;
+    display: flex;
+    gap: 14px;
+    flex-direction: column;
+}
+.nm-mod-map-container { top: 329px; }
+.hr-mod-map-container { top: 576px; }
+.dt-mod-map-container { top: 753px; }
+
+.mod-map-wrapper {
+    display: flex;
+    gap: 10px;
+}
+
+.mod-map-name {
+    width: 547px;
+    display: flex;
+    font-weight: 800;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.mod-map-score {
+    text-align: center;
+    width: 90px;
+    margin-right: 5px;
+}
+
+.mod-map-rank {
+    width: 115px;
+    text-align: center;
+}
+
+/* Previous and Next Page Buttons */
+button {
+    position: absolute;
+    width: 870px;
+    height: 125px;
+    bottom: 77px;
+    border: none;
+    background-color: transparent;
+}
+.previous-page { left: var(--button-x); }
+.next-page { right: var(--button-x); }
