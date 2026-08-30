@@ -57,8 +57,8 @@ function displayStats() {
         document.getElementById(`${modName}-rank`).textContent = currentPlayer[`${modName}_rank`]
 
         for (let j = 0; j < currentMod.count; j++) {
-            document.getElementById(`${modName}${j + 1}`).children[1].textContent = currentPlayer[`${modName}${j + 1}_score`].toLocaleString()
-            document.getElementById(`${modName}${j + 1}`).children[2].textContent = `#${currentPlayer[`${modName}${j + 1}_rank`].toLocaleString()}`
+            document.getElementById(`${modName}${j + 1}`).children[1].textContent = currentPlayer[`${modName.toLowerCase()}${j + 1}_score`].toLocaleString()
+            document.getElementById(`${modName}${j + 1}`).children[2].textContent = `#${currentPlayer[`${modName.toLowerCase()}${j + 1}_rank`].toLocaleString()}`
         }
     }
 }
