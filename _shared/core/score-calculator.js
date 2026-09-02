@@ -26,6 +26,18 @@ export function calculateScore(redRecipeId, blueRecipeId, redPlay, bluePlay, cur
     let redModified = { ...redPlay, winValue: redPlay.score };
     let blueModified = { ...bluePlay, winValue: bluePlay.score };
 
+    // Normalise HD
+    if (currentMap && currentMap.wincon === "score" && currentMap.hd_normalised) {
+        if (redPlay.mods?.array?.includes("HD")) {
+            redModified.score = Math.round(redModified.score / 1.06)
+            redModified.winValue = redModified.score
+        }
+        if (bluePlay.mods?.array?.includes("HD")) {
+            blueModified.score = Math.round(blueModified.score / 1.06)
+            blueModified.winValue = blueModified.score
+        }
+    }
+
     // Recipe logic
     let redLogic, blueLogic
     if (redRecipeId === 12 || blueRecipeId === 12) {
