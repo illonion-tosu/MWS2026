@@ -7,6 +7,12 @@ const recipeLogic = {
     "default": (p) => ({ ...p, winValue: p.score })
 }
 
+const array = [4665741, 4588047, 3476632]
+const externalScoreLogic = {
+    "acc": (p) => ({ ...p, winValue: p.accuracy, isAccWin: true, }),
+    "miss": (p) => ({ ...p, winValue: p.play.hits["0"], isAccWin: false, isMissWin: true })
+}
+
 /**
  * @param {number} redRecipeId - Recipe ID for red
  * @param {number} blueRecipeId - Recipe ID for blue
@@ -14,10 +20,11 @@ const recipeLogic = {
  * @param {Object} bluePlay - 'play' object for blue
  * @param {string} user - 'red' or 'blue'
  */
-export function calculateScore(redRecipeId, blueRecipeId, redPlay, bluePlay,) {
+export function calculateScore(redRecipeId, blueRecipeId, redPlay, bluePlay, currentMap, nowPlayingId) {
     let redModified = { ...redPlay, winValue: redPlay.score };
     let blueModified = { ...bluePlay, winValue: bluePlay.score };
 
+    // Recipe logic
     let redLogic, blueLogic
     if (redRecipeId === 12 || blueRecipeId === 12) {
         let recipeId = 12
@@ -28,12 +35,24 @@ export function calculateScore(redRecipeId, blueRecipeId, redPlay, bluePlay,) {
         blueLogic = recipeLogic[blueRecipeId] ?? recipeLogic["default"]
     }
 
+    // External map logic
+    if ((currentMap && currentMap.wincon !== "score") || array.includes(nowPlayingId)) {
+        redLogic = externalScoreLogic[currentMap.wincon]
+        blueLogic = externalScoreLogic[currentMap.wincon]
+    }
+
     redModified = redLogic(redModified)
     blueModified = blueLogic(blueModified)
 
     let winner = "Tie"
-    if (redModified.winValue > blueModified.winValue) winner = "Red"
-    if (blueModified.winValue > redModified.winValue) winner = "Blue"
+    if (currentMap && currentMap.wincon === "miss") {
+        if (redModified.winValue < blueModified.winValue) winner = "Red"
+        if (blueModified.winValue < redModified.winValue) winner = "Blue"
+    } else {
+        if (redModified.winValue > blueModified.winValue) winner = "Red"
+        if (blueModified.winValue > redModified.winValue) winner = "Blue"
+    }
+
 
     return {
         winner,
@@ -41,6 +60,6 @@ export function calculateScore(redRecipeId, blueRecipeId, redPlay, bluePlay,) {
         blueFinalScore: blueModified.score,
         redWinValue: redModified.winValue,
         blueWinValue: blueModified.winValue,
-        comparisonMethod: redModified.isAccWin ? "acc" : "score"
+        comparisonMethod: redModified.isAccWin ? "acc" : redModified.isMissWin ? "miss" : "score"
     }
 }

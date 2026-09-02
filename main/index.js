@@ -52,6 +52,8 @@ const scoreLeftScoreEl = document.getElementById("score-left-score")
 const scoreRightScoreEl = document.getElementById("score-right-score")
 const accLeftScoreEl = document.getElementById("acc-left-score")
 const accRightScoreEl = document.getElementById("acc-right-score")
+const missLeftScoreEl = document.getElementById("miss-left-score")
+const missRightScoreEl = document.getElementById("miss-right-score")
 // Score Visibility
 let ipcState
 let scoreVisible
@@ -61,6 +63,8 @@ const animation = {
     scoreRightScore: new CountUp(scoreRightScoreEl, 0, 0, 0, 0.2, { useEasing: true, useGrouping: true, separator: ",", decimal: ".", suffix: ""}),
     accLeftScore: new CountUp(accLeftScoreEl, 0, 0, 2, 0.2, { useEasing: true, useGrouping: true, separator: ",", decimal: ".", suffix: "%"}),
     accRightScore: new CountUp(accRightScoreEl, 0, 0, 2, 0.2, { useEasing: true, useGrouping: true, separator: ",", decimal: ".", suffix: "%"}),
+    missLeftScore: new CountUp(missLeftScoreEl, 0, 0, 0, 0.2, { useEasing: true, useGrouping: true, separator: ",", decimal: ".", suffix: "x"}),
+    missRightScore: new CountUp(missRightScoreEl, 0, 0, 0, 0.2, { useEasing: true, useGrouping: true, separator: ",", decimal: ".", suffix: "x"}),
 }
 
 // Now Playing Information
@@ -92,6 +96,7 @@ let chatLen
 const socket = createTosuWsSocket()
 socket.onmessage = async event => {
     const data = JSON.parse(event.data)
+    console.log(data)
 
     // Player information
     const teamInfo = data.tourney.team
@@ -137,7 +142,7 @@ socket.onmessage = async event => {
         if (ipcState === 4) return
         const leftPlay = data.tourney.clients[0].play
         const rightPlay = data.tourney.clients[1].play
-        const scores = calculateScore(previousRedActiveRecipe, previousBlueActiveRecipe, leftPlay, rightPlay)
+        const scores = calculateScore(previousRedActiveRecipe, previousBlueActiveRecipe, leftPlay, rightPlay, currentMap, nowPlayingId)
 
         // Display correct stuff
         if (scores.comparisonMethod === "acc") {
@@ -146,12 +151,24 @@ socket.onmessage = async event => {
             scoreRightScoreEl.style.opacity = 0
             accLeftScoreEl.style.opacity = 1
             accRightScoreEl.style.opacity = 1
+            missLeftScoreEl.style.opacity = 0
+            missRightScoreEl.style.opacity = 0
+        } else if (scores.comparisonMethod === "miss") {
+            // Scores
+            scoreLeftScoreEl.style.opacity = 0
+            scoreRightScoreEl.style.opacity = 0
+            accLeftScoreEl.style.opacity = 0
+            accRightScoreEl.style.opacity = 0
+            missLeftScoreEl.style.opacity = 1
+            missRightScoreEl.style.opacity = 1
         } else {
             // Scores
             scoreLeftScoreEl.style.opacity = 1
             scoreRightScoreEl.style.opacity = 1
             accLeftScoreEl.style.opacity = 0
             accRightScoreEl.style.opacity = 0
+            missLeftScoreEl.style.opacity = 0
+            missRightScoreEl.style.opacity = 0
         }
 
         // Update scores
@@ -159,12 +176,14 @@ socket.onmessage = async event => {
         animation.scoreRightScore.update(scores.blueWinValue)
         animation.accLeftScore.update(scores.redWinValue)
         animation.accRightScore.update(scores.blueWinValue)
+        animation.missLeftScore.update(scores.redWinValue)
+        animation.missRightScore.update(scores.blueWinValue)
 
         // Animate score bars
         const scoreDelta = Math.abs(scores.redWinValue - scores.blueWinValue)
         const scoreBarMaxWidth = 902
         let scoreBarRectangleWidth
-        if (scores.comparisonMethod === "acc") {
+        if (scores.comparisonMethod === "acc" || scores.comparisonMethod === "miss") {
             const scoreBarMaxDifference = 20
             let scoreBarDifferencePercent = Math.min(scoreDelta / scoreBarMaxDifference, 1)
             scoreBarRectangleWidth = Math.min(scoreBarDifferencePercent * scoreBarMaxWidth, scoreBarMaxWidth)
@@ -174,22 +193,38 @@ socket.onmessage = async event => {
             scoreBarRectangleWidth = Math.min(Math.pow(scoreBarDifferencePercent, 1.4) * scoreBarMaxWidth, scoreBarMaxWidth)
         }
 
-        if (scores.redWinValue > scores.blueWinValue) {
-            leftScoreBarEl.style.width = `${scoreBarRectangleWidth}px`
-            rightScoreBarEl.style.width = "0px"
-        } else if (scores.redWinValue === scores.blueWinValue) {
-            leftScoreBarEl.style.width = "0px"
-            rightScoreBarEl.style.width = "0px"
-        } else if (scores.redWinValue < scores.blueWinValue) {
-            leftScoreBarEl.style.width = "0px"
-            rightScoreBarEl.style.width = `${scoreBarRectangleWidth}px`
+        if (currentMap && currentMap.wincon === "miss") {
+            if (scores.redWinValue > scores.blueWinValue) {
+                leftScoreBarEl.style.width < `${scoreBarRectangleWidth}px`
+                rightScoreBarEl.style.width = "0px"
+            } else if (scores.redWinValue === scores.blueWinValue) {
+                leftScoreBarEl.style.width = "0px"
+                rightScoreBarEl.style.width = "0px"
+            } else if (scores.redWinValue > scores.blueWinValue) {
+                leftScoreBarEl.style.width = "0px"
+                rightScoreBarEl.style.width = `${scoreBarRectangleWidth}px`
+            }
+        } else {
+            if (scores.redWinValue > scores.blueWinValue) {
+                leftScoreBarEl.style.width = `${scoreBarRectangleWidth}px`
+                rightScoreBarEl.style.width = "0px"
+            } else if (scores.redWinValue === scores.blueWinValue) {
+                leftScoreBarEl.style.width = "0px"
+                rightScoreBarEl.style.width = "0px"
+            } else if (scores.redWinValue < scores.blueWinValue) {
+                leftScoreBarEl.style.width = "0px"
+                rightScoreBarEl.style.width = `${scoreBarRectangleWidth}px`
+            }
         }
+
 
     } else {
         animation.scoreLeftScore.update(0)
         animation.scoreRightScore.update(0)
         animation.accLeftScore.update(1)
         animation.accRightScore.update(1)
+        animation.missLeftScore.update(0)
+        animation.missRightScore.update(0)
     }
 
     // Now Playing Information
