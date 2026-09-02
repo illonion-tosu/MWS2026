@@ -194,8 +194,8 @@ socket.onmessage = async event => {
         }
 
         if (currentMap && currentMap.wincon === "miss") {
-            if (scores.redWinValue > scores.blueWinValue) {
-                leftScoreBarEl.style.width < `${scoreBarRectangleWidth}px`
+            if (scores.redWinValue < scores.blueWinValue) {
+                leftScoreBarEl.style.width = `${scoreBarRectangleWidth}px`
                 rightScoreBarEl.style.width = "0px"
             } else if (scores.redWinValue === scores.blueWinValue) {
                 leftScoreBarEl.style.width = "0px"

@@ -7,11 +7,13 @@ const recipeLogic = {
     "default": (p) => ({ ...p, winValue: p.score })
 }
 
-const array = [4665741, 4588047, 3476632]
 const externalScoreLogic = {
     "acc": (p) => ({ ...p, winValue: p.accuracy, isAccWin: true, }),
     "miss": (p) => ({ ...p, winValue: p.play.hits["0"], isAccWin: false, isMissWin: true })
 }
+
+// Map id from previous tournaments that have acc wincon
+const array = [4665741, 4588047, 3476632]
 
 /**
  * @param {number} redRecipeId - Recipe ID for red
@@ -37,8 +39,9 @@ export function calculateScore(redRecipeId, blueRecipeId, redPlay, bluePlay, cur
 
     // External map logic
     if ((currentMap && currentMap.wincon !== "score") || array.includes(nowPlayingId)) {
-        redLogic = externalScoreLogic[currentMap.wincon]
-        blueLogic = externalScoreLogic[currentMap.wincon]
+        const wincon = currentMap ? currentMap.wincon : "acc"
+        redLogic = externalScoreLogic[wincon]
+        blueLogic = externalScoreLogic[wincon]
     }
 
     redModified = redLogic(redModified)
@@ -52,7 +55,6 @@ export function calculateScore(redRecipeId, blueRecipeId, redPlay, bluePlay, cur
         if (redModified.winValue > blueModified.winValue) winner = "Red"
         if (blueModified.winValue > redModified.winValue) winner = "Blue"
     }
-
 
     return {
         winner,
