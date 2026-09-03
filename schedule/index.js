@@ -1,3 +1,5 @@
+import { loadBeatmaps } from "../_shared/core/beatmaps.js"
+
 // DOM Elements
 const elements = {
     countdown: {
@@ -361,3 +363,12 @@ setInterval(() => {
     filterMatches()
     updateDateTime()
 }, 1000)
+
+// Matches
+const roundNameEl = document.getElementById("round-name")
+async function init() {
+    console.log("hello")
+    const beatmaps = await loadBeatmaps()
+    roundNameEl.textContent = beatmaps.roundName
+}
+init()
