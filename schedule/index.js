@@ -234,6 +234,7 @@ getMatches()
 // Filter matches
 let previousFilteredMatches = []
 let currentFilteredMatches = []
+let hasRenderedOnce = false
 
 /**
  * Filters matches to only include those within the last 30 minutes,
@@ -247,11 +248,13 @@ function filterMatches() {
         .slice(0, 3)
 
     const hasChanged =
+        !hasRenderedOnce ||
         currentFilteredMatches.length !== previousFilteredMatches.length ||
         currentFilteredMatches.some((match, i) => match !== previousFilteredMatches[i])
 
     if (hasChanged) {
         previousFilteredMatches = currentFilteredMatches
+        hasRenderedOnce = true
         displayMatches()
     }
 }

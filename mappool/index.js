@@ -395,7 +395,7 @@ socket.onmessage = async event => {
         const isRecipe16Active = redPlayerManager.activeRecipe.id === 16 || bluePlayerManager.activeRecipe.id === 16
         const isRecipe21Active = redPlayerManager.activeRecipe.id === 21 || bluePlayerManager.activeRecipe.id === 21
         const accRecipeActive = redPlayerManager.activeRecipe.id === 12 || bluePlayerManager.activeRecipe.id === 12
-        const scores = calculateScore(redPlayerManager.activeRecipe.id, bluePlayerManager.activeRecipe.id, data.tourney.clients[0].play, data.tourney.clients[1].play)
+        const scores = calculateScore(redPlayerManager.activeRecipe.id, bluePlayerManager.activeRecipe.id, data.tourney.clients[0].play, data.tourney.clients[1].play, currentMap, nowPlayingId)
         
         // Determine if a winner is to be setf
         let requiredToSetWinner = true
@@ -433,7 +433,7 @@ socket.onmessage = async event => {
                 const maxScore = Math.max(bluePlayerManager.savedScore, redPlayerManager.savedScore, scores.redWinValue, scores.blueWinValue)
                 winner = (bluePlayerManager.savedScore === maxScore || scores.blueWinValue === maxScore) ? "blue" : "red"
             } else {
-                winner = scores.blueWinValue > scores.redWinValue ? "blue" : "red"
+                winner = scores.winner === "Blue" ? "blue" : "red"
             }
 
             // Set the star count
