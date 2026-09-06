@@ -1,13 +1,5 @@
 import { loadBeatmaps } from "../_shared/core/beatmaps.js"
 
-// Autoplay video
-const videoEl = document.getElementById("video")
-
-document.addEventListener("click", () => {
-    videoEl.muted = false
-    videoEl.play()
-}, { once: true })
-
 // DOM Elements
 const elements = {
     countdown: {
