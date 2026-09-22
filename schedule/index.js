@@ -357,7 +357,7 @@ async function filterMatches() {
         currentFiltertedMatches[i].player1_id = response1Json[0].user_id
         currentFiltertedMatches[i].player2_id = response2Json[0].user_id
         matchDisplayContainerEl.append(createMatchDisplay(currentFiltertedMatches[i]))
-        if (i !== createMatchSeparator.length - 1) matchDisplayContainerEl.append(createMatchSeparator())
+        if (i !== currentFiltertedMatches.length - 1) matchDisplayContainerEl.append(createMatchSeparator())
     }
 }
 
