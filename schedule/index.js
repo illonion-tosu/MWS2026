@@ -219,61 +219,8 @@ window.startUTCTimer = () => {
     utcTimer.start()
 }
 
-/**
- * Fetches match data from the JSON file and populates the {@link allMatches} array
- * @async
- * @returns {Promise<void>}
- */
-// async function getMatches() {
-//     const response = await fetch("../_data/matches.json")
-//     const responseJson = await response.json()
-//     allMatches = responseJson
-//     filterMatches()
-// }
-// getMatches()
-
-// // Filter matches
-// let previousFilteredMatches = []
-// let currentFilteredMatches = []
-// let hasRenderedOnce = false
-
-// /**
-//  * Filters matches to only include those within the last 30 minutes,
-//  * sorts them by time, and displays them if the results have changed\
-//  */
-// function filterMatches() {
-//     const currentTime = Date.now();
-//     currentFilteredMatches = allMatches
-//         .filter(match => match.matchTime >= currentTime - 1800000) // 30 minutes
-//         .sort((a, b) => a.matchTime - b.matchTime)
-//         .slice(0, 3)
-
-//     const hasChanged =
-//         !hasRenderedOnce ||
-//         currentFilteredMatches.length !== previousFilteredMatches.length ||
-//         currentFilteredMatches.some((match, i) => match !== previousFilteredMatches[i])
-
-//     if (hasChanged) {
-//         previousFilteredMatches = currentFilteredMatches
-//         hasRenderedOnce = true
-//         displayMatches()
-//     }
-// }
-
-// // Display matches
+// Display matches
 const matchDisplayContainerEl = document.getElementById("match-display-container")
-
-// /**
-//  * Clears the match display container and renders the current filtered matches,
-//  * with separators between each match
-//  */
-// function displayMatches() {
-//     matchDisplayContainerEl.innerHTML = ""
-//     for (let i = 0; i < currentFilteredMatches.length; i++) {
-//         matchDisplayContainerEl.append(createMatchDisplay(currentFilteredMatches[i]))
-//         if (i < currentFilteredMatches.length - 1) matchDisplayContainerEl.append(createMatchSeparator())
-//     }
-// }
 
 /**
  * Creates a match display element for the given match
