@@ -332,10 +332,9 @@ async function getMatches() {
 let currentFiltertedMatches = []
 let previousFilteredMatches = []
 async function filterMatches() {
-    currentFiltertedMatches = allMatches.filter(match => {
-        return isNumeric(match.match_id) &&
-            isLaterThan15MinutesAgo(match.combinedDateTime)
-    })
+    currentFiltertedMatches = allMatches
+        .filter(match => isNumeric(match.match_id) && isLaterThan15MinutesAgo(match.combinedDateTime))
+        .map(match => ({ ...match }))
 
     if (JSON.stringify(previousFilteredMatches) === JSON.stringify(currentFiltertedMatches)) return
 
@@ -343,6 +342,7 @@ async function filterMatches() {
     currentFiltertedMatches = currentFiltertedMatches.sort((a, b) => a.combinedDateTime - b.combinedDateTime).slice(0, 3)
 
     // API calls to get player names
+    matchDisplayContainerEl.innerHTML = ""
     for (let i = 0; i < currentFiltertedMatches.length; i++) {
         const [response1, response2] = await Promise.all([
             fetch(`https://osu.ppy.sh/api/get_user?k=${getOsuApi()}&u=${currentFiltertedMatches[i].player_a}`),
