@@ -355,8 +355,6 @@ function updateDateTime() {
 let currentAllMatches = []
 let previousAllMatches = []
 let allMatches = []
-let currentFiltertedMatches = []
-let previousFilteredMatches = []
 
 /**
  * Get matches from API request - once every 10 seconds
@@ -366,14 +364,54 @@ async function getMatches() {
     const responseJson = await response.json()
     currentAllMatches = responseJson
 
-    if (previousAllMatches === currentAllMatches)  return
+    if (JSON.stringify(previousAllMatches) === JSON.stringify(currentAllMatches)) return
     
     previousAllMatches = currentAllMatches
     allMatches = previousAllMatches
         
     for (let i = 0; i < allMatches.length; i++) {
-        allMatches[i].combinedTime = combineDateTime(allMatches[i].date, allMatches[i].time)
+        allMatches[i].combinedDateTime = combinedDateTime(allMatches[i].date, allMatches[i].time)
     }
+}
+
+/**
+ * From all matches, filter the matches and get the first 3 matches to be displayed.
+ * Only matches that have a valid date, their id is a number
+ */
+let currentFiltertedMatches = []
+let previousFilteredMatches = []
+function filterMatches() {
+    currentFiltertedMatches = allMatches.filter(match => {
+        return isNumeric(match.match_id) &&
+            isLaterThan15MinutesAgo(match.combinedDateTime)
+    })
+}
+
+/**
+ * Check if value is numeric
+ * @param {*} value 
+ * @returns 
+ */
+function isNumeric(value) {
+    return (typeof value === 'number' || typeof value === 'string') && 
+        !isNaN(value) && 
+        isFinite(value)
+}
+
+/**
+ * Checks if date is later than 15 minutes ago
+ * @param {*} dateToCheck 
+ * @returns 
+ */
+function isLaterThan15MinutesAgo(dateToCheck) {
+    if (!(dateToCheck instanceof Date) || isNaN(dateToCheck.valueOf())) {
+        return false
+    }
+
+    const fifteenMinutesAgo = new Date()
+    fifteenMinutesAgo.setMinutes(fifteenMinutesAgo.getMinutes() - 15)
+
+    return dateToCheck > fifteenMinutesAgo
 }
 
 setInterval(() => {
@@ -398,14 +436,14 @@ setInterval(() => {
  *   `timeStr`'s time, in UTC.
  *
  * @example
- * combineDateTime("2026-09-26T00:00:00.000Z", "1899-12-30T08:00:00.000Z");
+ * combinedDateTime("2026-09-26T00:00:00.000Z", "1899-12-30T08:00:00.000Z");
  * // => Date representing 2026-09-26T08:00:00.000Z
  *
  * @example
- * combineDateTime("2026-09-26T00:00:00.000Z", "08:00");
+ * combinedDateTime("2026-09-26T00:00:00.000Z", "08:00");
  * // => Date representing 2026-09-26T08:00:00.000Z
  */
-function combineDateTime(dateStr, timeStr) {
+function combinedDateTime(dateStr, timeStr) {
     const datePart = new Date(dateStr)
 
     let hours, minutes, seconds = 0, ms = 0
@@ -439,6 +477,6 @@ function combineDateTime(dateStr, timeStr) {
 setInterval(() => {
     countdownTimer.tick()
     utcTimer.tick()
-    // filterMatches()
+    filterMatches()
     updateDateTime()
 }, 1000)
