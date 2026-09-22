@@ -215,64 +215,61 @@ window.startUTCTimer = () => {
     utcTimer.start()
 }
 
-// Load in matches
-let allMatches = []
-
 /**
  * Fetches match data from the JSON file and populates the {@link allMatches} array
  * @async
  * @returns {Promise<void>}
  */
-async function getMatches() {
-    const response = await fetch("../_data/matches.json")
-    const responseJson = await response.json()
-    allMatches = responseJson
-    filterMatches()
-}
-getMatches()
+// async function getMatches() {
+//     const response = await fetch("../_data/matches.json")
+//     const responseJson = await response.json()
+//     allMatches = responseJson
+//     filterMatches()
+// }
+// getMatches()
 
-// Filter matches
-let previousFilteredMatches = []
-let currentFilteredMatches = []
-let hasRenderedOnce = false
+// // Filter matches
+// let previousFilteredMatches = []
+// let currentFilteredMatches = []
+// let hasRenderedOnce = false
 
-/**
- * Filters matches to only include those within the last 30 minutes,
- * sorts them by time, and displays them if the results have changed\
- */
-function filterMatches() {
-    const currentTime = Date.now();
-    currentFilteredMatches = allMatches
-        .filter(match => match.matchTime >= currentTime - 1800000) // 30 minutes
-        .sort((a, b) => a.matchTime - b.matchTime)
-        .slice(0, 3)
+// /**
+//  * Filters matches to only include those within the last 30 minutes,
+//  * sorts them by time, and displays them if the results have changed\
+//  */
+// function filterMatches() {
+//     const currentTime = Date.now();
+//     currentFilteredMatches = allMatches
+//         .filter(match => match.matchTime >= currentTime - 1800000) // 30 minutes
+//         .sort((a, b) => a.matchTime - b.matchTime)
+//         .slice(0, 3)
 
-    const hasChanged =
-        !hasRenderedOnce ||
-        currentFilteredMatches.length !== previousFilteredMatches.length ||
-        currentFilteredMatches.some((match, i) => match !== previousFilteredMatches[i])
+//     const hasChanged =
+//         !hasRenderedOnce ||
+//         currentFilteredMatches.length !== previousFilteredMatches.length ||
+//         currentFilteredMatches.some((match, i) => match !== previousFilteredMatches[i])
 
-    if (hasChanged) {
-        previousFilteredMatches = currentFilteredMatches
-        hasRenderedOnce = true
-        displayMatches()
-    }
-}
+//     if (hasChanged) {
+//         previousFilteredMatches = currentFilteredMatches
+//         hasRenderedOnce = true
+//         displayMatches()
+//     }
+// }
 
-// Display matches
-const matchDisplayContainerEl = document.getElementById("match-display-container")
+// // Display matches
+// const matchDisplayContainerEl = document.getElementById("match-display-container")
 
-/**
- * Clears the match display container and renders the current filtered matches,
- * with separators between each match
- */
-function displayMatches() {
-    matchDisplayContainerEl.innerHTML = ""
-    for (let i = 0; i < currentFilteredMatches.length; i++) {
-        matchDisplayContainerEl.append(createMatchDisplay(currentFilteredMatches[i]))
-        if (i < currentFilteredMatches.length - 1) matchDisplayContainerEl.append(createMatchSeparator())
-    }
-}
+// /**
+//  * Clears the match display container and renders the current filtered matches,
+//  * with separators between each match
+//  */
+// function displayMatches() {
+//     matchDisplayContainerEl.innerHTML = ""
+//     for (let i = 0; i < currentFilteredMatches.length; i++) {
+//         matchDisplayContainerEl.append(createMatchDisplay(currentFilteredMatches[i]))
+//         if (i < currentFilteredMatches.length - 1) matchDisplayContainerEl.append(createMatchSeparator())
+//     }
+// }
 
 /**
  * Creates a match display element for the given match
@@ -318,28 +315,28 @@ function createMatchDisplay(match) {
     return matchDisplay
 }
 
-/**
- * Creates an image element for a match player using their osu! avatar
- * @param {number} playerId - The osu! user ID of the player
- * @param {1 | 2} playerNumber - The player's position in the match (1 or 2)
- * @returns {HTMLImageElement} The player image element
- */
-function createMatchPlayer(playerId, playerNumber) {
-    const matchPlayer = document.createElement("img")
-    matchPlayer.classList.add("match-player", `match-player-${playerNumber}`)
-    matchPlayer.setAttribute("src", `https://a.ppy.sh/${playerId}`)
-    return matchPlayer
-}
+// /**
+//  * Creates an image element for a match player using their osu! avatar
+//  * @param {number} playerId - The osu! user ID of the player
+//  * @param {1 | 2} playerNumber - The player's position in the match (1 or 2)
+//  * @returns {HTMLImageElement} The player image element
+//  */
+// function createMatchPlayer(playerId, playerNumber) {
+//     const matchPlayer = document.createElement("img")
+//     matchPlayer.classList.add("match-player", `match-player-${playerNumber}`)
+//     matchPlayer.setAttribute("src", `https://a.ppy.sh/${playerId}`)
+//     return matchPlayer
+// }
 
-/**
- * Creates a separator element to be placed between match displays
- * @returns {HTMLDivElement} The separator element
- */
-function createMatchSeparator() {
-    const matchDisplaySeparator = document.createElement("div")
-    matchDisplaySeparator.classList.add("match-display-separator")
-    return matchDisplaySeparator
-}
+// /**
+//  * Creates a separator element to be placed between match displays
+//  * @returns {HTMLDivElement} The separator element
+//  */
+// function createMatchSeparator() {
+//     const matchDisplaySeparator = document.createElement("div")
+//     matchDisplaySeparator.classList.add("match-display-separator")
+//     return matchDisplaySeparator
+// }
 
 // Current Date and Time
 const currentDateEl = document.getElementById("current-date")
@@ -355,9 +352,93 @@ function updateDateTime() {
     currentTimeEl.textContent = `${String(currentTime.getUTCHours()).padStart(2, "0")}:${String(currentTime.getUTCMinutes()).padStart(2, "0")} UTC`
 }
 
+let currentAllMatches = []
+let previousAllMatches = []
+let allMatches = []
+let currentFiltertedMatches = []
+let previousFilteredMatches = []
+
+/**
+ * Get matches from API request - once every 10 seconds
+ */
+async function getMatches() {
+    const response = await fetch("https://script.googleusercontent.com/macros/echo?user_content_key=AUkAhnTUml7aePMH9SqnSlZSS4A0P61ZTsF1Wa-h3E8amH4vn1rJMYAFSoRtuO3ozEDpsuTfUFXAeV9KmI1kdb2va6sQJXhkMSEJc4AXVGjeIoOK3CG6F7Kt55hpOF-NY1dz2nhmaiILAVGCGJlvvRVeXZ1RzC-wodFmkKLqSQbepLRWVeuaxrs7FTbfeX9F2Cx9Vyhyz4K7YxCuXiyuvtuKzk-USM6aT1SDe9NKC2I8eBgFSdQB7An-bxf1d5miM2MjLOlALJzs5yr3MxQ6CV29zL4Oy32ygw&lib=MLkgubCMJi4_2ktwlN6Kp6rn_u9v4y-7z")
+    const responseJson = await response.json()
+    currentAllMatches = responseJson
+
+    if (previousAllMatches === currentAllMatches)  return
+    
+    previousAllMatches = currentAllMatches
+    allMatches = previousAllMatches
+        
+    for (let i = 0; i < allMatches.length; i++) {
+        allMatches[i].combinedTime = combineDateTime(allMatches[i].date, allMatches[i].time)
+    }
+}
+
+setInterval(() => {
+    getMatches()
+}, 5000)
+
+/**
+ * Combines a date-only value with a time-only value into a single UTC Date object.
+ *
+ * The date portion is taken from `dateStr` (only year/month/day are used).
+ * The time portion is taken from `timeStr`, which may be either a full ISO
+ * datetime string (only the time-of-day is used) or a plain "HH:mm" /
+ * "HH:mm:ss" string. All values are interpreted and combined in UTC.
+ *
+ * @param {string} dateStr - A date, as an ISO 8601 string (e.g. "2026-09-26T00:00:00.000Z").
+ *   Only the year, month, and day are extracted; any time component is ignored.
+ * @param {string} timeStr - A time, either as:
+ *   - a full ISO 8601 datetime string (e.g. "1899-12-30T08:00:00.000Z"), from which
+ *     only the UTC time-of-day is extracted, or
+ *   - a plain time string in "HH:mm" or "HH:mm:ss" format (e.g. "08:00").
+ * @returns {Date} A new Date object representing `dateStr`'s date combined with
+ *   `timeStr`'s time, in UTC.
+ *
+ * @example
+ * combineDateTime("2026-09-26T00:00:00.000Z", "1899-12-30T08:00:00.000Z");
+ * // => Date representing 2026-09-26T08:00:00.000Z
+ *
+ * @example
+ * combineDateTime("2026-09-26T00:00:00.000Z", "08:00");
+ * // => Date representing 2026-09-26T08:00:00.000Z
+ */
+function combineDateTime(dateStr, timeStr) {
+    const datePart = new Date(dateStr)
+
+    let hours, minutes, seconds = 0, ms = 0
+
+    if (timeStr.includes('T')) {
+        // ISO datetime string like "1899-12-30T08:00:00.000Z"
+        const timePart = new Date(timeStr)
+        hours = timePart.getUTCHours()
+        minutes = timePart.getUTCMinutes()
+        seconds = timePart.getUTCSeconds()
+        ms = timePart.getUTCMilliseconds()
+    } else {
+        // plain "HH:mm" or "HH:mm:ss"
+        const parts = timeStr.split(':').map(Number);
+        [hours, minutes, seconds = 0] = parts
+    }
+
+    const combined = new Date(Date.UTC(
+        datePart.getUTCFullYear(),
+        datePart.getUTCMonth(),
+        datePart.getUTCDate(),
+        hours,
+        minutes,
+        seconds,
+        ms
+    ))
+
+    return combined
+}
+
 setInterval(() => {
     countdownTimer.tick()
     utcTimer.tick()
-    filterMatches()
+    // filterMatches()
     updateDateTime()
 }, 1000)
