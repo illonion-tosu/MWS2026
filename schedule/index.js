@@ -1,3 +1,7 @@
+import { initialiseOsuApi, getOsuApi } from "../_shared/core/apis.js"
+
+initialiseOsuApi()
+
 // DOM Elements
 const elements = {
     countdown: {
@@ -257,7 +261,7 @@ window.startUTCTimer = () => {
 // }
 
 // // Display matches
-// const matchDisplayContainerEl = document.getElementById("match-display-container")
+const matchDisplayContainerEl = document.getElementById("match-display-container")
 
 // /**
 //  * Clears the match display container and renders the current filtered matches,
@@ -292,17 +296,17 @@ function createMatchDisplay(match) {
     // Match Number
     const matchNumber = document.createElement("div")
     matchNumber.classList.add("match-number")
-    matchNumber.textContent = `MATCH ${match.id}`
+    matchNumber.textContent = `MATCH ${match.match_id}`
 
     // Match Time
-    let matchTime = new Date(match.matchTime)
+    let matchTime = new Date(match.combinedDateTime)
     const matchTimeDiv = document.createElement("div")
     matchTimeDiv.classList.add("match-time")
     matchTimeDiv.textContent = `${String(matchTime.getUTCHours()).padStart(2, "0")}:${String(matchTime.getUTCMinutes()).padStart(2, "0")} UTC`
 
     // Match Players
-    const player1 = createMatchPlayer(match.player1, 1)
-    const player2 = createMatchPlayer(match.player2, 2)
+    const player1 = createMatchPlayer(match.player1_id, 1)
+    const player2 = createMatchPlayer(match.player2_id, 2)
 
     // Match Vs
     const matchVs = document.createElement("div")
@@ -315,28 +319,28 @@ function createMatchDisplay(match) {
     return matchDisplay
 }
 
-// /**
-//  * Creates an image element for a match player using their osu! avatar
-//  * @param {number} playerId - The osu! user ID of the player
-//  * @param {1 | 2} playerNumber - The player's position in the match (1 or 2)
-//  * @returns {HTMLImageElement} The player image element
-//  */
-// function createMatchPlayer(playerId, playerNumber) {
-//     const matchPlayer = document.createElement("img")
-//     matchPlayer.classList.add("match-player", `match-player-${playerNumber}`)
-//     matchPlayer.setAttribute("src", `https://a.ppy.sh/${playerId}`)
-//     return matchPlayer
-// }
+/**
+ * Creates an image element for a match player using their osu! avatar
+ * @param {number} playerId - The osu! user ID of the player
+ * @param {1 | 2} playerNumber - The player's position in the match (1 or 2)
+ * @returns {HTMLImageElement} The player image element
+ */
+function createMatchPlayer(playerId, playerNumber) {
+    const matchPlayer = document.createElement("img")
+    matchPlayer.classList.add("match-player", `match-player-${playerNumber}`)
+    matchPlayer.setAttribute("src", `https://a.ppy.sh/${playerId}`)
+    return matchPlayer
+}
 
-// /**
-//  * Creates a separator element to be placed between match displays
-//  * @returns {HTMLDivElement} The separator element
-//  */
-// function createMatchSeparator() {
-//     const matchDisplaySeparator = document.createElement("div")
-//     matchDisplaySeparator.classList.add("match-display-separator")
-//     return matchDisplaySeparator
-// }
+/**
+ * Creates a separator element to be placed between match displays
+ * @returns {HTMLDivElement} The separator element
+ */
+function createMatchSeparator() {
+    const matchDisplaySeparator = document.createElement("div")
+    matchDisplaySeparator.classList.add("match-display-separator")
+    return matchDisplaySeparator
+}
 
 // Current Date and Time
 const currentDateEl = document.getElementById("current-date")
@@ -365,10 +369,10 @@ async function getMatches() {
     currentAllMatches = responseJson
 
     if (JSON.stringify(previousAllMatches) === JSON.stringify(currentAllMatches)) return
-    
-    previousAllMatches = currentAllMatches
-    allMatches = previousAllMatches
-        
+
+    previousAllMatches = JSON.parse(JSON.stringify(currentAllMatches))
+    allMatches = currentAllMatches
+
     for (let i = 0; i < allMatches.length; i++) {
         allMatches[i].combinedDateTime = combinedDateTime(allMatches[i].date, allMatches[i].time)
     }
@@ -380,11 +384,34 @@ async function getMatches() {
  */
 let currentFiltertedMatches = []
 let previousFilteredMatches = []
-function filterMatches() {
+async function filterMatches() {
     currentFiltertedMatches = allMatches.filter(match => {
         return isNumeric(match.match_id) &&
             isLaterThan15MinutesAgo(match.combinedDateTime)
     })
+
+    if (JSON.stringify(previousFilteredMatches) === JSON.stringify(currentFiltertedMatches)) return
+
+    previousFilteredMatches = JSON.parse(JSON.stringify(currentFiltertedMatches))
+    currentFiltertedMatches = currentFiltertedMatches.sort((a, b) => a.combinedDateTime - b.combinedDateTime).slice(0, 3)
+
+    // API calls to get player names
+    for (let i = 0; i < currentFiltertedMatches.length; i++) {
+        const [response1, response2] = await Promise.all([
+            fetch(`https://osu.ppy.sh/api/get_user?k=${getOsuApi()}&u=${currentFiltertedMatches[i].player_a}`),
+            fetch(`https://osu.ppy.sh/api/get_user?k=${getOsuApi()}&u=${currentFiltertedMatches[i].player_b}`)
+        ])
+
+        const [response1Json, response2Json] = await Promise.all([
+            response1.json(),
+            response2.json()
+        ])
+
+        currentFiltertedMatches[i].player1_id = response1Json[0].user_id
+        currentFiltertedMatches[i].player2_id = response2Json[0].user_id
+        matchDisplayContainerEl.append(createMatchDisplay(currentFiltertedMatches[i]))
+        if (i !== createMatchSeparator.length - 1) matchDisplayContainerEl.append(createMatchSeparator())
+    }
 }
 
 /**
