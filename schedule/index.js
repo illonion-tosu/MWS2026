@@ -249,7 +249,7 @@ function createMatchDisplay(match) {
     let matchTime = new Date(match.combinedDateTime)
     const matchTimeDiv = document.createElement("div")
     matchTimeDiv.classList.add("match-time")
-    matchTimeDiv.textContent = `${String(matchTime.getUTCHours()).padStart(2, "0")}:${String(matchTime.getUTCMinutes()).padStart(2, "0")} UTC`
+    matchTimeDiv.textContent = `${matchTime.toLocaleString('en-US', { weekday: 'short' }).toUpperCase()} ${String(matchTime.getUTCHours()).padStart(2, "0")}:${String(matchTime.getUTCMinutes()).padStart(2, "0")} UTC`
 
     // Match Players
     const player1 = createMatchPlayer(match.player1_id, 1)
