@@ -1,4 +1,5 @@
 import { initialiseOsuApi, getOsuApi } from "../_shared/core/apis.js"
+import { loadBeatmaps } from "../_shared/core/beatmaps.js"
 
 initialiseOsuApi()
 
