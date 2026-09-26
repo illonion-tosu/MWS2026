@@ -24,6 +24,11 @@
     width: 400px;
 }
 
+/* Video */
+video {
+    position: absolute;
+}
+
 /* Upcoming Matches */
 .upcoming-matches {
     position: absolute;

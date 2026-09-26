@@ -181,7 +181,7 @@ socket.onmessage = async event => {
 
         // Animate score bars
         const scoreDelta = Math.abs(scores.redWinValue - scores.blueWinValue)
-        const scoreBarMaxWidth = 902
+        const scoreBarMaxWidth = 836
         let scoreBarRectangleWidth
         if (scores.comparisonMethod === "acc" || scores.comparisonMethod === "miss") {
             const scoreBarMaxDifference = 20

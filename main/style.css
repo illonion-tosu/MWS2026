@@ -1,7 +1,7 @@
 :root {
     --profile-picture-x: 71px;
     --player-details-x: 218px;
-    --gameplay-scene-x: 58px;
+    --gameplay-scene-x: 124px;
     --score-x: 975px;
 }
 
@@ -67,8 +67,8 @@
 .gameplay-scene {
     position: absolute;
     top: 204px;
-    width: 744px;
-    height: 558px;
+    width: 816px;
+    height: 615px;
     background-color: var(--chocolate-colour);
 }
 .left-gameplay-scene { left: var(--gameplay-scene-x); }
@@ -77,15 +77,16 @@
 /* Texts */
 .texts {
     position: absolute;
-    top: 740px;
-    left: 133px;
-    width: 1753px;
+    top: 813px;
+    left: 1000px;
+    transform: translate(-50%);
+    width: 1180px;
 }
 
 /* Score Bar */
 .score-bar {
     position: absolute;
-    top: 741px;
+    top: 802px;
     width: 800px;
     height: 37px;
 }
@@ -103,9 +104,9 @@
 /* Score */
 .score {
     position: absolute;
-    top: 794px;
+    top: 836px;
     font-family: Lexend, sans-serif;
-    font-size: 3rem;
+    font-size: 49px;
     font-weight: 400;
     color: var(--chocolate-colour);
     font-variant-numeric: tabular-nums;
@@ -191,7 +192,7 @@
     --height: 35px;
 
     position: absolute;
-    top: 955px;
+    top: 960px;
     font-family: Lexend, sans-serif;
     font-weight: 400;
     font-size: 1.25rem;
@@ -210,7 +211,7 @@
     bottom: 70px;
     right: 165px;
     width: 535px;
-    height: 215px;
+    height: 178px;
     opacity: 0;
     transition: 500ms ease-in-out;
 }

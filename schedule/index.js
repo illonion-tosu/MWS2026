@@ -1,4 +1,5 @@
 import { initialiseOsuApi, getOsuApi } from "../_shared/core/apis.js"
+import { loadBeatmaps } from "../_shared/core/beatmaps.js"
 
 initialiseOsuApi()
 
@@ -454,3 +455,12 @@ setInterval(() => {
     filterMatches()
     updateDateTime()
 }, 1000)
+
+// Matches
+const roundNameEl = document.getElementById("round-name")
+async function init() {
+    console.log("hello")
+    const beatmaps = await loadBeatmaps()
+    roundNameEl.textContent = beatmaps.roundName
+}
+init()

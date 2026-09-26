@@ -26,9 +26,16 @@
         <!-- Logo -->
         <img class="logo" src="static/logo.png">
 
+        <!-- Video -->
+        <video autoplay loop playsinline muted id="video">
+            <source src="static/video.mov" type="video/mov">
+            <source src="static/video.mp4" type="video/mp4">
+            <source src="static/video.webm" type="video/webm">
+        </video>
+
         <!-- Upcoming Matches -->
         <section class="upcoming-matches">
-            <div class="upcoming-matches-text">UPCOMIONG MATCHES</div>
+            <div class="upcoming-matches-text">UPCOMING MATCHES</div>
             <div class="match-display-container" id="match-display-container"></div>
         </section>
 
@@ -37,7 +44,7 @@
 
         <!-- Bottom Area -->
         <section class="bottom-section bottom-area">
-            <div class="round-name">Quarter Finals</div>
+            <div class="round-name" id="round-name">Quarter Finals</div>
             <div class="social-media-section">
                 <div class="social-media-container">
                     <img class="social-media-logo" src="static/socials/twitter.png">
@@ -82,6 +89,6 @@
         </div>
     </section>
 
-    <script src="index.js" type="module"></script>
+    <script type="module" src="index.js"></script>
 </body>
 </html>
