@@ -9,7 +9,7 @@ const recipeLogic = {
 
 const externalScoreLogic = {
     "acc": (p) => ({ ...p, winValue: p.accuracy, isAccWin: true, }),
-    "miss": (p) => ({ ...p, winValue: p.play.hits["0"], isAccWin: false, isMissWin: true })
+    "miss": (p) => ({ ...p, winValue: p.hits["0"], isAccWin: false, isMissWin: true })
 }
 
 // Map id from previous tournaments that have acc wincon
